@@ -1,0 +1,105 @@
+### *** means an option must be set
+### Any relative inside this file will be resolved based on the current working directory (PWD) .
+#######################################
+# You can include additional files.
+# !! Notice:
+# Any relative path inside an included file is resolved based on the file's location.
+# Default: []
+include = ["./themes/palettes.toml"]
+# Configuration priority order: profile.override_behaviour > runner.override_behaviour > behaviour
+[behaviour]
+# Whether to skip or overwrite an existing file or directory
+# Default: false (do not overwrite)
+overwrite_existed = false
+# If overwrite_existed is true, whether to back up an existing file or directory before overwriting
+# Default: true (perform backup)
+backup_existed = true
+# Whether to update existing symlinks
+# Default: true (update symlinks)
+update_symlink = true
+#Whether to stop when there is an error during executing commands
+#Default:false
+stop_at_commands_error = false
+
+[profiles.basic]
+#***
+#Source directory path
+source_path = "./."
+#***
+# Target directory path
+target_path = "$XDG_CONFIG_HOME"
+# Whether to create a symlink or copy the files
+# Default: symlink
+# Available options: symlink | copy
+mode = "symlink"
+# Only applicable in symlink mode
+# dir: link the entire directory
+# file: link individual files based on the relative path to the source directory
+# Available options: file | dir
+# Default: file (link individual files)
+unit = "file"
+# Exceptions to the default unit behavior
+# If unit is "file", then link the entire directory instead
+# If unit is "dir", then link all files inside the directory
+# Default: []
+exceptions = ["foo", "bar.conf"]
+# Directories or files to ignore
+# Default: []
+ignore = ["README.md"]
+# Whether to respect rules in `.gitignore`
+# Default: true (respect `.gitignore`)
+respect_gitignore = true
+# Files that will be linked to `/dev/null`
+# Relative path from target_path
+# Default: []
+null_files = []
+# Files that should be created as empty files
+# Relative path from target_path
+# Default: []
+empty_files = []
+# Environment variables for commands
+# Default: []
+environment = ["icon_theme=Catppuccin-Mocha"]
+# Commands to run before building the profile
+# Default: []
+pre_build_commands = [
+	'echo -e "Deploying dotfiles for $(whoami)@$(hostname) \n,using theme:$target_theme"',
+]
+# Commands to run after building the profile
+# Default: []
+post_build_commands = ['reboot']
+# Override global behaviour or runner behaviour
+# Default: {}
+override_behaviour = { overwrite_existed = true }
+
+# You can have a bunch of rules for extra files or directories
+# Notice: files or directories in extraRules won't be ignored from profile
+extra_rules = [
+	{ source_path = "./bar.conf", target_path = "bar.conf" },
+	#You can also override the default mode here
+	{ source_path = "./foo.conf", target_path = "foo.conf", mode = "copy" },
+]
+
+[runners.basic]
+#***
+# Profiles to execute
+profiles = ["basis", "defaultTheme"]
+# Environment variables for commands
+# Default: []
+environment = []
+# Commands to run before executing the runner
+# Default: []
+pre_build_commands = []
+# Commands to run after executing the runner
+# Default: []
+post_build_commands = []
+# Override global behaviour, same as profile override_behaviour
+# Default: {}
+override_behaviour = {}
+
+#TODO: impl this
+[palettes]
+base01 = "#000000"
+# ...
+base0F = "#BE5046"
+extra01 = "#97E8A699"
