@@ -1,0 +1,26 @@
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+pub struct Cli {
+    #[command(subcommand)]
+    pub command: Option<Commands>,
+    #[arg(short, long)]
+    pub path: Option<String>,
+}
+
+#[derive(Subcommand)]
+pub enum Commands {
+    Init {
+        #[arg(short, long)]
+        path: Option<String>,
+    },
+    #[command(arg_required_else_help = true)]
+    Run {
+        runner: String,
+        #[arg(short = 'n', long)]
+        dry_run: bool,
+        #[arg(short = 'v', long)]
+        verbose: bool,
+    },
+}
