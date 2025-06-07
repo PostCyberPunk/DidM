@@ -5,10 +5,12 @@ pub mod runner;
 pub use behaviour::Behaviour;
 pub use profile::Profile;
 pub use runner::Runner;
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct DidmConfig {
+    #[serde(skip)]
+    pub base_path: PathBuf,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub include: Vec<String>,
     #[serde(default, skip_serializing_if = "behaviour::is_default")]
@@ -16,9 +18,10 @@ pub struct DidmConfig {
     pub profiles: HashMap<String, Profile>,
     pub runners: HashMap<String, Runner>,
 }
-impl Default for DidmConfig {
-    fn default() -> Self {
+impl DidmConfig {
+    pub fn new(base_path: PathBuf) -> Self {
         DidmConfig {
+            base_path,
             include: Vec::new(),
             behaviour: Behaviour::default(),
             profiles: HashMap::from([("basic".to_string(), Profile::new())]),
