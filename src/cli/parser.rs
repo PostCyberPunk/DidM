@@ -5,6 +5,7 @@ use clap::{Parser, Subcommand};
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
+    //TODO: change all path to pathbuf directly
     #[arg(short, long)]
     pub path: Option<String>,
 }
@@ -24,5 +25,6 @@ pub enum Commands {
         dry_run: bool,
         #[arg(short = 'v', long)]
         verbose: bool,
+        //TODO: a preview tree will be nice
     },
 }

@@ -21,6 +21,7 @@ pub fn process() -> anyhow::Result<()> {
             );
         }
         None => {
+            let config_path = args.path.unwrap_or(String::from("./."));
             let configs = config::load_configs(&config_path)?;
             todo!(
                 "Start Tui with config path:{0}",

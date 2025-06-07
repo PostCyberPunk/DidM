@@ -4,6 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 
+//TODO: too many redundant resolve, maybe we should have RawPathHandler and PathHandler,get the
+//normal one from raw
 #[derive(Debug, Error)]
 pub enum PathError {
     #[error("Invalid path: {0}")]

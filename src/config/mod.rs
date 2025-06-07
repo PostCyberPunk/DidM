@@ -5,6 +5,10 @@ use std::fs;
 
 pub const CONFIG_FILE_NAME: &str = "didm.toml";
 
+//TODO: add validation for config,ie. check duplicated profiles
+//
+//TODO: add detailed error handling for load config
+
 pub fn load_config(path: &str) -> Result<DidmConfig> {
     let config_path = PathHandler::new(path).find_file(CONFIG_FILE_NAME)?;
     let content = fs::read_to_string(&config_path)?;
@@ -23,6 +27,7 @@ pub fn load_configs(path: &str) -> Result<Vec<DidmConfig>> {
     Ok(result)
 }
 
+//TODO: Save multiple configs
 pub fn save_config(cfg: &DidmConfig) -> Result<()> {
     let content = toml::to_string_pretty(cfg)?;
     fs::write(&cfg.base_path, content)?;
