@@ -12,12 +12,19 @@ pub fn process() -> anyhow::Result<()> {
             config::init_config(&config_path)?;
         }
         Some(Commands::Run { runner, .. }) => {
-            config::load_config(&config_path)?;
-            todo!("Run Runner:{0} with config path:{1}", runner, config_path);
+            let configs = config::load_configs(&config_path)?;
+            todo!(
+                "Run Runner:{0} with config path:{1}",
+                runner,
+                configs.first().unwrap().base_path.to_string_lossy()
+            );
         }
         None => {
-            config::load_config(&config_path)?;
-            todo!("Start Tui")
+            let configs = config::load_configs(&config_path)?;
+            todo!(
+                "Start Tui with config path:{0}",
+                configs.first().unwrap().base_path.to_string_lossy()
+            );
         }
     }
     Ok(())

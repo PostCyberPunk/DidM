@@ -12,6 +12,16 @@ pub fn load_config(path: &str) -> Result<DidmConfig> {
     config.base_path = config_path;
     Ok(config)
 }
+pub fn load_configs(path: &str) -> Result<Vec<DidmConfig>> {
+    let base_config = load_config(path)?;
+    let mut result = base_config
+        .include
+        .iter()
+        .map(|path| load_config(path))
+        .collect::<Result<Vec<DidmConfig>, _>>()?;
+    result.insert(0, base_config);
+    Ok(result)
+}
 
 pub fn save_config(cfg: &DidmConfig) -> Result<()> {
     let content = toml::to_string_pretty(cfg)?;
