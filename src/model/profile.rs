@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::model::behaviour::Behaviour;
 use serde::{Deserialize, Serialize};
 
@@ -23,8 +25,6 @@ pub struct Profile {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub empty_files: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub environment: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub pre_build_commands: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub post_build_commands: Vec<String>,
@@ -32,6 +32,8 @@ pub struct Profile {
     pub override_behaviour: Option<Behaviour>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub extra_rules: Vec<ExtraRuleEntry>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub environment: HashMap<String, String>,
 }
 impl Profile {
     pub fn new() -> Self {

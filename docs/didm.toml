@@ -57,9 +57,6 @@ null_files = []
 # Relative path from target_path
 # Default: []
 empty_files = []
-# Environment variables for commands
-# Default: []
-environment = ["icon_theme=Catppuccin-Mocha"]
 # Commands to run before building the profile
 # Default: []
 pre_build_commands = [
@@ -79,23 +76,31 @@ extra_rules = [
 	#You can also override the default mode here
 	{ source_path = "./foo.conf", target_path = "foo.conf", mode = "copy" },
 ]
+# Environment variables for commands
+# Default: {}
+# if you have multiple variables you can do this:
+# NOTICE:ALWAYS PUT THIS IN THE END OF A SECTION!
+# [profiles.basic.environment]
+# "icon_theme" = "Catppuccin-Mocha"
+# "foo" = "bar"
+environment = { "icon_theme" = "Catppuccin-Mocha" }
 
 [runners.basic]
 #***
 # Profiles to execute
 profiles = ["basis", "defaultTheme"]
-# Environment variables for commands
-# Default: []
-environment = []
 # Commands to run before executing the runner
 # Default: []
 pre_build_commands = []
 # Commands to run after executing the runner
 # Default: []
 post_build_commands = []
-# Override global behaviour, same as profile override_behaviour
+# Override global behaviour
 # Default: {}
 override_behaviour = {}
+# Environment variables for commands
+# Default: []
+environment = []
 
 #TODO: impl this
 [palettes]
