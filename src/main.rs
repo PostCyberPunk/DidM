@@ -4,6 +4,7 @@ mod config;
 mod log;
 mod model;
 mod path;
+mod plan;
 
 fn main() -> anyhow::Result<()> {
     cli::process()
