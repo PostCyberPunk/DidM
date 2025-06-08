@@ -13,8 +13,8 @@ pub struct DidmConfig {
     pub base_path: PathBuf,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub include: Vec<String>,
-    #[serde(default, skip_serializing_if = "behaviour::is_default")]
-    pub behaviour: Behaviour,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub behaviour: Option<Behaviour>,
     pub profiles: HashMap<String, Profile>,
     pub runners: HashMap<String, Runner>,
 }
@@ -23,7 +23,7 @@ impl DidmConfig {
         DidmConfig {
             base_path,
             include: Vec::new(),
-            behaviour: Behaviour::default(),
+            behaviour: None,
             profiles: HashMap::from([("basic".to_string(), Profile::new())]),
             runners: HashMap::from([(
                 "basic".to_string(),
