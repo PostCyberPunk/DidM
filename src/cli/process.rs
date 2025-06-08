@@ -6,12 +6,13 @@ use clap::Parser;
 pub fn process() -> anyhow::Result<()> {
     let args = Cli::parse();
 
-    let config_path = args.path.unwrap_or(String::from("./."));
     match &args.command {
-        Some(Commands::Init { .. }) => {
+        Some(Commands::Init { path, .. }) => {
+            let config_path = path.clone().unwrap_or(String::from("./."));
             config::init_config(&config_path)?;
         }
-        Some(Commands::Run { runner, .. }) => {
+        Some(Commands::Run { runner, path, .. }) => {
+            let config_path = path.clone().unwrap_or(String::from("./."));
             let configs = config::load_configs(&config_path)?;
             todo!(
                 "Run Runner:{0} with config path:{1}",

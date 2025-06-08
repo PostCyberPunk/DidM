@@ -17,6 +17,8 @@ pub enum Commands {
     },
     #[command(arg_required_else_help = true)]
     Run {
+        #[arg(short, long)]
+        path: Option<String>,
         runner: String,
         #[arg(short = 'n', long)]
         dry_run: bool,
