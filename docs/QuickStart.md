@@ -26,11 +26,11 @@ With a minimal configuration like this:
 source_path = "~/myDotfiles"
 target_path = "$XDG_CONFIG_HOME"
 
-[runners.basic]
+[plans.basic]
 profiles = ["all"]
 ```
 
-Running `didm run basic` inside the `myDotfiles` directory results in:
+Running `didm deploy basic` inside the `myDotfiles` directory results in:
 
 ```
 ~/.config
@@ -57,7 +57,7 @@ This makes it easy to manage dotfiles using Git.
 include = ["./themes/palettes.toml"]
 
 # Configuration priority order:
-# profile.override_behaviour > runner.override_behaviour > behaviour
+# profile.override_behaviour > plan.override_behaviour > behaviour
 [behaviour]
 # Whether to overwrite an existing file or directory.
 # Default: false (do not overwrite)
@@ -130,7 +130,7 @@ pre_build_commands = [
 # Default: []
 post_build_commands = ['reboot']
 
-# Overrides global behavior or runner behavior.
+# Overrides global behavior or plan behavior.
 # Default: {}
 override_behaviour = { overwrite_existed = true }
 
@@ -149,27 +149,27 @@ extra_rules = [
 # "foo" = "bar"
 environment = { "icon_theme" = "Catppuccin-Mocha" }
 
-[runners.basic]
+[plans.basic]
 #***
 # Profiles to execute
 profiles = ["basic", "defaultTheme"]
 
-# Commands to run before executing the runner.
+# Commands to run before deploying the plan.
 pre_build_commands = []
 
-# Commands to run after executing the runner.
+# Commands to run after deploying the plan.
 post_build_commands = []
 
 # Overrides global behavior.
 override_behaviour = {}
 
-# Environment variables for runner commands.
+# Environment variables for plan commands.
 environment = []
 ```
 
 ## Advice
 
-1. Use a main configuration file to define your primary profiles and runners. Separate detailed settings into separate included files for better organization.
+1. Use a main configuration file to define your primary profiles and plans. Separate detailed settings into separate included files for better organization.
 2. Avoid nested included files, as this can cause issues. Instead, place configuration files outside your source directory and organize them into separate folders.
 
 ## Upcoming Features
@@ -185,7 +185,7 @@ First, define a color palette:
 source_path = "~/myDotfiles"
 target_path = "$XDG_CONFIG_HOME"
 
-[runners.basic]
+[plans.basic]
 profiles = ["all"]
 
 [palettes.my_palette]
@@ -202,7 +202,7 @@ Then, mark colors in your configuration files:
 @define-color base   $<didm_color_base01_hex>;
 ```
 
-Running `didm run some_runner --colorpalette my_palette` will replace variables in a copy of the relevant files and then link them to the target location.
+Running `didm deploy some_plan --colorpalette my_palette` will replace variables in a copy of the relevant files and then link them to the target location.
 
 ```css
 /* ~/.config/waybar/style.css */
@@ -231,7 +231,7 @@ Organize files accordingly:
     └── hyprland.conf
 ```
 
-Running `didm run some_runner --switch laptop` will result in:
+Running `didm deploy some_plan --switch laptop` will result in:
 
 ```
 ~/.config

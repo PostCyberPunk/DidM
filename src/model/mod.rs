@@ -1,10 +1,10 @@
 pub mod behaviour;
+pub mod plan;
 pub mod profile;
-pub mod runner;
 
 pub use behaviour::Behaviour;
+pub use plan::Plan;
 pub use profile::Profile;
-pub use runner::Runner;
 use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -16,7 +16,7 @@ pub struct DidmConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub behaviour: Option<Behaviour>,
     pub profiles: HashMap<String, Profile>,
-    pub runners: HashMap<String, Runner>,
+    pub plans: HashMap<String, Plan>,
 }
 impl DidmConfig {
     pub fn new(base_path: PathBuf) -> Self {
@@ -25,9 +25,9 @@ impl DidmConfig {
             include: Vec::new(),
             behaviour: None,
             profiles: HashMap::from([("basic".to_string(), Profile::new())]),
-            runners: HashMap::from([(
+            plans: HashMap::from([(
                 "basic".to_string(),
-                Runner {
+                Plan {
                     profiles: vec!["basic".to_string()],
                     ..Default::default()
                 },

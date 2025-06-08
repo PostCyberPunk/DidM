@@ -6,7 +6,7 @@
 # Any relative path inside an included file is resolved based on the file's location.
 # Default: []
 include = ["./themes/palettes.toml"]
-# Configuration priority order: profile.override_behaviour > runner.override_behaviour > behaviour
+# Configuration priority order: profile.override_behaviour > plan.override_behaviour > behaviour
 [behaviour]
 # Whether to skip or overwrite an existing file or directory
 # Default: false (do not overwrite)
@@ -57,15 +57,15 @@ null_files = []
 # Relative path from target_path
 # Default: []
 empty_files = []
-# Commands to run before building the profile
+# Commands to run before applying the profile
 # Default: []
 pre_build_commands = [
 	'echo -e "Deploying dotfiles for $(whoami)@$(hostname) \n,using theme:$target_theme"',
 ]
-# Commands to run after building the profile
+# Commands to run after applying the profile
 # Default: []
 post_build_commands = ['reboot']
-# Override global behaviour or runner behaviour
+# Override global behaviour or plan behaviour
 # Default: {}
 override_behaviour = { overwrite_existed = true }
 
@@ -85,14 +85,14 @@ extra_rules = [
 # "foo" = "bar"
 environment = { "icon_theme" = "Catppuccin-Mocha" }
 
-[runners.basic]
+[plans.basic]
 #***
 # Profiles to execute
 profiles = ["basis", "defaultTheme"]
-# Commands to run before executing the runner
+# Commands to run before deploying the plan
 # Default: []
 pre_build_commands = []
-# Commands to run after executing the runner
+# Commands to run after deploying the plan
 # Default: []
 post_build_commands = []
 # Override global behaviour

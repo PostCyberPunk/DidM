@@ -4,7 +4,7 @@ use crate::model::behaviour::Behaviour;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct Runner {
+pub struct Plan {
     pub profiles: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub pre_build_commands: Vec<String>,

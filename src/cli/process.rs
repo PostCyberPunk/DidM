@@ -11,12 +11,12 @@ pub fn process() -> anyhow::Result<()> {
             let config_path = path.clone().unwrap_or(String::from("./."));
             config::init_config(&config_path)?;
         }
-        Some(Commands::Run { runner, path, .. }) => {
+        Some(Commands::Deploy { plan, path, .. }) => {
             let config_path = path.clone().unwrap_or(String::from("./."));
             let configs = config::load_configs(&config_path)?;
             todo!(
-                "Run Runner:{0} with config path:{1}",
-                runner,
+                "Deplaoy Plan:{0} with config path:{1}",
+                plan,
                 configs.first().unwrap().base_path.to_string_lossy()
             );
         }

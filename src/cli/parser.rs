@@ -17,10 +17,10 @@ pub enum Commands {
         path: Option<String>,
     },
     #[command(arg_required_else_help = true)]
-    Run {
+    Deploy {
         #[arg(short, long)]
         path: Option<String>,
-        runner: String,
+        plan: String,
         #[arg(short = 'n', long)]
         dry_run: bool,
         #[arg(short = 'v', long)]
