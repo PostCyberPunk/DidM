@@ -1,6 +1,7 @@
 mod cli;
 mod commands;
 mod config;
+mod log;
 mod model;
 mod path;
 
