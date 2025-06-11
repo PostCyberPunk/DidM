@@ -22,6 +22,9 @@ impl Default for Behaviour {
     }
 }
 impl Behaviour {
+    pub fn should_backup(&self) -> bool {
+        self.backup_existed.unwrap_or(true) && self.overwrite_existed.unwrap_or(false)
+    }
     pub fn patch(&self) -> Self {
         let other = &Behaviour::default();
         Behaviour {

@@ -32,6 +32,8 @@ pub struct Profile {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub post_build_commands: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub commands_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub override_behaviour: Option<Behaviour>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub extra_rules: Vec<ExtraRuleEntry>,
