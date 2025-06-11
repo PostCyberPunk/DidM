@@ -8,6 +8,8 @@ pub struct Cli {
     //TODO: change all path to pathbuf directly
     #[arg(short, long)]
     pub path: Option<String>,
+    #[arg(long)]
+    pub debug: bool,
 }
 
 #[derive(Subcommand)]

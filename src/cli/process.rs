@@ -27,12 +27,12 @@ pub fn process() -> anyhow::Result<()> {
                 is_verbose: *verbose,
             };
             let mut logger = Logger::new();
-            let std_level = if *verbose {
-                LogLevel::Info
-            } else {
-                LogLevel::Warn
+            let std_log_level = match (*verbose, args.debug) {
+                (_, true) => LogLevel::Debug,
+                (true, false) => LogLevel::Info,
+                (false, false) => LogLevel::Warn,
             };
-            logger.add_target(StdoutLogTarget::new(std_level));
+            logger.add_target(StdoutLogTarget::new(std_log_level));
             PlanContext::new(plan_name, &configs, &plan_args, &logger)
                 .context(format!("Plan init failed:{}", plan_name))?
                 .deploy()
