@@ -1,10 +1,8 @@
 use super::parser::{Cli, Commands};
 use crate::log::LogLevel;
-use crate::plan;
 use crate::{
     config,
-    log::{Logger, StdoutLogTarget, logger},
-    model::Plan,
+    log::{Logger, StdoutLogTarget},
     plan::{PlanArgs, PlanContext},
 };
 use anyhow::{Context, Ok};
