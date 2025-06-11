@@ -2,18 +2,12 @@ use std::path::PathBuf;
 
 use super::args::PlanArgs;
 use super::error::PlanError;
-use crate::model::{Behaviour, DidmConfig, Plan, Profile, behaviour::Meger};
+use crate::model::{Behaviour, DidmConfig, Plan, Profile, behaviour};
 use crate::{commands::CommandsContext, log::Logger};
 use anyhow::Result;
 
-pub struct ProfileContext<'a> {
-    pub profile: Profile,
-    pub base_path: &'a PathBuf,
-    pub behaviour: Behaviour,
-    pub args: PlanArgs,
-}
-
 pub struct PlanContext<'a> {
+    pub configs: &'a [DidmConfig],
     pub plan: &'a Plan,
     pub commands_path: PathBuf,
     pub profiles: Vec<(&'a Profile, usize)>,
@@ -29,9 +23,10 @@ impl<'a> PlanContext<'a> {
         args: &'a PlanArgs,
         logger: &'a Logger,
     ) -> Result<Self> {
+        logger.info(&format!("Deploying plan : {} ...", plan_name));
         let plan = find_plan(plan_name, configs)?;
         let profiles = get_profiles(plan, configs)?;
-        let behaviour = Meger(&configs[0].behaviour, &plan.override_behaviour);
+        let behaviour = behaviour::Meger(&configs[0].behaviour, &plan.override_behaviour);
 
         let base_path = &configs[0].base_path;
         let commands_path = match &plan.commands_path {
@@ -40,6 +35,7 @@ impl<'a> PlanContext<'a> {
             None => base_path.clone(),
         };
         Ok(PlanContext {
+            configs,
             plan,
             profiles,
             commands_path,
@@ -50,7 +46,6 @@ impl<'a> PlanContext<'a> {
     }
     pub fn deploy(&self) -> Result<()> {
         let logger = self.logger;
-        logger.info("Deploying ...");
         let plan = self.plan;
         let envrironment = &plan.environment;
         let args = self.args;
@@ -62,10 +57,15 @@ impl<'a> PlanContext<'a> {
             args,
             stop_at_commands_error,
         };
-        logger.info("Executing pre-build-commands ...");
-        cmds_ctx.run(&plan.pre_build_commands)?;
-        logger.info("Executing post-build-commands ...");
-        cmds_ctx.run(&plan.post_build_commands)?;
+        if !&plan.pre_build_commands.is_empty() {
+            logger.info("Executing pre-plan-commands ...");
+            cmds_ctx.run(&plan.pre_build_commands)?;
+        }
+
+        if !&plan.post_build_commands.is_empty() {
+            logger.info("Executing post-plan-commands ...");
+            cmds_ctx.run(&plan.post_build_commands)?;
+        }
         Ok(())
     }
 }

@@ -35,6 +35,7 @@ impl<'a> CommandsContext<'a> {
         let logger = self.logger;
         let environment = self.environment;
         let path = self.path;
+        logger.debug(&format!("command path {}", path.display()));
         for cmd in cmds {
             logger.info(&format!("Executing: {}", cmd));
 
@@ -70,7 +71,7 @@ impl<'a> CommandsContext<'a> {
                             return Err(anyhow!("Command execution failed:{}", cmd));
                         }
                     } else {
-                        logger.info(&format!("Command execution success: {}", cmd));
+                        logger.info("Command execution success");
                     }
                 }
                 Err(e) => {

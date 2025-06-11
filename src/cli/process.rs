@@ -34,8 +34,9 @@ pub fn process() -> anyhow::Result<()> {
             };
             logger.add_target(StdoutLogTarget::new(std_level));
             PlanContext::new(plan_name, &configs, &plan_args, &logger)
-                .context(format!("Plan:{}", plan_name))?
-                .deploy()?;
+                .context(format!("Plan init failed:{}", plan_name))?
+                .deploy()
+                .context(format!("Plan deploy failed:{}", plan_name))?;
         }
         None => {
             let configs = config::load_configs(args.path.as_deref())?;
