@@ -15,4 +15,5 @@ toml = "0.8.22"
 walkdir = "2.5.0"
 ignore = "0.4.23"
 thiserror = "2.0.12"
+crossbeam = "0.8.4"
 # tokio = { version = "1.45.1" }
