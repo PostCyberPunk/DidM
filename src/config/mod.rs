@@ -1,5 +1,5 @@
 use crate::model::DidmConfig;
-use crate::path::RawPathHandler;
+use crate::path::PathHandler;
 use anyhow::Result;
 use std::fs;
 
@@ -9,16 +9,14 @@ pub const CONFIG_FILE_NAME: &str = "didm.toml";
 //
 //TODO: add detailed error handling for load config
 
-pub fn load_config(path: Option<&str>) -> Result<DidmConfig> {
-    let config_path = RawPathHandler::new(path)
-        .resolve()?
-        .find_file(CONFIG_FILE_NAME)?;
+pub fn load_config(path: &str) -> Result<DidmConfig> {
+    let config_path = PathHandler::new(path).find_file(CONFIG_FILE_NAME)?;
     let content = fs::read_to_string(&config_path)?;
     let mut config: DidmConfig = toml::from_str(&content)?;
     config.base_path = config_path;
     Ok(config)
 }
-pub fn load_configs(path: Option<&str>) -> Result<Vec<DidmConfig>> {
+pub fn load_configs(path: &str) -> Result<Vec<DidmConfig>> {
     let base_config = load_config(path)?;
     let mut result = base_config
         .include
@@ -36,10 +34,8 @@ pub fn save_config(cfg: &DidmConfig) -> Result<()> {
     Ok(())
 }
 
-pub fn init_config(path: Option<&str>) -> Result<()> {
-    let config_path = RawPathHandler::new(path)
-        .resolve()?
-        .find_file_or_ok(CONFIG_FILE_NAME)?;
+pub fn init_config(path: &str) -> Result<()> {
+    let config_path = PathHandler::new(path).find_file_or_ok(CONFIG_FILE_NAME)?;
     let cfg = DidmConfig::new(config_path);
     save_config(&cfg)
 }

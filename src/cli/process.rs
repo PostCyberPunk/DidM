@@ -15,7 +15,8 @@ pub fn process() -> anyhow::Result<()> {
 
     match &args.command {
         Some(Commands::Init { path, .. }) => {
-            config::init_config(path)?;
+            let config_path = path.clone().unwrap_or(String::from("./."));
+            config::init_config(&config_path)?;
         }
         Some(Commands::Deploy {
             plan_name,
