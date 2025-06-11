@@ -3,7 +3,11 @@ use std::path::PathBuf;
 use super::args::PlanArgs;
 use super::error::PlanError;
 use crate::model::{Behaviour, DidmConfig, Plan, Profile, behaviour};
-use crate::{commands::CommandsContext, log::Logger};
+use crate::path::PathBufExtension;
+use crate::{
+    commands::{CommandsContext, CommandsRunner},
+    log::Logger,
+};
 use anyhow::Result;
 
 pub struct PlanContext<'a> {
@@ -31,7 +35,7 @@ impl<'a> PlanContext<'a> {
         let base_path = &configs[0].base_path;
         let commands_path = match &plan.commands_path {
             //FIX:this only accept relative path
-            Some(dir) => base_path.join(dir),
+            Some(dir) => base_path.join(dir).resolve()?,
             None => base_path.clone(),
         };
         Ok(PlanContext {
@@ -50,22 +54,20 @@ impl<'a> PlanContext<'a> {
         let envrironment = &plan.environment;
         let args = self.args;
         let stop_at_commands_error = self.behaviour.stop_at_commands_error.unwrap();
-        let cmds_ctx = CommandsContext {
-            environment: envrironment,
-            path: &self.commands_path,
-            logger,
-            args,
-            stop_at_commands_error,
-        };
-        if !&plan.pre_build_commands.is_empty() {
-            logger.info("Executing pre-plan-commands ...");
-            cmds_ctx.run(&plan.pre_build_commands)?;
-        }
+        let cmds_runner = CommandsRunner::new(
+            CommandsContext {
+                environment: envrironment,
+                path: &self.commands_path,
+                logger,
+                args,
+                stop_at_commands_error,
+            },
+            &plan.pre_build_commands,
+            &plan.post_build_commands,
+        );
+        cmds_runner.run_pre_commands()?;
 
-        if !&plan.post_build_commands.is_empty() {
-            logger.info("Executing post-plan-commands ...");
-            cmds_ctx.run(&plan.post_build_commands)?;
-        }
+        cmds_runner.run_post_commands()?;
         Ok(())
     }
 }

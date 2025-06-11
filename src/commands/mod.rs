@@ -85,3 +85,35 @@ impl<'a> CommandsContext<'a> {
         Ok(())
     }
 }
+pub struct CommandsRunner<'a> {
+    pub pre_commands: &'a Vec<String>,
+    pub post_commands: &'a Vec<String>,
+    pub context: CommandsContext<'a>,
+}
+impl<'a> CommandsRunner<'a> {
+    pub fn new(
+        context: CommandsContext<'a>,
+        pre_commands: &'a Vec<String>,
+        post_commands: &'a Vec<String>,
+    ) -> Self {
+        Self {
+            pre_commands,
+            post_commands,
+            context,
+        }
+    }
+    pub fn run_pre_commands(&self) -> Result<()> {
+        if self.pre_commands.is_empty() {
+            return Ok(());
+        }
+        self.context.logger.info("Running pre commands");
+        self.context.run(self.pre_commands)
+    }
+    pub fn run_post_commands(&self) -> Result<()> {
+        if self.post_commands.is_empty() {
+            return Ok(());
+        }
+        self.context.logger.info("Running post commands");
+        self.context.run(self.post_commands)
+    }
+}
