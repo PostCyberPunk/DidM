@@ -2,12 +2,14 @@
 use anyhow::{Result, anyhow};
 use std::collections::HashMap;
 use std::io;
+use std::path::PathBuf;
 use std::process::{Command, Output};
 
 use crate::log::Logger;
 use crate::plan::PlanArgs;
 pub struct CommandExecutor<'a> {
     pub environment: &'a HashMap<String, String>,
+    pub path: &'a PathBuf,
     pub command: &'a String,
 }
 
@@ -15,6 +17,7 @@ impl<'a> CommandExecutor<'a> {
     pub fn run(&self) -> io::Result<Output> {
         Command::new("sh")
             .envs(self.environment)
+            .current_dir(self.path)
             .arg("-c")
             .arg(self.command)
             .output()
@@ -22,6 +25,7 @@ impl<'a> CommandExecutor<'a> {
 }
 pub struct CommandsContext<'a> {
     pub environment: &'a HashMap<String, String>,
+    pub path: &'a PathBuf,
     pub logger: &'a Logger,
     pub args: &'a PlanArgs,
     pub stop_at_commands_error: bool,
@@ -30,6 +34,7 @@ impl<'a> CommandsContext<'a> {
     pub fn run(&self, cmds: &Vec<String>) -> Result<()> {
         let logger = self.logger;
         let environment = self.environment;
+        let path = self.path;
         for cmd in cmds {
             logger.info(&format!("Executing: {}", cmd));
 
@@ -40,6 +45,7 @@ impl<'a> CommandsContext<'a> {
 
             let executor = CommandExecutor {
                 environment,
+                path,
                 command: cmd,
             };
 

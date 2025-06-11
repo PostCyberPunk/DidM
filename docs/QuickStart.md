@@ -160,6 +160,11 @@ pre_build_commands = []
 # Commands to run after deploying the plan.
 post_build_commands = []
 
+#Where will the commands be executed
+#NOTICE: relative path will be resolved based on the main configuration directory
+# Default:the main configuration directory
+commands_path = ""
+
 # Overrides global behavior.
 override_behaviour = {}
 

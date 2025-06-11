@@ -15,6 +15,7 @@ pub struct ProfileContext<'a> {
 
 pub struct PlanContext<'a> {
     pub plan: &'a Plan,
+    pub commands_path: PathBuf,
     pub profiles: Vec<(&'a Profile, usize)>,
     pub behaviour: Behaviour,
     pub args: &'a PlanArgs,
@@ -32,9 +33,16 @@ impl<'a> PlanContext<'a> {
         let profiles = get_profiles(plan, configs)?;
         let behaviour = Meger(&configs[0].behaviour, &plan.override_behaviour);
 
+        let base_path = &configs[0].base_path;
+        let commands_path = match &plan.commands_path {
+            //FIX:this only accept relative path
+            Some(dir) => base_path.join(dir),
+            None => base_path.clone(),
+        };
         Ok(PlanContext {
             plan,
             profiles,
+            commands_path,
             behaviour,
             args,
             logger,
@@ -49,6 +57,7 @@ impl<'a> PlanContext<'a> {
         let stop_at_commands_error = self.behaviour.stop_at_commands_error.unwrap();
         let cmds_ctx = CommandsContext {
             environment: envrironment,
+            path: &self.commands_path,
             logger,
             args,
             stop_at_commands_error,
