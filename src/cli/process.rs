@@ -15,8 +15,7 @@ pub fn process() -> anyhow::Result<()> {
 
     match &args.command {
         Some(Commands::Init { path, .. }) => {
-            let config_path = path.clone().unwrap_or(String::from("./."));
-            config::init_config(&config_path)?;
+            config::init_config(path.as_deref())?;
         }
         Some(Commands::Deploy {
             plan_name,
@@ -24,8 +23,7 @@ pub fn process() -> anyhow::Result<()> {
             dry_run,
             verbose,
         }) => {
-            let config_path = path.clone().unwrap_or(String::from("./."));
-            let configs = config::load_configs(&config_path)?;
+            let configs = config::load_configs(path.as_deref())?;
             let plan_args = PlanArgs {
                 is_dry_run: *dry_run,
                 is_verbose: *verbose,
@@ -42,8 +40,7 @@ pub fn process() -> anyhow::Result<()> {
                 .deploy()?;
         }
         None => {
-            let config_path = args.path.unwrap_or(String::from("./."));
-            let configs = config::load_configs(&config_path)?;
+            let configs = config::load_configs(args.path.as_deref())?;
         }
     }
     Ok(())

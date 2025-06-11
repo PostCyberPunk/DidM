@@ -4,8 +4,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 
-//TODO: too many redundant resolve, maybe we should have RawPathHandler and PathHandler,get the
-//normal one from raw
 #[derive(Debug, Error)]
 pub enum PathError {
     #[error("Invalid path: {0}")]
@@ -14,89 +12,98 @@ pub enum PathError {
     #[error("Environment variable `{0}` is missing")]
     EnvVarMissing(String),
 
-    #[error("Failed to create directory: {0}")]
+    #[error("Failed to create parent directory: {0}")]
     CreateDirFailed(String),
 
     #[error("File {0} already existed in {1}")]
     FileExists(String, String),
 }
 
-pub struct PathHandler {
-    raw_path: String,
+//TODO: We have to remember to resolve the path before using it.
+//But, introduce a new struct that repsent the resolved path ,that does not feel right...
+pub trait PathBufExtension: Sized {
+    fn to_str_or_null(&self) -> &str
+    where
+        Self: AsRef<Path>,
+    {
+        self.as_ref().to_str().unwrap_or("")
+    }
+    fn to_string(&self) -> String
+    where
+        Self: AsRef<Path>,
+    {
+        self.as_ref().to_string_lossy().to_string()
+    }
+
+    fn resolve(self) -> Result<Self>;
+    fn expand_env_vars(self) -> Result<Self>;
+    fn expand_tilde(self) -> Self;
+
+    fn ensure_path_exists(&self) -> Result<&Self>;
+    fn find_file(&self, filename: &str) -> Result<Self>;
+    fn find_file_or_ok(&self, filename: &str) -> Result<Self>;
 }
 
-impl PathHandler {
-    pub fn new(path: &str) -> Self {
-        Self {
-            raw_path: path.to_string(),
+impl PathBufExtension for PathBuf {
+    fn resolve(self) -> Result<Self> {
+        let resolved = self.expand_tilde().expand_env_vars()?;
+        let raw_path = resolved.to_string();
+        if raw_path.contains("$") {
+            return Err(PathError::EnvVarMissing(raw_path).into());
         }
+        Ok(resolved)
     }
-    pub fn get_raw_path(&self) -> &str {
-        &self.raw_path
-    }
-    pub fn resolve(&self) -> Result<PathBuf> {
-        let expanded_path = self.expand_env_vars(&self.raw_path)?;
-        Ok(PathBuf::from(expanded_path))
-    }
-    pub fn get_absolute_path(&self) -> Result<PathBuf> {
-        let path_buf = self.resolve()?;
-        Ok(path_buf.canonicalize()?)
-    }
-
-    pub fn exists(&self) -> Result<bool> {
-        Ok(self.resolve()?.exists())
-    }
-
-    pub fn is_file(&self) -> Result<bool> {
-        Ok(self.resolve()?.is_file())
-    }
-
-    pub fn is_directory(&self) -> Result<bool> {
-        Ok(self.resolve()?.is_dir())
-    }
-
-    pub fn ensure_path_exists(&self) -> Result<PathBuf> {
-        let path_buf = self.resolve()?;
-        if !path_buf.exists() {
-            fs::create_dir_all(&path_buf).with_context(|| {
-                PathError::CreateDirFailed(path_buf.to_string_lossy().to_string())
-            })?;
+    fn expand_env_vars(mut self) -> Result<Self> {
+        let mut expanded = self.to_string();
+        if !expanded.contains("$") {
+            return Ok(self);
         }
-        Ok(path_buf)
+        for (key, value) in env::vars() {
+            let placeholder = format!("${}", key);
+            expanded = expanded.replace(&placeholder, &value);
+        }
+        self = PathBuf::from(expanded);
+        Ok(self)
+    }
+    fn expand_tilde(mut self) -> Self {
+        if let Some(path) = self.to_str() {
+            if path.starts_with("~") {
+                let home = env::var("HOME").unwrap_or_else(|_| ".".to_string());
+                self = PathBuf::from(path.replacen("~", &home, 1));
+            }
+        }
+        self
     }
 
-    pub fn find_file(&self, filename: &str) -> Result<PathBuf> {
-        let file_path = self.resolve()?.join(filename);
+    fn ensure_path_exists(&self) -> Result<&Self> {
+        if !self.exists() {
+            fs::create_dir_all(self)
+                .with_context(|| PathError::CreateDirFailed(self.to_string()))?;
+        }
+        Ok(self)
+    }
+
+    fn find_file(&self, filename: &str) -> Result<Self> {
+        let file_path = self.join(filename);
         if file_path.exists() {
             Ok(file_path)
         } else {
             Err(PathError::InvalidPath(format!(
                 "File '{}' not found in {}",
-                filename, self.raw_path
+                filename,
+                self.to_str_or_null()
             ))
             .into())
         }
     }
     // TODO: fix this shit...
     // NOTE: emm...that's a pretty fucked up name,and very bad practise
-    pub fn find_file_or_ok(&self, filename: &str) -> Result<PathBuf> {
-        let file_path = self.resolve()?.join(filename);
+    fn find_file_or_ok(&self, filename: &str) -> Result<Self> {
+        let file_path = self.join(filename);
         if file_path.exists() {
-            Err(PathError::FileExists(filename.to_string(), self.raw_path.to_string()).into())
+            Err(PathError::FileExists(filename.to_string(), self.to_string()).into())
         } else {
             Ok(file_path)
         }
-    }
-
-    fn expand_env_vars(&self, path: &str) -> Result<String> {
-        let mut expanded = path.to_string();
-        for (key, value) in env::vars() {
-            let placeholder = format!("${}", key);
-            expanded = expanded.replace(&placeholder, &value);
-        }
-        if expanded.contains("$") {
-            return Err(PathError::EnvVarMissing(expanded).into());
-        }
-        Ok(expanded)
     }
 }
