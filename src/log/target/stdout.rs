@@ -1,3 +1,5 @@
+use crossterm::style::Stylize;
+
 use super::LogTarget;
 use crate::log::level::LogLevel;
 
@@ -17,7 +19,7 @@ impl LogTarget for StdoutLogTarget {
     }
     fn log(&self, level: LogLevel, msg: &str) {
         if level <= self.min_level {
-            println!("[{}] {}", level.as_str(), msg);
+            println!("[{}] {}", level.as_str().with(level.color()), msg);
         }
     }
 }
