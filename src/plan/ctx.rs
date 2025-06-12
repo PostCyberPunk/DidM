@@ -71,36 +71,3 @@ impl<'a> PlanContext<'a> {
         Ok(())
     }
 }
-
-fn find_plan<'a>(plan_name: &str, configs: &'a [DidmConfig]) -> Result<&'a Plan> {
-    configs
-        .iter()
-        .find_map(|config| config.plans.get(plan_name)) // Gets a reference to Plan
-        .ok_or_else(|| PlanError::PlanNotFound.into()) // Handles error
-}
-
-fn get_profiles<'a>(
-    plan: &'a Plan,
-    configs: &'a [DidmConfig],
-) -> Result<Vec<(&'a Profile, usize)>> {
-    let profile_map: std::collections::HashMap<&str, (&Profile, usize)> = configs
-        .iter()
-        .enumerate()
-        .flat_map(|(idx, config)| {
-            config
-                .profiles
-                .iter()
-                .map(move |(name, profile)| (name.as_str(), (profile, idx)))
-        })
-        .collect();
-
-    plan.profiles
-        .iter()
-        .map(|profile_name| {
-            profile_map
-                .get(profile_name.as_str())
-                .ok_or_else(|| PlanError::ProfileNotFound(profile_name.to_string()).into())
-                .map(|&(profile, config_id)| (profile, config_id))
-        })
-        .collect()
-}
