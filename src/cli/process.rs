@@ -1,4 +1,5 @@
 use super::parser::{Cli, Commands};
+use crate::config::ConfigMap;
 use crate::log::LogLevel;
 use crate::{
     config,
@@ -22,6 +23,7 @@ pub fn process() -> anyhow::Result<()> {
             verbose,
         }) => {
             let configs = config::load_configs(path.as_deref())?;
+            let config_map = ConfigMap::new(&configs);
             let plan_args = PlanArgs {
                 is_dry_run: *dry_run,
                 is_verbose: *verbose,
@@ -33,7 +35,7 @@ pub fn process() -> anyhow::Result<()> {
                 (false, false) => LogLevel::Warn,
             };
             logger.add_target(StdoutLogTarget::new(std_log_level));
-            PlanContext::new(plan_name, &configs, &plan_args, &logger)
+            PlanContext::new(plan_name, &config_map, &plan_args, &logger)
                 .context(format!("Plan init failed:{}", plan_name))?
                 .deploy()
                 .context(format!("Plan deploy failed:{}", plan_name))?;

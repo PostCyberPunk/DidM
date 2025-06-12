@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use super::args::PlanArgs;
 use super::error::PlanError;
+use crate::config::ConfigMap;
 use crate::model::{Behaviour, DidmConfig, Plan, Profile, behaviour};
 use crate::path::PathBufExtension;
 use crate::{
@@ -11,10 +12,9 @@ use crate::{
 use anyhow::Result;
 
 pub struct PlanContext<'a> {
-    pub configs: &'a [DidmConfig],
     pub plan: &'a Plan,
     pub commands_path: PathBuf,
-    pub profiles: Vec<(&'a Profile, usize)>,
+    pub profiles: Vec<(&'a Profile, usize, &'a str)>,
     pub behaviour: Behaviour,
     pub args: &'a PlanArgs,
     pub logger: &'a Logger,
@@ -23,23 +23,23 @@ pub struct PlanContext<'a> {
 impl<'a> PlanContext<'a> {
     pub fn new(
         plan_name: &str,
-        configs: &'a [DidmConfig],
+        config_map: &'a ConfigMap,
         args: &'a PlanArgs,
         logger: &'a Logger,
     ) -> Result<Self> {
         logger.info(&format!("Deploying plan : {} ...", plan_name));
-        let plan = find_plan(plan_name, configs)?;
-        let profiles = get_profiles(plan, configs)?;
-        let behaviour = behaviour::Meger(&configs[0].behaviour, &plan.override_behaviour);
+        let main_config = config_map.main_config;
+        let plan = config_map.get_plan(plan_name)?;
+        let profiles = config_map.get_profiles(&plan.profiles)?;
+        let behaviour = behaviour::Meger(&main_config.behaviour, &plan.override_behaviour);
 
-        let base_path = &configs[0].base_path;
+        let base_path = &main_config.base_path;
         let commands_path = match &plan.commands_path {
             //FIX:this only accept relative path
             Some(dir) => base_path.join(dir).resolve()?,
             None => base_path.clone(),
         };
         Ok(PlanContext {
-            configs,
             plan,
             profiles,
             commands_path,
@@ -70,37 +70,4 @@ impl<'a> PlanContext<'a> {
         cmds_runner.run_post_commands()?;
         Ok(())
     }
-}
-
-fn find_plan<'a>(plan_name: &str, configs: &'a [DidmConfig]) -> Result<&'a Plan> {
-    configs
-        .iter()
-        .find_map(|config| config.plans.get(plan_name)) // Gets a reference to Plan
-        .ok_or_else(|| PlanError::PlanNotFound.into()) // Handles error
-}
-
-fn get_profiles<'a>(
-    plan: &'a Plan,
-    configs: &'a [DidmConfig],
-) -> Result<Vec<(&'a Profile, usize)>> {
-    let profile_map: std::collections::HashMap<&str, (&Profile, usize)> = configs
-        .iter()
-        .enumerate()
-        .flat_map(|(idx, config)| {
-            config
-                .profiles
-                .iter()
-                .map(move |(name, profile)| (name.as_str(), (profile, idx)))
-        })
-        .collect();
-
-    plan.profiles
-        .iter()
-        .map(|profile_name| {
-            profile_map
-                .get(profile_name.as_str())
-                .ok_or_else(|| PlanError::ProfileNotFound(profile_name.to_string()).into())
-                .map(|&(profile, config_id)| (profile, config_id))
-        })
-        .collect()
 }
