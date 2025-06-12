@@ -1,6 +1,8 @@
+mod map;
 use crate::model::DidmConfig;
 use crate::path::PathBufExtension;
 use anyhow::Result;
+pub use map::ConfigMap;
 use std::fs;
 use std::path::PathBuf;
 
