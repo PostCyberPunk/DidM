@@ -39,6 +39,7 @@ pub trait PathBufExtension: Sized {
     fn expand_env_vars(self) -> Result<Self>;
     fn expand_tilde(self) -> Self;
 
+    fn resolve_or_from(&self, path: &Option<String>) -> Result<PathBuf>;
     fn is_unresolved_absolute(&self) -> bool;
     fn resolved_from(self, base_path: &Path) -> Result<Self>;
 
@@ -95,6 +96,12 @@ impl PathBufExtension for PathBuf {
         // }
         // let resolved = self.resolve()?;
         // Ok(base_path.join(resolved))
+    }
+    fn resolve_or_from(&self, path: &Option<String>) -> Result<PathBuf> {
+        match path {
+            Some(dir) => PathBuf::from(dir).resolved_from(self),
+            None => Ok(self.clone()),
+        }
     }
 
     fn ensure_path_exists(&self) -> Result<&Self> {
