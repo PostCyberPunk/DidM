@@ -1,3 +1,4 @@
+use crossterm::style::Color;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LogLevel {
     Error,
@@ -13,6 +14,14 @@ impl LogLevel {
             LogLevel::Warn => "WARN",
             LogLevel::Info => "INFO",
             LogLevel::Debug => "DEBUG",
+        }
+    }
+    pub fn color(&self) -> Color {
+        match self {
+            LogLevel::Error => Color::Red,
+            LogLevel::Warn => Color::Yellow,
+            LogLevel::Info => Color::Blue,
+            LogLevel::Debug => Color::Green,
         }
     }
 }
