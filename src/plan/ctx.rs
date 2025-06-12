@@ -36,7 +36,7 @@ impl<'a> PlanContext<'a> {
         let base_path = &main_config.base_path;
         let commands_path = match &plan.commands_path {
             //FIX:this only accept relative path
-            Some(dir) => base_path.join(dir).resolve()?,
+            Some(dir) => PathBuf::from(dir).resolved_from(base_path)?,
             None => base_path.clone(),
         };
         Ok(PlanContext {
