@@ -34,11 +34,7 @@ impl<'a> PlanContext<'a> {
         let behaviour = behaviour::Meger(&main_config.behaviour, &plan.override_behaviour);
 
         let base_path = &main_config.base_path;
-        let commands_path = match &plan.commands_path {
-            //FIX:this only accept relative path
-            Some(dir) => base_path.join(dir).resolve()?,
-            None => base_path.clone(),
-        };
+        let commands_path = base_path.resolve_or_from(&plan.commands_path)?;
         Ok(PlanContext {
             plan,
             profiles,

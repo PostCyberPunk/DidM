@@ -39,6 +39,10 @@ pub trait PathBufExtension: Sized {
     fn expand_env_vars(self) -> Result<Self>;
     fn expand_tilde(self) -> Self;
 
+    fn resolve_or_from(&self, path: &Option<String>) -> Result<PathBuf>;
+    fn is_unresolved_absolute(&self) -> bool;
+    fn resolved_from(self, base_path: &Path) -> Result<Self>;
+
     fn ensure_path_exists(&self) -> Result<&Self>;
     fn find_file(&self, filename: &str) -> Result<Self>;
     fn find_file_or_ok(&self, filename: &str) -> Result<Self>;
@@ -73,6 +77,31 @@ impl PathBufExtension for PathBuf {
             }
         }
         self
+    }
+
+    fn is_unresolved_absolute(&self) -> bool {
+        self.starts_with("$") || self.starts_with("~") || self.is_absolute()
+    }
+    fn resolved_from(self, base_path: &Path) -> Result<Self> {
+        let resolved = self.resolve()?;
+        match resolved.is_absolute() {
+            true => Ok(resolved),
+            false => Ok(base_path.join(resolved)),
+        }
+        //PERF: I decide to fart with my pants off
+        //but this time ,linter feels good about it
+        //------------------------------------
+        // if self.is_unresolved_absolute() {
+        //     return self.resolve();
+        // }
+        // let resolved = self.resolve()?;
+        // Ok(base_path.join(resolved))
+    }
+    fn resolve_or_from(&self, path: &Option<String>) -> Result<PathBuf> {
+        match path {
+            Some(dir) => PathBuf::from(dir).resolved_from(self),
+            None => Ok(self.clone()),
+        }
     }
 
     fn ensure_path_exists(&self) -> Result<&Self> {
