@@ -89,10 +89,34 @@ impl<'a> ProfileContext<'a> {
         let entries = WalkerContext::new(profile, &source_root, logger)
             .get_walker()?
             .run()?;
+        //Genrate target entries and backup them
+        let entries: Vec<Option<(PathBuf, PathBuf)>> = entries
+            .into_iter()
+            .map(|entry| {
+                let relative_path = match entry.strip_prefix(&source_root) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        logger.warn(&format!("Invalid entry path: {}", e));
+                        return None;
+                    }
+                };
+                let p = target_root.clone().join(relative_path);
+                match backuper.backup(&p, relative_path, logger, || p.exists()) {
+                    Ok(_) => Some((entry, p)),
+                    Err(err) => {
+                        logger.warn(&format!(
+                            "Backup failed Skipping {},\n {}",
+                            p.display(),
+                            err
+                        ));
+                        None
+                    }
+                }
+            })
+            .collect();
+
         // TODO: apply entries
-        entries.iter().for_each(|entry| {
-            logger.debug(&format!("Entry: {}", entry.to_string()));
-        });
+
         //  TODO: empty_files、null_files、extra_rules
 
         cmds_runner.run_post_commands()?;
