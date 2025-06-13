@@ -62,7 +62,7 @@ impl<'a> Entries<'a> {
             return Ok(());
         }
         if !is_dryrun {
-            tgt.ensure_path_exists()?;
+            tgt.ensure_parent_exists()?;
         }
         match mode {
             Mode::Symlink => {

@@ -43,7 +43,7 @@ pub trait PathBufExtension: Sized {
     fn is_unresolved_absolute(&self) -> bool;
     fn resolved_from(self, base_path: &Path) -> Result<Self>;
 
-    fn ensure_path_exists(&self) -> Result<&Self>;
+    fn ensure_parent_exists(&self) -> Result<&Self>;
     fn find_file(&self, filename: &str) -> Result<Self>;
     fn find_file_or_ok(&self, filename: &str) -> Result<Self>;
 }
@@ -104,9 +104,9 @@ impl PathBufExtension for PathBuf {
         }
     }
 
-    fn ensure_path_exists(&self) -> Result<&Self> {
+    fn ensure_parent_exists(&self) -> Result<&Self> {
         if !self.exists() {
-            fs::create_dir_all(self)
+            fs::create_dir_all(self.parent().unwrap())
                 .with_context(|| PathError::CreateDirFailed(self.to_string()))?;
         }
         Ok(self)

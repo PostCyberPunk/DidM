@@ -77,7 +77,7 @@ impl Backuper {
         }
         if !self.is_dryrun {
             //REFT: impl this trait for path
-            dest.ensure_path_exists()?;
+            dest.ensure_parent_exists()?;
             fs::rename(src, dest)?;
         }
         logger.warn(&format!("Backup {} to {}", src.display(), dest.display()));
