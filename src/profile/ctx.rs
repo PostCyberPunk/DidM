@@ -1,14 +1,14 @@
 use super::Backuper;
+use super::entry::Entries;
 use super::walk::WalkerContext;
 use crate::commands::{CommandsContext, CommandsRunner};
 use crate::log::Logger;
-use crate::model::profile::{Mode, Unit};
+use crate::model::profile::Mode;
 use crate::model::{Behaviour, Profile};
 use crate::path::PathBufExtension;
 use crate::plan::{PlanArgs, PlanContext};
 use anyhow::{Context, Result};
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 pub struct ProfileContext<'a> {
     pub name: &'a str,
@@ -115,7 +115,15 @@ impl<'a> ProfileContext<'a> {
             })
             .collect();
 
-        // TODO: apply entries
+        let mut entries = Entries::new(
+            entries,
+            self.behaviour,
+            logger,
+            backuper,
+            &self.profile.mode,
+            self.args.is_dry_run,
+        );
+        entries.apple_entries()?;
 
         //  TODO: empty_files、null_files、extra_rules
 
@@ -124,35 +132,4 @@ impl<'a> ProfileContext<'a> {
         backuper.drop_ctx();
         Ok(())
     }
-}
-
-fn apply_entry(src: &Path, tgt: &Path, mode: &Mode, logger: &Logger) -> Result<()> {
-    match mode {
-        Mode::Symlink => {
-            let _ = std::fs::remove_file(tgt);
-            logger.info(&format!(
-                "Symlinking {} -> {}",
-                tgt.display(),
-                src.display()
-            ));
-            std::os::unix::fs::symlink(src, tgt)
-                .with_context(|| format!("symlink {:?} -> {:?}", src, tgt))?;
-        }
-        Mode::Copy => match src.is_dir() {
-            true => {
-                fs::create_dir_all(tgt)?;
-                for entry in fs::read_dir(src)? {
-                    let entry = entry?;
-                    let sub_src = entry.path();
-                    let sub_tgt = tgt.join(entry.file_name());
-                    apply_entry(&sub_src, &sub_tgt, mode, logger)?;
-                }
-            }
-            false => {
-                logger.info(&format!("Copying {} -> {}", tgt.display(), src.display()));
-                fs::copy(src, tgt)?;
-            }
-        },
-    }
-    Ok(())
 }
