@@ -12,6 +12,7 @@ use crate::path::PathBufExtension;
 pub struct Backuper {
     ctx: Option<BackuperContext>,
     base_dir: PathBuf,
+    is_dryrun: bool,
 }
 pub struct BackuperContext {
     normal_path: PathBuf,
@@ -21,7 +22,7 @@ pub struct BackuperContext {
 }
 
 impl Backuper {
-    pub fn init(path: PathBuf, plan_name: String) -> Result<Self> {
+    pub fn init(path: PathBuf, plan_name: String, is_dryrun: bool) -> Result<Self> {
         //REFT: this to to pathbuf ext
         match metadata(&path) {
             Ok(metadata) => {
@@ -45,6 +46,7 @@ impl Backuper {
         Ok(Self {
             ctx: None,
             base_dir,
+            is_dryrun,
         })
     }
     pub fn set_ctx(&mut self, prefix: String) {
@@ -69,12 +71,16 @@ impl Backuper {
     //         None => Err(BackupError::BackupContextIsNotSet.into()),
     //     }
     // }
-    fn do_backup(&self, src: &Path, dest: &Path, logger: &Logger) -> Result<()> {
+    fn do_backup(&self, src: &Path, dest: &PathBuf, logger: &Logger) -> Result<()> {
         if dest.exists() {
             return Err(BackupError::BackupExsisted(dest.display().to_string()).into());
         }
-        fs::rename(src, dest)?;
-        logger.info(&format!("Backup {} to {}", src.display(), dest.display()));
+        if !self.is_dryrun {
+            //REFT: impl this trait for path
+            dest.ensure_path_exists()?;
+            fs::rename(src, dest)?;
+        }
+        logger.warn(&format!("Backup {} to {}", src.display(), dest.display()));
         Ok(())
     }
     pub fn backup<F>(&self, src: &Path, relative: &Path, logger: &Logger, pred: F) -> Result<()>
@@ -89,7 +95,6 @@ impl Backuper {
             return Ok(());
         }
         let backup_path = ctx.normal_path.join(relative);
-        backup_path.ensure_path_exists()?;
 
         self.do_backup(src, &backup_path, logger)?;
         Ok(())

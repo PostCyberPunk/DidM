@@ -54,8 +54,11 @@ impl<'a> PlanContext<'a> {
         let envrironment = &plan.environment;
         let args = self.args;
         let stop_at_commands_error = self.behaviour.stop_at_commands_error.unwrap();
-        let mut backuper =
-            Backuper::init(self.configs[0].base_path.clone(), self.name.to_string())?;
+        let mut backuper = Backuper::init(
+            self.configs[0].base_path.clone(),
+            self.name.to_string(),
+            args.is_dry_run,
+        )?;
         let cmds_runner = CommandsRunner::new(
             CommandsContext {
                 environment: envrironment,
