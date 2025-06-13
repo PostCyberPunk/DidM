@@ -15,8 +15,9 @@ pub struct Backuper {
     is_dryrun: bool,
 }
 pub struct BackuperContext {
+    backup_symlink: bool,
     normal_path: PathBuf,
-    additional_path: PathBuf,
+    extra_path: PathBuf,
     empty_path: PathBuf,
     null_path: PathBuf,
 }
@@ -49,20 +50,24 @@ impl Backuper {
             is_dryrun,
         })
     }
-    pub fn set_ctx(&mut self, prefix: String) {
+    pub fn set_ctx(&mut self, prefix: String, backup_symlink: bool) {
         let base_dir = &self.base_dir.join(prefix);
         let normal_path = base_dir.join("normal");
-        let additional_path = base_dir.join("additional");
+        let extra_path = base_dir.join("extra");
         let empty_path = base_dir.join("empty");
         let null_path = base_dir.join("null");
         self.ctx = Some(BackuperContext {
             normal_path,
-            additional_path,
+            extra_path,
             empty_path,
             null_path,
+            backup_symlink,
         });
     }
-    pub fn drop_ctx(&mut self) {
+    pub fn drop_ctx(&mut self, logger: &Logger) {
+        if self.base_dir.exists() {
+            logger.warn(&format!("Backup created at :{}", self.base_dir.display()));
+        }
         self.ctx = None;
     }
     // fn get_ctx(&self) -> Result<&BackuperContext> {
@@ -77,10 +82,14 @@ impl Backuper {
         }
         if !self.is_dryrun {
             //REFT: impl this trait for path
-            dest.ensure_path_exists()?;
+            dest.ensure_parent_exists()?;
             fs::rename(src, dest)?;
         }
-        logger.warn(&format!("Backup {} to {}", src.display(), dest.display()));
+        logger.warn(&format!(
+            "Backup {} to\n        {}",
+            src.display(),
+            dest.display()
+        ));
         Ok(())
     }
     pub fn backup<F>(&self, src: &Path, relative: &Path, logger: &Logger, pred: F) -> Result<()>
@@ -92,6 +101,9 @@ impl Backuper {
             None => return Ok(()),
         };
         if !pred() {
+            return Ok(());
+        }
+        if src.is_symlink() && !ctx.backup_symlink {
             return Ok(());
         }
         let backup_path = ctx.normal_path.join(relative);

@@ -40,11 +40,11 @@ pub trait PathBufExtension: Sized {
     fn expand_tilde(self) -> Self;
 
     fn resolve_or_from(&self, path: &Option<String>) -> Result<PathBuf>;
-    fn is_unresolved_absolute(&self) -> bool;
+    // fn is_unresolved_absolute(&self) -> bool;
     fn resolved_from(self, base_path: &Path) -> Result<Self>;
 
-    fn ensure_path_exists(&self) -> Result<&Self>;
-    fn find_file(&self, filename: &str) -> Result<Self>;
+    fn ensure_parent_exists(&self) -> Result<&Self>;
+    // fn find_file(&self, filename: &str) -> Result<Self>;
     fn find_file_or_ok(&self, filename: &str) -> Result<Self>;
 }
 
@@ -79,9 +79,9 @@ impl PathBufExtension for PathBuf {
         self
     }
 
-    fn is_unresolved_absolute(&self) -> bool {
-        self.starts_with("$") || self.starts_with("~") || self.is_absolute()
-    }
+    // fn is_unresolved_absolute(&self) -> bool {
+    //     self.starts_with("$") || self.starts_with("~") || self.is_absolute()
+    // }
     fn resolved_from(self, base_path: &Path) -> Result<Self> {
         let resolved = self.resolve()?;
         match resolved.is_absolute() {
@@ -104,27 +104,27 @@ impl PathBufExtension for PathBuf {
         }
     }
 
-    fn ensure_path_exists(&self) -> Result<&Self> {
+    fn ensure_parent_exists(&self) -> Result<&Self> {
         if !self.exists() {
-            fs::create_dir_all(self)
+            fs::create_dir_all(self.parent().unwrap())
                 .with_context(|| PathError::CreateDirFailed(self.to_string()))?;
         }
         Ok(self)
     }
 
-    fn find_file(&self, filename: &str) -> Result<Self> {
-        let file_path = self.join(filename);
-        if file_path.exists() {
-            Ok(file_path)
-        } else {
-            Err(PathError::InvalidPath(format!(
-                "File '{}' not found in {}",
-                filename,
-                self.to_str_or_null()
-            ))
-            .into())
-        }
-    }
+    // fn find_file(&self, filename: &str) -> Result<Self> {
+    //     let file_path = self.join(filename);
+    //     if file_path.exists() {
+    //         Ok(file_path)
+    //     } else {
+    //         Err(PathError::InvalidPath(format!(
+    //             "File '{}' not found in {}",
+    //             filename,
+    //             self.to_str_or_null()
+    //         ))
+    //         .into())
+    //     }
+    // }
     // TODO: fix this shit...
     // NOTE: emm...that's a pretty fucked up name,and very bad practise
     fn find_file_or_ok(&self, filename: &str) -> Result<Self> {

@@ -62,7 +62,7 @@ impl<'a> Entries<'a> {
             return Ok(());
         }
         if !is_dryrun {
-            tgt.ensure_path_exists()?;
+            tgt.ensure_parent_exists()?;
         }
         match mode {
             Mode::Symlink => {
@@ -75,15 +75,17 @@ impl<'a> Entries<'a> {
                     }
                     //HACK: os specific
                     std::os::unix::fs::symlink(src, tgt)
-                        .with_context(|| format!("symlink {:?} -> {:?}", src, tgt))?;
+                        .with_context(|| format!("symlink {:?} ->\n        {:?}", src, tgt))?;
                 }
                 logger.info(&format!(
-                    "Symlinking {} -> {}",
+                    "Symlinking {} ->\n        {}",
                     tgt.display(),
                     src.display(),
                 ));
             }
             Mode::Copy => match src.is_dir() {
+                //TODO: should remove this,
+                //but maybe we could use this for switcher if swticher is a folder
                 true => {
                     //TODO:: use fs_extra?
                     if !is_dryrun {
@@ -106,7 +108,11 @@ impl<'a> Entries<'a> {
                         }
                         fs::copy(src, tgt)?;
                     }
-                    logger.info(&format!("Copied {} -> {}", tgt.display(), src.display()));
+                    logger.info(&format!(
+                        "Copied {} ->\n        {}",
+                        tgt.display(),
+                        src.display()
+                    ));
                 }
             },
         }

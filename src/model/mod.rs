@@ -41,6 +41,6 @@ fn is_true(val: &bool) -> bool {
 fn default_true() -> bool {
     true
 }
-fn is_false(val: &bool) -> bool {
-    !*val
-}
+// fn is_false(val: &bool) -> bool {
+//     !*val
+// }
