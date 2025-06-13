@@ -5,7 +5,7 @@ use crate::log::Logger;
 use crate::model::profile::{Mode, Unit};
 use crate::model::{Behaviour, Profile};
 use crate::path::PathBufExtension;
-use crate::plan::PlanArgs;
+use crate::plan::{PlanArgs, PlanContext};
 use anyhow::{Context, Result};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -26,12 +26,14 @@ impl<'a> ProfileContext<'a> {
         name: &'a str,
         idx: usize,
         profile: &'a Profile,
-        base_path: &'a PathBuf,
+        plan: &'a PlanContext,
         behaviour: &'a Behaviour,
         backuper: &'a mut Backuper,
-        args: &'a PlanArgs,
-        logger: &'a Logger,
     ) -> Self {
+        let args = plan.args;
+        let logger = plan.logger;
+        //TODO: use vec[path] to avoid get path from configs
+        let base_path = &plan.configs[idx].base_path;
         Self {
             name,
             idx,

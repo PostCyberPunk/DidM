@@ -72,22 +72,12 @@ impl<'a> PlanContext<'a> {
         // Apply profiles
         for (profile, idx, profile_name) in self.profiles.iter() {
             logger.info(&format!("Applying profile: {}", profile_name));
-            //TODO: use vec[path] to avoid get path from configs
-            let base_path = &self.configs[*idx].base_path;
             let behaviour = match &profile.override_behaviour {
                 Some(b) => &self.behaviour.override_by(b),
                 None => &self.behaviour,
             };
-            let mut profile_ctx = ProfileContext::new(
-                profile_name,
-                *idx,
-                profile,
-                base_path,
-                behaviour,
-                &mut backuper,
-                args,
-                logger,
-            );
+            let mut profile_ctx =
+                ProfileContext::new(profile_name, *idx, profile, self, behaviour, &mut backuper);
             profile_ctx
                 .apply()
                 .context(format!("Profile apply failed:{}", profile_name))?;
