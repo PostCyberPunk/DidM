@@ -63,7 +63,7 @@ impl<'a> ProfileContext<'a> {
         logger.info(&format!("Source path: {}", source_root.display(),));
         logger.info(&format!("Target path: {}", target_root.display()));
 
-        if self.behaviour.backup_existed.unwrap() {
+        if self.behaviour.should_backup() && self.profile.mode == Mode::Copy {
             let prefix = format!("profile_{}", self.name);
             backuper.set_ctx(prefix);
         }
