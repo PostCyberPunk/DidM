@@ -1,3 +1,4 @@
+use super::Backuper;
 use super::walk::WalkerContext;
 use crate::commands::{CommandsContext, CommandsRunner};
 use crate::log::Logger;
@@ -15,6 +16,7 @@ pub struct ProfileContext<'a> {
     pub profile: &'a Profile,
     pub base_path: &'a PathBuf,
     pub behaviour: &'a Behaviour,
+    pub backuper: &'a mut Backuper,
     pub args: &'a PlanArgs,
     pub logger: &'a Logger,
 }
@@ -26,6 +28,7 @@ impl<'a> ProfileContext<'a> {
         profile: &'a Profile,
         base_path: &'a PathBuf,
         behaviour: &'a Behaviour,
+        backuper: &'a mut Backuper,
         args: &'a PlanArgs,
         logger: &'a Logger,
     ) -> Self {
@@ -35,14 +38,16 @@ impl<'a> ProfileContext<'a> {
             profile,
             base_path,
             behaviour,
+            backuper,
             args,
             logger,
         }
     }
 
-    pub fn apply(&self) -> Result<()> {
+    pub fn apply(&mut self) -> Result<()> {
         let logger = self.logger;
         let profile = self.profile;
+        let backuper = &mut self.backuper;
 
         let source_root = self
             .base_path
@@ -55,6 +60,11 @@ impl<'a> ProfileContext<'a> {
             .with_context(|| format!("Invalid target_path: {}", profile.target_path))?;
         logger.info(&format!("Source path: {}", source_root.display(),));
         logger.info(&format!("Target path: {}", target_root.display()));
+
+        if self.behaviour.backup_existed.unwrap() {
+            let prefix = format!("profile_{}", self.name);
+            backuper.set_ctx(prefix);
+        }
 
         let commands_path = self
             .base_path
@@ -85,6 +95,7 @@ impl<'a> ProfileContext<'a> {
 
         cmds_runner.run_post_commands()?;
 
+        backuper.drop_ctx();
         Ok(())
     }
 }
