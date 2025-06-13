@@ -1,28 +1,30 @@
 use std::path::PathBuf;
 
 use super::args::PlanArgs;
-use super::error::PlanError;
 use crate::config::ConfigMap;
 use crate::model::{Behaviour, DidmConfig, Plan, Profile, behaviour};
 use crate::path::PathBufExtension;
+use crate::profile::{Backuper, ProfileContext};
 use crate::{
     commands::{CommandsContext, CommandsRunner},
     log::Logger,
 };
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 pub struct PlanContext<'a> {
     pub plan: &'a Plan,
+    pub name: &'a str,
     pub commands_path: PathBuf,
     pub profiles: Vec<(&'a Profile, usize, &'a str)>,
     pub behaviour: Behaviour,
+    pub configs: &'a [DidmConfig],
     pub args: &'a PlanArgs,
     pub logger: &'a Logger,
 }
 
 impl<'a> PlanContext<'a> {
     pub fn new(
-        plan_name: &str,
+        plan_name: &'a str,
         config_map: &'a ConfigMap,
         args: &'a PlanArgs,
         logger: &'a Logger,
@@ -37,9 +39,11 @@ impl<'a> PlanContext<'a> {
         let commands_path = base_path.resolve_or_from(&plan.commands_path)?;
         Ok(PlanContext {
             plan,
+            name: plan_name,
             profiles,
             commands_path,
             behaviour,
+            configs: config_map.configs,
             args,
             logger,
         })
@@ -50,6 +54,11 @@ impl<'a> PlanContext<'a> {
         let envrironment = &plan.environment;
         let args = self.args;
         let stop_at_commands_error = self.behaviour.stop_at_commands_error.unwrap();
+        let mut backuper = Backuper::init(
+            self.configs[0].base_path.clone(),
+            self.name.to_string(),
+            args.is_dry_run,
+        )?;
         let cmds_runner = CommandsRunner::new(
             CommandsContext {
                 environment: envrironment,
@@ -62,6 +71,20 @@ impl<'a> PlanContext<'a> {
             &plan.post_build_commands,
         );
         cmds_runner.run_pre_commands()?;
+
+        // Apply profiles
+        for (profile, idx, profile_name) in self.profiles.iter() {
+            logger.info(&format!("Applying profile: {}", profile_name));
+            let behaviour = match &profile.override_behaviour {
+                Some(b) => &self.behaviour.override_by(b),
+                None => &self.behaviour,
+            };
+            let mut profile_ctx =
+                ProfileContext::new(profile_name, *idx, profile, self, behaviour, &mut backuper);
+            profile_ctx
+                .apply()
+                .context(format!("Profile apply failed:{}", profile_name))?;
+        }
 
         cmds_runner.run_post_commands()?;
         Ok(())
