@@ -3,7 +3,7 @@ use super::entry::Entries;
 use super::walk::WalkerContext;
 use crate::commands::{CommandsContext, CommandsRunner};
 use crate::log::Logger;
-use crate::model::{Behaviour, Profile, behaviour};
+use crate::model::{Behaviour, Profile};
 use crate::path::PathBufExtension;
 use crate::plan::{PlanArgs, PlanContext};
 use anyhow::{Context, Result};

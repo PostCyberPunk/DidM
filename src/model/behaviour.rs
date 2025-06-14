@@ -37,13 +37,12 @@ impl Behaviour {
             stop_at_commands_error: other.stop_at_commands_error.or(self.stop_at_commands_error),
         }
     }
-}
-//TODO: we need a better name
-pub fn Meger(dad: &Option<Behaviour>, son: &Option<Behaviour>) -> Behaviour {
-    match (dad, son) {
-        (Some(dad), Some(son)) => dad.override_by(son),
-        (Some(dad), None) => dad.clone(),
-        (None, Some(son)) => son.clone(),
-        (None, None) => Behaviour::default(),
+    pub fn merge(dad: &Option<Behaviour>, son: &Option<Behaviour>) -> Behaviour {
+        match (dad, son) {
+            (Some(dad), Some(son)) => dad.override_by(son),
+            (Some(dad), None) => dad.clone(),
+            (None, Some(son)) => son.clone(),
+            (None, None) => Behaviour::default(),
+        }
     }
 }
