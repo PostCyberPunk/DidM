@@ -21,6 +21,8 @@ pub struct Profile {
         skip_serializing_if = "super::is_true"
     )]
     pub respect_gitignore: bool,
+    #[serde(default, skip_serializing_if = "super::is_false")]
+    pub ignore_hidden: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub null_files: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
