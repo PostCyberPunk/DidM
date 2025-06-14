@@ -67,10 +67,6 @@ overwrite_existed = false
 # Default: true (perform backup)
 backup_existed = true
 
-# Whether to backup symlink before overwriting.
-# Default: false
-backup_symlink = false
-
 # Whether to stop execution upon encountering a command error.
 # Default: false (continue execution)
 stop_at_commands_error = false
