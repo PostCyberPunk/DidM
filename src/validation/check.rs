@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use crate::cli::prompt::confirm;
-pub fn is_git_repo(path: &Path) -> bool {
-    path.join(".git").exists()
+pub fn check_git_repo(path: &Path) -> bool {
+    path.join(".git").exists() || confirm("This is not a git repo, continue?")
 }
 pub fn check_target(path: &Path) -> bool {
     !path.exists()
