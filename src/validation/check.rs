@@ -13,6 +13,10 @@ pub fn check_target(path: &Path) -> bool {
             path.display()
         ))
 }
+//TODO: should only use with resovle
+pub fn check_unresolved_env(path: &Path) -> bool {
+    path.display().to_string().contains("$")
+}
 //NOTE: macro is not lazy
 // pub fn check_target(path: &Path) -> bool {
 //     let hint = &format!(
