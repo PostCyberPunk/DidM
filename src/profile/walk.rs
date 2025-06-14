@@ -36,7 +36,8 @@ impl<'a> WalkerContext<'a> {
 
         overrides.add("!didm.toml")?;
         overrides.add("!.gitignore")?;
-        // overrides.add("!didmignore")?;
+        overrides.add("!didmignore")?;
+        overrides.add("!.didm_backup")?;
 
         for ignore_item in self.ignore {
             overrides
