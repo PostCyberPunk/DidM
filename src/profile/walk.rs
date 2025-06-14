@@ -66,10 +66,11 @@ impl<'a> WalkerContext<'a> {
         for result in walker.build() {
             let entry = result.context("Failed to get entry")?;
             let entry_type = entry.file_type().unwrap();
-            let unit_condition = match self.unit {
-                Unit::Dir => entry_type.is_dir(),
-                Unit::File => entry_type.is_file(),
-            };
+            let unit_condition = entry_type.is_symlink()
+                || match self.unit {
+                    Unit::Dir => entry_type.is_dir(),
+                    Unit::File => entry_type.is_file(),
+                };
             if unit_condition {
                 entries.push(entry.path().to_path_buf());
             }
