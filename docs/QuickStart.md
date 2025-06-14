@@ -171,6 +171,10 @@ environment = []
 1. Use a main configuration file to define your primary profiles and plans. Separate detailed settings into separate included files for better organization.
 2. Avoid nested included files, as this can cause issues. Instead, place configuration files outside your source directory and organize them into separate folders.
 
+## Known Issues
+
+1. `didm` will ignore any `symlinks` from source directory.
+
 ## Upcoming Features
 
 ### Color Palettes
