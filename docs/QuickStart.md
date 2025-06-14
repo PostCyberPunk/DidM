@@ -104,6 +104,10 @@ ignore = ["README.md"]
 # Default: true (respect `.gitignore`)
 respect_gitignore = true
 
+# Whether to ignore hidden files.
+# Default: false
+ignore_hidden = false
+
 # Files that will be linked to `/dev/null`.
 # Relative path from `target_path`.
 # Default: []
