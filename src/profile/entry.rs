@@ -75,10 +75,10 @@ impl<'a> Entries<'a> {
                     }
                     //HACK: os specific
                     std::os::unix::fs::symlink(src, tgt)
-                        .with_context(|| format!("symlink {:?} -> {:?}", src, tgt))?;
+                        .with_context(|| format!("symlink {:?} ->\n        {:?}", src, tgt))?;
                 }
                 logger.info(&format!(
-                    "Symlinking {} -> {}",
+                    "Symlinking {} ->\n        {}",
                     tgt.display(),
                     src.display(),
                 ));
@@ -106,7 +106,11 @@ impl<'a> Entries<'a> {
                         }
                         fs::copy(src, tgt)?;
                     }
-                    logger.info(&format!("Copied {} -> {}", tgt.display(), src.display()));
+                    logger.info(&format!(
+                        "Copied {} ->\n        {}",
+                        tgt.display(),
+                        src.display()
+                    ));
                 }
             },
         }

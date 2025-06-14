@@ -80,7 +80,11 @@ impl Backuper {
             dest.ensure_parent_exists()?;
             fs::rename(src, dest)?;
         }
-        logger.warn(&format!("Backup {} to {}", src.display(), dest.display()));
+        logger.warn(&format!(
+            "Backup {} to\n        {}",
+            src.display(),
+            dest.display()
+        ));
         Ok(())
     }
     pub fn backup<F>(&self, src: &Path, relative: &Path, logger: &Logger, pred: F) -> Result<()>
