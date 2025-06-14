@@ -3,8 +3,7 @@ use super::entry::Entries;
 use super::walk::WalkerContext;
 use crate::commands::{CommandsContext, CommandsRunner};
 use crate::log::Logger;
-use crate::model::profile::Mode;
-use crate::model::{Behaviour, Profile};
+use crate::model::{Behaviour, Profile, behaviour};
 use crate::path::PathBufExtension;
 use crate::plan::{PlanArgs, PlanContext};
 use anyhow::{Context, Result};
@@ -50,6 +49,7 @@ impl<'a> ProfileContext<'a> {
         let logger = self.logger;
         let profile = self.profile;
         let backuper = &mut self.backuper;
+        let behaviour = self.behaviour;
 
         let source_root = self
             .base_path
@@ -63,7 +63,7 @@ impl<'a> ProfileContext<'a> {
         logger.info(&format!("Source path: {}", source_root.display(),));
         logger.info(&format!("Target path: {}", target_root.display()));
 
-        if self.behaviour.should_backup() && self.profile.mode == Mode::Copy {
+        if behaviour.should_backup() {
             let prefix = format!("profile_{}", self.name);
             backuper.set_ctx(prefix);
         }
@@ -77,7 +77,7 @@ impl<'a> ProfileContext<'a> {
                 path: &commands_path,
                 logger,
                 args: self.args,
-                stop_at_commands_error: self.behaviour.stop_at_commands_error.unwrap_or(false),
+                stop_at_commands_error: behaviour.stop_at_commands_error.unwrap_or(false),
             },
             &self.profile.pre_build_commands,
             &self.profile.post_build_commands,
