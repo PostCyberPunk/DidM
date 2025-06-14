@@ -84,6 +84,8 @@ impl<'a> Entries<'a> {
                 ));
             }
             Mode::Copy => match src.is_dir() {
+                //TODO: should remove this,
+                //but maybe we could use this for switcher if swticher is a folder
                 true => {
                     //TODO:: use fs_extra?
                     if !is_dryrun {

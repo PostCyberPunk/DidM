@@ -1,5 +1,5 @@
 use crate::log::Logger;
-use crate::model::profile::{Profile, Unit};
+use crate::model::profile::{Mode, Profile, Unit};
 use anyhow::{Context, Result};
 use ignore::WalkBuilder;
 use ignore::overrides::OverrideBuilder;
@@ -8,6 +8,7 @@ use std::path::PathBuf;
 pub struct WalkerContext<'a> {
     pub base_path: &'a PathBuf,
     pub unit: &'a Unit,
+    pub mode: &'a Mode,
     pub ignore: &'a Vec<String>,
     pub respect_gitignore: &'a bool,
     pub logger: &'a Logger,
@@ -18,6 +19,7 @@ impl<'a> WalkerContext<'a> {
         Self {
             base_path,
             unit: &profile.unit,
+            mode: &profile.mode,
             ignore: &profile.ignore,
             respect_gitignore: &profile.respect_gitignore,
             logger,
@@ -44,7 +46,7 @@ impl<'a> WalkerContext<'a> {
                 .add(&format!("!{}", ignore_item))
                 .context(format!("Failed to add ignore item:{}", ignore_item))?;
         }
-        if *self.unit == Unit::Dir {
+        if *self.unit == Unit::Dir && *self.mode == Mode::Symlink {
             walker.max_depth(Some(1));
         };
         walker
@@ -68,16 +70,16 @@ impl<'a> WalkerContext<'a> {
             let entry_type = entry.file_type().unwrap();
             //NOTE: we can add a flag ,let user know deal with symlink is a bad idea
             //then do walk_symblink && is_symlink() || ...
-            let unit_condition = match self.unit {
-                Unit::Dir => entry_type.is_dir(),
-                Unit::File => entry_type.is_file(),
+            let unit_condition = match (self.unit, self.mode) {
+                (Unit::Dir, Mode::Symlink) => entry_type.is_dir() || entry_type.is_file(),
+                _ => entry_type.is_file(),
             };
             if unit_condition {
                 entries.push(entry.path().to_path_buf());
             }
         }
         //FIX: the result always return the base_path as first entry?
-        if *self.unit == Unit::Dir {
+        if *self.unit == Unit::Dir && *self.mode == Mode::Symlink {
             entries.remove(0);
         }
 
