@@ -125,7 +125,7 @@ impl<'a> ProfileContext<'a> {
         );
         entries.apple_entries()?;
 
-        //  TODO: empty_files、null_files、extra_rules
+        //  TODO: empty_files、null_files、additional_entries
 
         cmds_runner.run_post_commands()?;
 

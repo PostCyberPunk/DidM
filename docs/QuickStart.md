@@ -128,8 +128,8 @@ post_build_commands = ['reboot']
 # Default: {}
 override_behaviour = { overwrite_existed = true }
 
-# Extra rules for specific files or directories.
-extra_rules = [
+# extra_entries rules for specific files or directories.
+extra_entries = [
     { source_path = "./bar.conf", target_path = "bar.conf" },
     { source_path = "./foo.conf", target_path = "foo.conf", mode = "copy" }, # Overrides default mode
 ]

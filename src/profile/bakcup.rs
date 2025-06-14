@@ -17,7 +17,7 @@ pub struct Backuper {
 pub struct BackuperContext {
     backup_symlink: bool,
     normal_path: PathBuf,
-    additional_path: PathBuf,
+    extra_path: PathBuf,
     empty_path: PathBuf,
     null_path: PathBuf,
 }
@@ -53,12 +53,12 @@ impl Backuper {
     pub fn set_ctx(&mut self, prefix: String, backup_symlink: bool) {
         let base_dir = &self.base_dir.join(prefix);
         let normal_path = base_dir.join("normal");
-        let additional_path = base_dir.join("additional");
+        let extra_path = base_dir.join("extra");
         let empty_path = base_dir.join("empty");
         let null_path = base_dir.join("null");
         self.ctx = Some(BackuperContext {
             normal_path,
-            additional_path,
+            extra_path,
             empty_path,
             null_path,
             backup_symlink,
