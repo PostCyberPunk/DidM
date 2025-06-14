@@ -1,4 +1,4 @@
-use crate::model::{DidmConfig, Plan, Profile};
+use crate::model::{DidmConfig, Plan, Profile, SkipCheck};
 use anyhow::Result;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -11,34 +11,35 @@ pub struct ConfigMap<'a> {
     pub plan_map: HashMap<&'a str, &'a Plan>,
 }
 impl<'a> ConfigMap<'a> {
-    pub fn new(configs: &'a [DidmConfig]) -> Self {
+    pub fn new(configs: &'a [DidmConfig]) -> Result<Self> {
         let main_config = &configs[0];
 
         let mut plan_map = HashMap::new();
         let mut profile_map = HashMap::new();
 
-        //TODO: Validate duplicated keys
-        for (idx, config) in configs.iter().enumerate() {
-            plan_map.extend(
-                config
-                    .plans
-                    .iter()
-                    .map(|(name, plan)| (name.as_str(), plan)),
-            );
-            profile_map.extend(
-                config
-                    .profiles
-                    .iter()
-                    .map(|(name, profile)| (name.as_str(), (idx, profile))),
-            );
-        }
+        let check_duplicates = !main_config.check.unwrap_or_default().duplicated_config;
 
-        ConfigMap {
+        for (idx, config) in configs.iter().enumerate() {
+            for (name, plan) in &config.plans {
+                if check_duplicates && plan_map.contains_key(name.as_str()) {
+                    return Err(ConfigError::DuplicatedPlan(name.to_string()).into());
+                }
+                plan_map.insert(name.as_str(), plan);
+            }
+
+            for (name, profile) in &config.profiles {
+                if check_duplicates && profile_map.contains_key(name.as_str()) {
+                    return Err(ConfigError::DuplicatedProfile(name.to_string()).into());
+                }
+                profile_map.insert(name.as_str(), (idx, profile));
+            }
+        }
+        Ok(ConfigMap {
             main_config,
             configs,
             plan_map,
             profile_map,
-        }
+        })
     }
     pub fn get_plan(&self, plan_name: &str) -> Result<&Plan> {
         //NOTE: use match to avoid deref of a ref...
@@ -73,4 +74,10 @@ pub enum ConfigError {
 
     #[error("Profile `{0}` not found.")]
     ProfileNotFound(String),
+
+    #[error("Plan `{0}` is duplicated")]
+    DuplicatedPlan(String),
+
+    #[error("Profile `{0}` is duplicated")]
+    DuplicatedProfile(String),
 }

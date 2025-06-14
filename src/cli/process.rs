@@ -24,7 +24,7 @@ pub fn process() -> anyhow::Result<()> {
             verbose,
         }) => {
             let configs = config::load_configs(path.as_deref())?;
-            let config_map = ConfigMap::new(&configs);
+            let config_map = ConfigMap::new(&configs)?;
 
             //check git_repo
             if !check_git_repo(&config_map.main_config.base_path) {
