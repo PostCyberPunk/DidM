@@ -1,8 +1,10 @@
 pub mod behaviour;
+mod check;
 pub mod plan;
 pub mod profile;
 
 pub use behaviour::Behaviour;
+pub use check::Check;
 pub use plan::Plan;
 pub use profile::Profile;
 use std::{collections::HashMap, path::PathBuf};
