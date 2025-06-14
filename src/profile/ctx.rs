@@ -6,6 +6,7 @@ use crate::log::Logger;
 use crate::model::{Behaviour, Profile};
 use crate::path::PathBufExtension;
 use crate::plan::{PlanArgs, PlanContext};
+use crate::validation::check::check_target;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 
@@ -60,6 +61,16 @@ impl<'a> ProfileContext<'a> {
             .resolve()?
             .canonicalize()
             .with_context(|| format!("Invalid target_path: {}", profile.target_path))?;
+        //REFT: 1. check and resolve when load config
+        //      2. use a new struct Checker and PathResolver,init it when loading
+        //      3. pass check_config to here...
+        if !check_target(&target_root) {
+            //TODO: skippable error
+            return Err(anyhow::anyhow!(
+                "Target path not exists: {}",
+                target_root.display()
+            ));
+        }
         logger.info(&format!("Source path: {}", source_root.display(),));
         logger.info(&format!("Target path: {}", target_root.display()));
 
