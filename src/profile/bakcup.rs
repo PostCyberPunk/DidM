@@ -102,6 +102,14 @@ impl Backuper {
             return Ok(());
         }
         if src.is_symlink() {
+            logger.warn(&format!(
+                "Symlink will be removed at:{}\n        Target:{}",
+                src.display(),
+                src.read_link().map_or_else(
+                    |_| String::from("Invalid symlink target"),
+                    |p| p.display().to_string()
+                )
+            ));
             return Ok(());
         }
         let backup_path = ctx.normal_path.join(relative);
