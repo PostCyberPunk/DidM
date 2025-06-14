@@ -29,7 +29,7 @@ pub fn process() -> anyhow::Result<()> {
                 is_verbose: *verbose,
             };
             let mut logger = Logger::new();
-            let std_log_level = match (*verbose, args.debug) {
+            let std_log_level = match (plan_args.is_verbose, args.debug) {
                 (_, true) => LogLevel::Debug,
                 (true, false) => LogLevel::Info,
                 (false, false) => LogLevel::Warn,
@@ -41,7 +41,7 @@ pub fn process() -> anyhow::Result<()> {
                 .context(format!("Plan deploy failed:{}", plan_name))?;
         }
         None => {
-            let configs = config::load_configs(args.path.as_deref())?;
+            // let configs = config::load_configs(args.path.as_deref())?;
         }
     }
     Ok(())

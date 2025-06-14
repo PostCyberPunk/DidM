@@ -67,9 +67,9 @@ overwrite_existed = false
 # Default: true (perform backup)
 backup_existed = true
 
-# Whether to update existing symlinks.
-# Default: true (update symlinks)
-update_symlink = true
+# Whether to backup symlink before overwriting.
+# Default: false
+backup_symlink = false
 
 # Whether to stop execution upon encountering a command error.
 # Default: false (continue execution)
@@ -95,12 +95,6 @@ mode = "symlink"
 # Available options: file | dir
 # Default: file (link individual files)
 unit = "file"
-
-# Exceptions to the default unit behavior:
-# If `unit` is `"file"`, then link the entire directory instead.
-# If `unit` is `"dir"`, then link all files inside the directory.
-# Default: []
-exceptions = ["foo", "bar.conf"]
 
 # Directories or files to ignore.
 # Default: []
@@ -134,8 +128,8 @@ post_build_commands = ['reboot']
 # Default: {}
 override_behaviour = { overwrite_existed = true }
 
-# Extra rules for specific files or directories.
-extra_rules = [
+# extra_entries rules for specific files or directories.
+extra_entries = [
     { source_path = "./bar.conf", target_path = "bar.conf" },
     { source_path = "./foo.conf", target_path = "foo.conf", mode = "copy" }, # Overrides default mode
 ]
@@ -176,6 +170,10 @@ environment = []
 
 1. Use a main configuration file to define your primary profiles and plans. Separate detailed settings into separate included files for better organization.
 2. Avoid nested included files, as this can cause issues. Instead, place configuration files outside your source directory and organize them into separate folders.
+
+## Known Issues
+
+1. `didm` will ignore any `symlinks` from source directory.
 
 ## Upcoming Features
 

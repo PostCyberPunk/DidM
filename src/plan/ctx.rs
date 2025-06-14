@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use super::args::PlanArgs;
 use crate::config::ConfigMap;
-use crate::model::{Behaviour, DidmConfig, Plan, Profile, behaviour};
+use crate::model::{Behaviour, DidmConfig, Plan, Profile};
 use crate::path::PathBufExtension;
 use crate::profile::{Backuper, ProfileContext};
 use crate::{
@@ -33,7 +33,7 @@ impl<'a> PlanContext<'a> {
         let main_config = config_map.main_config;
         let plan = config_map.get_plan(plan_name)?;
         let profiles = config_map.get_profiles(&plan.profiles)?;
-        let behaviour = behaviour::Meger(&main_config.behaviour, &plan.override_behaviour);
+        let behaviour = Behaviour::merge(&main_config.behaviour, &plan.override_behaviour);
 
         let base_path = &main_config.base_path;
         let commands_path = base_path.resolve_or_from(&plan.commands_path)?;
