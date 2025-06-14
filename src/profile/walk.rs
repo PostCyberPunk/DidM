@@ -11,6 +11,7 @@ pub struct WalkerContext<'a> {
     pub mode: &'a Mode,
     pub ignore: &'a Vec<String>,
     pub respect_gitignore: &'a bool,
+    pub ignore_hidden: &'a bool,
     pub logger: &'a Logger,
     walker: Option<WalkBuilder>,
 }
@@ -22,6 +23,7 @@ impl<'a> WalkerContext<'a> {
             mode: &profile.mode,
             ignore: &profile.ignore,
             respect_gitignore: &profile.respect_gitignore,
+            ignore_hidden: &profile.ignore_hidden,
             logger,
             walker: None,
         }
@@ -51,7 +53,7 @@ impl<'a> WalkerContext<'a> {
         };
         walker
             .overrides(overrides.build()?)
-            .hidden(false)
+            .hidden(*self.ignore_hidden)
             .git_ignore(*self.respect_gitignore);
 
         self.walker = Some(walker);
