@@ -7,8 +7,6 @@ pub struct Behaviour {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub backup_existed: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub backup_symlink: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_at_commands_error: Option<bool>,
 }
 impl Default for Behaviour {
@@ -16,7 +14,6 @@ impl Default for Behaviour {
         Behaviour {
             overwrite_existed: Some(false),
             backup_existed: Some(true),
-            backup_symlink: Some(false),
             stop_at_commands_error: Some(false),
         }
     }
@@ -33,7 +30,6 @@ impl Behaviour {
         Behaviour {
             overwrite_existed: other.overwrite_existed.or(self.overwrite_existed),
             backup_existed: other.backup_existed.or(self.backup_existed),
-            backup_symlink: other.backup_symlink.or(self.backup_symlink),
             stop_at_commands_error: other.stop_at_commands_error.or(self.stop_at_commands_error),
         }
     }
