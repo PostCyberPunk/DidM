@@ -96,12 +96,6 @@ mode = "symlink"
 # Default: file (link individual files)
 unit = "file"
 
-# Exceptions to the default unit behavior:
-# If `unit` is `"file"`, then link the entire directory instead.
-# If `unit` is `"dir"`, then link all files inside the directory.
-# Default: []
-exceptions = ["foo", "bar.conf"]
-
 # Directories or files to ignore.
 # Default: []
 ignore = ["README.md"]

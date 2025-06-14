@@ -12,8 +12,6 @@ pub struct Profile {
     #[serde(default, skip_serializing_if = "Unit::is_default")]
     pub unit: Unit,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub exceptions: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ignore: Vec<String>,
     //TODO: maybe i should use option intead of this pile of shit?
     //but then i have to call another function to determine its default value
