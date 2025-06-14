@@ -62,7 +62,10 @@ impl Backuper {
             null_path,
         });
     }
-    pub fn drop_ctx(&mut self) {
+    pub fn drop_ctx(&mut self, logger: &Logger) {
+        if self.base_dir.exists() {
+            logger.warn(&format!("Backup created at :{}", self.base_dir.display()));
+        }
         self.ctx = None;
     }
     // fn get_ctx(&self) -> Result<&BackuperContext> {

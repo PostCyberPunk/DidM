@@ -129,7 +129,7 @@ impl<'a> ProfileContext<'a> {
 
         cmds_runner.run_post_commands()?;
 
-        backuper.drop_ctx();
+        backuper.drop_ctx(logger);
         Ok(())
     }
 }
