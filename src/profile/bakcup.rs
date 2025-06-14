@@ -15,7 +15,6 @@ pub struct Backuper {
     is_dryrun: bool,
 }
 pub struct BackuperContext {
-    backup_symlink: bool,
     normal_path: PathBuf,
     extra_path: PathBuf,
     empty_path: PathBuf,
@@ -50,7 +49,7 @@ impl Backuper {
             is_dryrun,
         })
     }
-    pub fn set_ctx(&mut self, prefix: String, backup_symlink: bool) {
+    pub fn set_ctx(&mut self, prefix: String) {
         let base_dir = &self.base_dir.join(prefix);
         let normal_path = base_dir.join("normal");
         let extra_path = base_dir.join("extra");
@@ -61,7 +60,6 @@ impl Backuper {
             extra_path,
             empty_path,
             null_path,
-            backup_symlink,
         });
     }
     pub fn drop_ctx(&mut self, logger: &Logger) {
@@ -103,7 +101,7 @@ impl Backuper {
         if !pred() {
             return Ok(());
         }
-        if src.is_symlink() && !ctx.backup_symlink {
+        if src.is_symlink() {
             return Ok(());
         }
         let backup_path = ctx.normal_path.join(relative);

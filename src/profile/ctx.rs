@@ -65,7 +65,7 @@ impl<'a> ProfileContext<'a> {
 
         if behaviour.should_backup() {
             let prefix = format!("profile_{}", self.name);
-            backuper.set_ctx(prefix, behaviour.backup_symlink.unwrap_or(false));
+            backuper.set_ctx(prefix);
         }
 
         let commands_path = self
