@@ -21,6 +21,9 @@ impl Default for Behaviour {
         }
     }
 }
+//NOTE: should not use unwrap_or
+//but for safe reason...
+//TODO:should use getter
 impl Behaviour {
     pub fn should_backup(&self) -> bool {
         self.backup_existed.unwrap_or(true) && self.overwrite_existed.unwrap_or(false)
@@ -43,6 +46,7 @@ impl Behaviour {
         }
     }
 }
+//TODO: we need a better name
 pub fn Meger(dad: &Option<Behaviour>, son: &Option<Behaviour>) -> Behaviour {
     match (dad, son) {
         (Some(dad), Some(son)) => dad.override_by(son),
