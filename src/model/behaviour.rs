@@ -28,15 +28,7 @@ impl Behaviour {
     pub fn should_backup(&self) -> bool {
         self.backup_existed.unwrap_or(true) && self.overwrite_existed.unwrap_or(false)
     }
-    pub fn patch(&self) -> Self {
-        let other = &Behaviour::default();
-        Behaviour {
-            overwrite_existed: self.overwrite_existed.or(other.overwrite_existed),
-            backup_existed: self.backup_existed.or(other.backup_existed),
-            backup_symlink: self.backup_symlink.or(other.backup_symlink),
-            stop_at_commands_error: self.stop_at_commands_error.or(other.stop_at_commands_error),
-        }
-    }
+
     pub fn override_by(&self, other: &Behaviour) -> Self {
         Behaviour {
             overwrite_existed: other.overwrite_existed.or(self.overwrite_existed),
@@ -55,10 +47,3 @@ pub fn Meger(dad: &Option<Behaviour>, son: &Option<Behaviour>) -> Behaviour {
         (None, None) => Behaviour::default(),
     }
 }
-//TODO: is there a better way?
-// pub fn is_default(b: &Behaviour) -> bool {
-//     !b.overwrite_existed.unwrap()
-//         && b.backup_existed
-//         && b.backup_symlink
-//         && !b.stop_at_commands_error
-// }
