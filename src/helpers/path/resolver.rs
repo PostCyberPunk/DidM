@@ -1,12 +1,10 @@
-use crate::helpers::path::PathError;
+use super::ResolvedPath;
+use crate::{cli::prompt::confirm, helpers::path::PathError};
 use anyhow::{Context, Result};
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::{env, path::PathBuf};
 
 pub struct PathResolver {
-    pub check_env: bool,
+    check_env: bool,
 }
 impl PathResolver {
     pub fn new(check_env: bool) -> Self {
@@ -18,11 +16,12 @@ impl PathResolver {
             return Ok(path);
         }
         let mut expand = path;
+        //FIX:this could be expansive
         for (key, value) in env::vars() {
             let placeholder = format!("${}", key);
             expand = expand.replace(&placeholder, &value);
         }
-        if expand.contains("$") {
+        if self.check_env && expand.contains("$") {
             return Err(PathError::EnvVarMissing(expand).into());
         }
         Ok(expand)
@@ -37,27 +36,49 @@ impl PathResolver {
         }
         Ok(path)
     }
+    fn check_symlink_then_absolute(&self, path: &str) -> Result<PathBuf> {
+        let pathbuf = PathBuf::from(&path);
+        if pathbuf.is_symlink()
+            && !confirm(&format!(
+                "{} is a symlink,this may lead to some unexcepted issue,do you want to continue?",
+                path
+            ))
+        {
+            return Err(PathError::UnresolvedSymlink("User cancelled".to_string()).into());
+        }
+        pathbuf
+            .canonicalize()
+            .map_err(|e| PathError::Unknown(e.to_string()).into())
+    }
     // -----------Public ----------------
-    pub fn resolve(&self, path: &str) -> Result<PathBuf> {
-        let mut resolve = path.to_string();
-        resolve = self
-            .expand_tilde(resolve)
+    pub fn resolve(&self, path: &str) -> Result<ResolvedPath> {
+        let resolve = self
+            .expand_tilde(path.to_string())
             .and_then(|p| self.expand_env_vars(p))
+            .and_then(|p| self.check_symlink_then_absolute(&p))
             .with_context(|| PathError::ResolveFailed(path.to_string()))?;
 
-        Ok(PathBuf::from(resolve))
+        Ok(ResolvedPath::new(resolve, path.to_string()))
     }
-    pub fn resolve_from(&self, base_path: &Path, path: &str) -> Result<PathBuf> {
+    pub fn resolve_from(&self, base_path: &ResolvedPath, path: &str) -> Result<ResolvedPath> {
         let resolved = self.resolve(path)?;
-        match resolved.is_absolute() {
-            true => Ok(resolved),
-            false => Ok(base_path.join(resolved)),
+        if resolved.get().is_absolute() {
+            Ok(resolved)
+        } else {
+            Ok(ResolvedPath::new(
+                base_path.get().join(resolved.get()),
+                path.to_string(),
+            ))
         }
     }
-    pub fn resolve_from_or_base(&self, base_path: &Path, path: &Option<String>) -> Result<PathBuf> {
+    pub fn resolve_from_or_base(
+        &self,
+        base_path: &ResolvedPath,
+        path: &Option<String>,
+    ) -> Result<ResolvedPath> {
         match path {
             Some(p) => self.resolve_from(base_path, p.as_str()),
-            None => Ok(base_path.to_path_buf()),
+            None => Ok(base_path.clone()),
         }
     }
 }

@@ -6,8 +6,8 @@ use std::{
 };
 use thiserror::Error;
 
-use crate::log::Logger;
 use crate::path::PathBufExtension;
+use crate::{helpers::ResolvedPath, log::Logger};
 
 //FIX: the ctx should be borrow from plan, not from profile
 //initialize in profile then it can be imutable
@@ -24,14 +24,16 @@ pub struct BackuperContext {
 }
 
 impl Backuper {
-    pub fn init(base_path: PathBuf, plan_name: String, is_dryrun: bool) -> Result<Self> {
+    pub fn init(base_path: &ResolvedPath, plan_name: String, is_dryrun: bool) -> Result<Self> {
         base_path
+            .get()
             .check_dir()
-            .and_then(|_| base_path.check_permission())
+            .and_then(|_| base_path.get().check_permission())
             .with_context(|| BackupError::InitializeFailed)?;
 
         let now = Local::now().format("%Y_%m_%d_%H_%M_%S").to_string();
         let base_dir = base_path
+            .get()
             .join(".didm_backup")
             .join(format!("plan_{}-{}", plan_name, now));
 

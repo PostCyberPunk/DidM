@@ -22,13 +22,13 @@ pub fn process() -> anyhow::Result<()> {
             dry_run,
             verbose,
         }) => {
-            let configs = config::load_configs(path.as_deref())?;
-            let config_map = ConfigMap::new(&configs)?;
-
+            //Porcess arg first,we may use in loader
             let plan_args = PlanArgs {
                 is_dry_run: *dry_run,
                 is_verbose: *verbose,
             };
+            //TODO:File logger
+            //Prepare logger, we may use in loaer too
             let mut logger = Logger::new();
             let std_log_level = match (plan_args.is_verbose, args.debug) {
                 (_, true) => LogLevel::Debug,
@@ -36,6 +36,13 @@ pub fn process() -> anyhow::Result<()> {
                 (false, false) => LogLevel::Warn,
             };
             logger.add_target(StdoutLogTarget::new(std_log_level));
+
+            //loader
+            //TODO: load to config_map directly
+            let (base_path, config_sets) = config::load_configs(path.as_deref())?;
+            let config_map = ConfigMap::new(base_path, &config_sets)?;
+
+            //TODO: seprate steps, prepare , backup , apply
             PlanContext::new(plan_name, &config_map, &plan_args, &logger)
                 .context(format!("Plan init failed:{}", plan_name))?
                 .deploy()

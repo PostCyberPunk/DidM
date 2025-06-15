@@ -2,17 +2,20 @@ use anyhow::Result;
 use std::path::Path;
 use thiserror::Error;
 
-use crate::{cli::prompt::confirm, model::SkipCheck};
+use crate::{cli::prompt::confirm, model::CheckConfig};
 
 pub struct Checker {
-    pub config: SkipCheck,
+    config: CheckConfig,
 }
 
 impl Checker {
-    pub fn new(config: SkipCheck) -> Self {
+    pub fn new(config: CheckConfig) -> Self {
         Checker { config }
     }
-    pub fn check_git_repo(&self, path: &Path) -> Result<()> {
+    pub fn is_git_workspace(&self, path: &Path) -> Result<()> {
+        if self.config.is_git_workspace {
+            return Ok(());
+        }
         if path.join(".git").exists()
             || confirm(&format!(
                 "Current Path: {}\n\
@@ -25,7 +28,7 @@ impl Checker {
             Err(CheckError::NotGitRepo.into())
         }
     }
-    pub fn check_target(&self, path: &Path) -> Result<()> {
+    pub fn target_exisit_or_create(&self, path: &Path) -> Result<()> {
         if path.exists()
             || confirm(&format!(
                 "Target Path not exists: \n\
@@ -39,6 +42,23 @@ impl Checker {
             Err(CheckError::TargetPathNotExists.into())
         }
     }
+    pub fn working_dir_is_symlink(&self, path_raw: &str) -> Result<()> {
+        if !self.config.is_working_dir_symlink {
+            return Ok(());
+        }
+        let path = Path::new(path_raw);
+        if path.is_symlink()
+            && !confirm(&format!(
+                "config located at: {}\n\
+                    which is a symlink,this may lead to some unexcepted issue\n\
+                    do you want to continue?",
+                path.display()
+            ))
+        {
+            return Err(CheckError::WorkingDirectoryIsSymlink.into());
+        }
+        Ok(())
+    }
 }
 
 #[derive(Error, Debug)]
@@ -47,6 +67,8 @@ pub enum CheckError {
     NotGitRepo,
     #[error("Target path not exists")]
     TargetPathNotExists,
+    #[error("Working directory is symlink")]
+    WorkingDirectoryIsSymlink,
 }
 
 //NOTE: macro is not lazy

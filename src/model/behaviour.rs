@@ -1,3 +1,4 @@
+use ignore::overrides;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -22,27 +23,27 @@ impl Default for Behaviour {
 //but for safe reason...
 //TODO:should use getter
 impl Behaviour {
+    pub fn new(other: &Option<Behaviour>) -> Self {
+        let me = Behaviour::default();
+        me.override_by(other)
+    }
     pub fn should_backup(&self) -> bool {
         self.backup_existed.unwrap_or(true) && self.overwrite_existed.unwrap_or(false)
     }
-    //FIX: overide by Some Directly
+    //NOTE: overide by Some Directly
     //but still not good enough...
     //since this overried workflow is not common
     //
-    pub fn override_by(&self, other: &Behaviour) -> Self {
-        Behaviour {
-            overwrite_existed: other.overwrite_existed.or(self.overwrite_existed),
-            backup_existed: other.backup_existed.or(self.backup_existed),
-            stop_at_commands_error: other.stop_at_commands_error.or(self.stop_at_commands_error),
-        }
-    }
-    //FIX:: we can remove this by creating default first then override by Option ^
-    pub fn merge(dad: &Option<Behaviour>, son: &Option<Behaviour>) -> Behaviour {
-        match (dad, son) {
-            (Some(dad), Some(son)) => dad.override_by(son),
-            (Some(dad), None) => dad.clone(),
-            (None, Some(son)) => son.clone(),
-            (None, None) => Behaviour::default(),
+    pub fn override_by(&self, option_behaviour: &Option<Behaviour>) -> Self {
+        match option_behaviour {
+            Some(other) => Behaviour {
+                overwrite_existed: other.overwrite_existed.or(self.overwrite_existed),
+                backup_existed: other.backup_existed.or(self.backup_existed),
+                stop_at_commands_error: other
+                    .stop_at_commands_error
+                    .or(self.stop_at_commands_error),
+            },
+            None => self.clone(),
         }
     }
 }
