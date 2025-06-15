@@ -1,4 +1,4 @@
-use super::error::PathError;
+use crate::helpers::path::PathError;
 use anyhow::{Context, Result};
 use std::{
     env,

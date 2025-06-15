@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+//FIX: 1.fuck this name...rename it
+//2.use a parser
 #[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
 pub struct SkipCheck {
     #[serde(default, skip_serializing_if = "super::is_false")]

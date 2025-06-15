@@ -1,4 +1,7 @@
-use crate::model::{DidmConfig, Plan, Profile};
+use crate::{
+    helpers::{self, Helpers},
+    model::{DidmConfig, Plan, Profile},
+};
 use anyhow::Result;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -6,18 +9,29 @@ use thiserror::Error;
 //TODO: consiser use Instance for config map
 pub struct ConfigMap<'a> {
     pub main_config: &'a DidmConfig,
+    //FIX: 1.delete this
+    //2. create a private imutable config_path_map
     pub configs: &'a [DidmConfig],
     pub profile_map: HashMap<&'a str, (usize, &'a Profile)>,
     pub plan_map: HashMap<&'a str, &'a Plan>,
+    pub helpers: Helpers,
 }
 impl<'a> ConfigMap<'a> {
     pub fn new(configs: &'a [DidmConfig]) -> Result<Self> {
         let main_config = &configs[0];
 
+        //---------Check Configs---------
+        //FIX: that is definitely wrong ,impl a parser instead
+        let skip_check = main_config.skip_check.unwrap_or_default();
+
+        let helpers = helpers::Helpers::new(&skip_check);
+        helpers.checker.check_git_repo(&main_config.base_path)?;
+
+        let check_duplicates = !skip_check.duplicated_config;
+
+        //---------Build Config Map---------
         let mut plan_map = HashMap::new();
         let mut profile_map = HashMap::new();
-
-        let check_duplicates = !main_config.skip_check.unwrap_or_default().duplicated_config;
 
         for (idx, config) in configs.iter().enumerate() {
             for (name, plan) in &config.plans {
@@ -34,11 +48,14 @@ impl<'a> ConfigMap<'a> {
                 profile_map.insert(name.as_str(), (idx, profile));
             }
         }
+
+        //---------return Config Map---------
         Ok(ConfigMap {
             main_config,
             configs,
             plan_map,
             profile_map,
+            helpers,
         })
     }
     pub fn get_plan(&self, plan_name: &str) -> Result<&Plan> {
