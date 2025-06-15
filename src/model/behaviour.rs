@@ -25,7 +25,10 @@ impl Behaviour {
     pub fn should_backup(&self) -> bool {
         self.backup_existed.unwrap_or(true) && self.overwrite_existed.unwrap_or(false)
     }
-
+    //FIX: overide by Some Directly
+    //but still not good enough...
+    //since this overried workflow is not common
+    //
     pub fn override_by(&self, other: &Behaviour) -> Self {
         Behaviour {
             overwrite_existed: other.overwrite_existed.or(self.overwrite_existed),
@@ -33,6 +36,7 @@ impl Behaviour {
             stop_at_commands_error: other.stop_at_commands_error.or(self.stop_at_commands_error),
         }
     }
+    //FIX:: we can remove this by creating default first then override by Option ^
     pub fn merge(dad: &Option<Behaviour>, son: &Option<Behaviour>) -> Behaviour {
         match (dad, son) {
             (Some(dad), Some(son)) => dad.override_by(son),

@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use chrono::Local;
 use std::{
-    fs::{self, metadata},
+    fs::{self},
     path::{Path, PathBuf},
 };
 use thiserror::Error;
@@ -9,6 +9,8 @@ use thiserror::Error;
 use crate::log::Logger;
 use crate::path::PathBufExtension;
 
+//FIX: the ctx should be borrow from plan, not from profile
+//initialize in profile then it can be imutable
 pub struct Backuper {
     ctx: Option<BackuperContext>,
     base_dir: PathBuf,
