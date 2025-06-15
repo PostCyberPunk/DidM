@@ -28,6 +28,7 @@ impl<'a> ProfileContext<'a> {
         profile: &'a Profile,
         plan: &'a PlanContext,
         behaviour: &'a Behaviour,
+        //FIX: make this imutable!! just initialize it with check_config
         backuper: &'a mut Backuper,
     ) -> Self {
         let args = plan.args;
@@ -46,6 +47,7 @@ impl<'a> ProfileContext<'a> {
         }
     }
 
+    //FIX: path iniialize refcator to new
     pub fn apply(&mut self) -> Result<()> {
         let logger = self.logger;
         let profile = self.profile;

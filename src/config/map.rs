@@ -9,6 +9,8 @@ use thiserror::Error;
 //TODO: consiser use Instance for config map
 pub struct ConfigMap<'a> {
     pub main_config: &'a DidmConfig,
+    //FIX: 1.delete this
+    //2. create a private imutable config_path_map
     pub configs: &'a [DidmConfig],
     pub profile_map: HashMap<&'a str, (usize, &'a Profile)>,
     pub plan_map: HashMap<&'a str, &'a Plan>,
@@ -46,6 +48,8 @@ impl<'a> ConfigMap<'a> {
                 profile_map.insert(name.as_str(), (idx, profile));
             }
         }
+
+        //---------return Config Map---------
         Ok(ConfigMap {
             main_config,
             configs,
