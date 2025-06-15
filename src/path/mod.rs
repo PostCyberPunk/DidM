@@ -24,8 +24,8 @@ pub enum PathError {
     #[error("Path is not a file: {0}")]
     NotFile(String),
 
-    #[error("Failed to resolve path: {0}")]
-    ResolveFailed(String),
+    #[error("Failed to resolve path")]
+    ResolveFailed,
 }
 
 //TODO: refactor this first
@@ -51,7 +51,7 @@ pub trait PathBufExtension: Sized {
 
     fn resolve(self) -> Result<Self>;
     fn expand_env_vars(self) -> Result<Self>;
-    fn expand_tilde(self) -> Self;
+    fn expand_tilde(self) -> Result<Self>;
 
     fn resolve_or_from(&self, path: &Option<String>) -> Result<PathBuf>;
     // fn is_unresolved_absolute(&self) -> bool;
@@ -88,9 +88,12 @@ impl PathBufExtension for PathBuf {
         }
         Ok(())
     }
-
+    //REFT: this definitely needs to be refactored to a resolver
     fn resolve(self) -> Result<Self> {
-        let resolved = self.expand_tilde().expand_env_vars()?;
+        let resolved = self
+            .expand_tilde()
+            .and_then(|p| p.expand_env_vars())
+            .with_context(|| PathError::ResolveFailed)?;
         let raw_path = resolved.to_string();
         if raw_path.contains("$") {
             return Err(PathError::EnvVarMissing(raw_path).into());
@@ -109,14 +112,14 @@ impl PathBufExtension for PathBuf {
         self = PathBuf::from(expanded);
         Ok(self)
     }
-    fn expand_tilde(mut self) -> Self {
+    fn expand_tilde(mut self) -> Result<Self> {
         if let Some(path) = self.to_str() {
             if path.starts_with("~") {
                 let home = env::var("HOME").unwrap_or_else(|_| ".".to_string());
                 self = PathBuf::from(path.replacen("~", &home, 1));
             }
         }
-        self
+        Ok(self)
     }
 
     // fn is_unresolved_absolute(&self) -> bool {
