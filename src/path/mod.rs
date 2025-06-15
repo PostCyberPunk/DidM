@@ -1,4 +1,5 @@
 mod error;
+mod resolver;
 use anyhow::{Context, Result};
 use std::env;
 use std::fs;
