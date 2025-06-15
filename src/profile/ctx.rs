@@ -2,6 +2,7 @@ use super::Backuper;
 use super::entry::Entries;
 use super::walk::WalkerContext;
 use crate::commands::{CommandsContext, CommandsRunner};
+use crate::helpers::Helpers;
 use crate::log::Logger;
 use crate::model::{Behaviour, Profile};
 use crate::path::PathBufExtension;
@@ -19,6 +20,7 @@ pub struct ProfileContext<'a> {
     pub backuper: &'a mut Backuper,
     pub args: &'a PlanArgs,
     pub logger: &'a Logger,
+    pub helpers: &'a Helpers,
 }
 
 impl<'a> ProfileContext<'a> {
@@ -44,6 +46,7 @@ impl<'a> ProfileContext<'a> {
             backuper,
             args,
             logger,
+            helpers: plan.helpers,
         }
     }
 

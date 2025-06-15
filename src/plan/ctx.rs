@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use super::args::PlanArgs;
 use crate::config::ConfigMap;
+use crate::helpers::Helpers;
 use crate::model::{Behaviour, DidmConfig, Plan, Profile};
 use crate::path::PathBufExtension;
 use crate::profile::{Backuper, ProfileContext};
@@ -20,6 +21,7 @@ pub struct PlanContext<'a> {
     pub configs: &'a [DidmConfig],
     pub args: &'a PlanArgs,
     pub logger: &'a Logger,
+    pub helpers: &'a Helpers,
 }
 
 impl<'a> PlanContext<'a> {
@@ -46,6 +48,7 @@ impl<'a> PlanContext<'a> {
             configs: config_map.configs,
             args,
             logger,
+            helpers: &config_map.helpers,
         })
     }
     pub fn deploy(&self) -> Result<()> {
