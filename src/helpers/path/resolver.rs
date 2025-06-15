@@ -1,3 +1,4 @@
+use super::ResolvedPath;
 use crate::helpers::path::PathError;
 use anyhow::{Context, Result};
 use std::{
@@ -38,26 +39,33 @@ impl PathResolver {
         Ok(path)
     }
     // -----------Public ----------------
-    pub fn resolve(&self, path: &str) -> Result<PathBuf> {
+    pub fn resolve(&self, path: &str) -> Result<ResolvedPath> {
         let mut resolve = path.to_string();
         resolve = self
             .expand_tilde(resolve)
             .and_then(|p| self.expand_env_vars(p))
             .with_context(|| PathError::ResolveFailed(path.to_string()))?;
-
-        Ok(PathBuf::from(resolve))
+        Ok(ResolvedPath::new(PathBuf::from(resolve), path.to_string()))
     }
-    pub fn resolve_from(&self, base_path: &Path, path: &str) -> Result<PathBuf> {
+    pub fn resolve_from(&self, base_path: &ResolvedPath, path: &str) -> Result<ResolvedPath> {
         let resolved = self.resolve(path)?;
-        match resolved.is_absolute() {
-            true => Ok(resolved),
-            false => Ok(base_path.join(resolved)),
+        if resolved.get().is_absolute() {
+            Ok(resolved)
+        } else {
+            Ok(ResolvedPath::new(
+                base_path.get().join(resolved.get()),
+                path.to_string(),
+            ))
         }
     }
-    pub fn resolve_from_or_base(&self, base_path: &Path, path: &Option<String>) -> Result<PathBuf> {
+    pub fn resolve_from_or_base(
+        &self,
+        base_path: &ResolvedPath,
+        path: &Option<String>,
+    ) -> Result<ResolvedPath> {
         match path {
             Some(p) => self.resolve_from(base_path, p.as_str()),
-            None => Ok(base_path.to_path_buf()),
+            None => Ok(base_path.clone()),
         }
     }
 }
