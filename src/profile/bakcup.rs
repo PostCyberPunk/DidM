@@ -103,7 +103,8 @@ impl Backuper {
         }
         let backup_path = ctx.normal_path.join(relative);
 
-        self.do_backup(src, &backup_path, logger)?;
+        self.do_backup(src, &backup_path, logger)
+            .with_context(|| BackupError::Failed(src.display().to_string()))?;
         Ok(())
     }
 }
@@ -113,8 +114,8 @@ pub enum BackupError {
     InitializeFailed,
     #[error("An backup already exists: {0}")]
     BackupExsisted(String),
-    // #[error("Backuper context is not set")]
-    // BackupContextIsNotSet,
+    #[error("Failed to backup :{0}")]
+    Failed(String),
     //
     // #[error("Failed to strip prefix from path: {0}")]
     // StripPrefixError(String),
