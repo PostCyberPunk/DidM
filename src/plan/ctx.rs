@@ -76,6 +76,7 @@ impl<'a> PlanContext<'a> {
         cmds_runner.run_pre_commands()?;
 
         // Apply profiles
+        //FIX: initialize all profiles to a Vec,then apply
         for (profile, idx, profile_name) in self.profiles.iter() {
             logger.info(&format!("Applying profile: {}", profile_name));
             let behaviour = match &profile.override_behaviour {
