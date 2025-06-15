@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
-pub struct Check {
+pub struct SkipCheck {
     #[serde(default, skip_serializing_if = "super::is_false")]
     pub target_exists: bool,
     #[serde(default, skip_serializing_if = "super::is_false")]
@@ -12,9 +12,9 @@ pub struct Check {
     pub duplicated_config: bool,
 }
 
-impl Check {
+impl SkipCheck {
     pub fn new() -> Self {
-        Check {
+        SkipCheck {
             ..Default::default()
         }
     }

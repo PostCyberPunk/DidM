@@ -1,4 +1,4 @@
-use crate::model::{DidmConfig, Plan, Profile, SkipCheck};
+use crate::model::{DidmConfig, Plan, Profile};
 use anyhow::Result;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -17,7 +17,7 @@ impl<'a> ConfigMap<'a> {
         let mut plan_map = HashMap::new();
         let mut profile_map = HashMap::new();
 
-        let check_duplicates = !main_config.check.unwrap_or_default().duplicated_config;
+        let check_duplicates = !main_config.skip_check.unwrap_or_default().duplicated_config;
 
         for (idx, config) in configs.iter().enumerate() {
             for (name, plan) in &config.plans {
