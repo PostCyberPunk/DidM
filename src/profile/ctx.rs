@@ -57,13 +57,16 @@ impl<'a> ProfileContext<'a> {
         let behaviour = self.behaviour;
 
         let source_root = self
-            .base_path
-            .join(&profile.source_path)
-            .canonicalize()
+            .helpers
+            .path_resolver
+            .resolve_from(self.base_path, &profile.source_path)
+            .and_then(|p| p.canonicalize().map_err(|e| e.into()))
             .with_context(|| format!("Invalid source_path: {}", profile.source_path))?;
-        let target_root = PathBuf::from(&profile.target_path)
-            .resolve()?
-            .canonicalize()
+        let target_root = self
+            .helpers
+            .path_resolver
+            .resolve_from(self.base_path, &profile.target_path)
+            .and_then(|p| p.canonicalize().map_err(|e| e.into()))
             .with_context(|| format!("Invalid target_path: {}", profile.target_path))?;
         self.helpers.checker.check_target(&target_root)?;
         logger.info(&format!("Source path: {}", source_root.display(),));
