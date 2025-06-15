@@ -1,7 +1,7 @@
 use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum PathError {
-    #[error("Environment variable `{0}` is missing")]
+    #[error("Unresolved envrionment varible: `{0}`")]
     EnvVarMissing(String),
 
     #[error("Failed to create parent directory: {0}")]

@@ -29,8 +29,9 @@ impl PathResolver {
     }
     fn expand_tilde(&self, path: String) -> Result<String> {
         if path.starts_with("~") {
-            let home = env::var("HOME")
-                .map_err(|_| PathError::EnvVarMissing("Failed to resolve `~` ".to_string()))?;
+            let home = env::var("HOME").map_err(|_| {
+                PathError::EnvVarMissing("Failed to resolve `~` from $HOME ".to_string())
+            })?;
             let result = path.replacen("~", &home, 1);
             return Ok(result);
         }
