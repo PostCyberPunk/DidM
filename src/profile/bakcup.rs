@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use chrono::Local;
 use std::{
     fs::{self, metadata},
@@ -22,24 +22,14 @@ pub struct BackuperContext {
 }
 
 impl Backuper {
-    pub fn init(path: PathBuf, plan_name: String, is_dryrun: bool) -> Result<Self> {
-        //REFT: this to to pathbuf ext
-        match metadata(&path) {
-            Ok(metadata) => {
-                if !metadata.is_dir() {
-                    return Err(BackupError::PathIsNotDir(path.display().to_string()).into());
-                }
-            }
-            Err(err) => {
-                return Err(BackupError::CreateBackupDir(
-                    path.display().to_string(),
-                    err.to_string(),
-                )
-                .into());
-            }
-        }
+    pub fn init(base_path: PathBuf, plan_name: String, is_dryrun: bool) -> Result<Self> {
+        base_path
+            .check_dir()
+            .and_then(|_| base_path.check_permission())
+            .with_context(|| BackupError::InitializeFailed)?;
+
         let now = Local::now().format("%Y_%m_%d_%H_%M_%S").to_string();
-        let base_dir = path
+        let base_dir = base_path
             .join(".didm_backup")
             .join(format!("plan_{}-{}", plan_name, now));
 
@@ -79,7 +69,6 @@ impl Backuper {
             return Err(BackupError::BackupExsisted(dest.display().to_string()).into());
         }
         if !self.is_dryrun {
-            //REFT: impl this trait for path
             dest.ensure_parent_exists()?;
             fs::rename(src, dest)?;
         }
@@ -114,21 +103,19 @@ impl Backuper {
         }
         let backup_path = ctx.normal_path.join(relative);
 
-        self.do_backup(src, &backup_path, logger)?;
+        self.do_backup(src, &backup_path, logger)
+            .with_context(|| BackupError::Failed(src.display().to_string()))?;
         Ok(())
     }
 }
 #[derive(Error, Debug)]
 pub enum BackupError {
-    #[error("Failed to create backup directory: {0}\n,Error:{1}")]
-    CreateBackupDir(String, String),
-
-    #[error("Failed to create backup directory: {0}")]
-    PathIsNotDir(String),
+    #[error("Failed to initialize backuper")]
+    InitializeFailed,
     #[error("An backup already exists: {0}")]
     BackupExsisted(String),
-    // #[error("Backuper context is not set")]
-    // BackupContextIsNotSet,
+    #[error("Failed to backup :{0}")]
+    Failed(String),
     //
     // #[error("Failed to strip prefix from path: {0}")]
     // StripPrefixError(String),
