@@ -34,6 +34,7 @@ pub trait PathBufExtension: Sized {
     {
         self.as_ref().to_string_lossy().to_string()
     }
+    fn check_permission(&self) -> Result<()>;
 
     fn resolve(self) -> Result<Self>;
     fn expand_env_vars(self) -> Result<Self>;
@@ -49,6 +50,20 @@ pub trait PathBufExtension: Sized {
 }
 
 impl PathBufExtension for PathBuf {
+    fn check_permission(&self) -> Result<()> {
+        match fs::metadata(self) {
+            Ok(metadata) => {
+                if metadata.permissions().readonly() {
+                    return Err(PathError::NoPermission(self.to_string()).into());
+                }
+            }
+            Err(_) => {
+                return Err(PathError::NoPermission(self.to_string()).into());
+            }
+        }
+        Ok(())
+    }
+
     fn resolve(self) -> Result<Self> {
         let resolved = self.expand_tilde().expand_env_vars()?;
         let raw_path = resolved.to_string();
