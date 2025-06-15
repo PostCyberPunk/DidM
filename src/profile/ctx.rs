@@ -56,12 +56,18 @@ impl<'a> ProfileContext<'a> {
         let backuper = &mut self.backuper;
         let behaviour = self.behaviour;
 
+        //TODO: create a fucntion for this
+        //1.the path should be resolved first
+        //2.then we do a symlink check
+        //3. ask user whether to readlink or cancel the action
+        //NOTE:So... we should make a new resolved class...then path is now a mess
         let source_root = self
             .helpers
             .path_resolver
             .resolve_from(self.base_path, &profile.source_path)
             .and_then(|p| p.canonicalize().map_err(|e| e.into()))
             .with_context(|| format!("Invalid source_path: {}", profile.source_path))?;
+        //TODO: we also need to check the source path
         let target_root = self
             .helpers
             .path_resolver
