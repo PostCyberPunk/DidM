@@ -22,24 +22,24 @@ pub struct BackuperContext {
 }
 
 impl Backuper {
-    pub fn init(path: PathBuf, plan_name: String, is_dryrun: bool) -> Result<Self> {
+    pub fn init(base_path: PathBuf, plan_name: String, is_dryrun: bool) -> Result<Self> {
         //REFT: this to to pathbuf ext
-        match metadata(&path) {
+        match metadata(&base_path) {
             Ok(metadata) => {
                 if !metadata.is_dir() {
-                    return Err(BackupError::PathIsNotDir(path.display().to_string()).into());
+                    return Err(BackupError::PathIsNotDir(base_path.display().to_string()).into());
                 }
             }
             Err(err) => {
                 return Err(BackupError::CreateBackupDir(
-                    path.display().to_string(),
+                    base_path.display().to_string(),
                     err.to_string(),
                 )
                 .into());
             }
         }
         let now = Local::now().format("%Y_%m_%d_%H_%M_%S").to_string();
-        let base_dir = path
+        let base_dir = base_path
             .join(".didm_backup")
             .join(format!("plan_{}-{}", plan_name, now));
 
