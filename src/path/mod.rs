@@ -6,9 +6,6 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum PathError {
-    #[error("Invalid path: {0}")]
-    InvalidPath(String),
-
     #[error("Environment variable `{0}` is missing")]
     EnvVarMissing(String),
 
@@ -17,10 +14,24 @@ pub enum PathError {
 
     #[error("File {0} already existed in {1}")]
     FileExists(String, String),
+
+    #[error("Permission denied: {0}")]
+    NoPermission(String),
+
+    #[error("Path is not a directory: {0}")]
+    NotDir(String),
+
+    #[error("Path is not a file: {0}")]
+    NotFile(String),
+
+    #[error("Failed to resolve path: {0}")]
+    ResolveFailed(String),
 }
 
+//TODO: refactor this first
 //TODO: We have to remember to resolve the path before using it.
 //But, introduce a new struct that repsent the resolved path ,that does not feel right...
+
 pub trait PathBufExtension: Sized {
     fn to_str_or_null(&self) -> &str
     where
@@ -34,6 +45,8 @@ pub trait PathBufExtension: Sized {
     {
         self.as_ref().to_string_lossy().to_string()
     }
+    fn check_dir(&self) -> Result<()>;
+    fn check_file(&self) -> Result<()>;
     fn check_permission(&self) -> Result<()>;
 
     fn resolve(self) -> Result<Self>;
@@ -50,6 +63,18 @@ pub trait PathBufExtension: Sized {
 }
 
 impl PathBufExtension for PathBuf {
+    fn check_file(&self) -> Result<()> {
+        if !self.is_file() {
+            return Err(PathError::NotFile(self.to_string()).into());
+        }
+        Ok(())
+    }
+    fn check_dir(&self) -> Result<()> {
+        if !self.is_dir() {
+            return Err(PathError::NotDir(self.to_string()).into());
+        }
+        Ok(())
+    }
     fn check_permission(&self) -> Result<()> {
         match fs::metadata(self) {
             Ok(metadata) => {
