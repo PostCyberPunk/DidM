@@ -71,7 +71,7 @@ impl PathBufExtension for PathBuf {
         let resolved = self
             .expand_tilde()
             .and_then(|p| p.expand_env_vars())
-            .with_context(|| PathError::ResolveFailed)?;
+            .with_context(|| PathError::ResolveFailed("void".to_string()))?;
         let raw_path = resolved.to_string();
         if raw_path.contains("$") {
             return Err(PathError::EnvVarMissing(raw_path).into());

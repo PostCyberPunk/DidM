@@ -42,7 +42,7 @@ impl PathResolver {
         resolve = self
             .expand_tilde(resolve)
             .and_then(|p| self.expand_env_vars(p))
-            .with_context(|| PathError::ResolveFailed)?;
+            .with_context(|| PathError::ResolveFailed(path.to_string()))?;
 
         Ok(PathBuf::from(resolve))
     }

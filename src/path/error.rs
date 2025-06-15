@@ -19,6 +19,6 @@ pub enum PathError {
     #[error("Path is not a file: {0}")]
     NotFile(String),
 
-    #[error("Failed to resolve path")]
-    ResolveFailed,
+    #[error("Failed to resolve path:{0}")]
+    ResolveFailed(String),
 }
