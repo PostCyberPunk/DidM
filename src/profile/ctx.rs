@@ -12,7 +12,7 @@ use std::path::PathBuf;
 
 pub struct ProfileContext<'a> {
     pub name: &'a str,
-    pub idx: usize,
+    // pub idx: usize,
     pub profile: &'a Profile,
     pub base_path: &'a PathBuf,
     pub behaviour: &'a Behaviour,
@@ -38,7 +38,7 @@ impl<'a> ProfileContext<'a> {
         let base_path = &plan.configs[idx].base_path;
         Self {
             name,
-            idx,
+            // idx,
             profile,
             base_path,
             behaviour,
