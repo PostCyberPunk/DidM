@@ -22,11 +22,15 @@ impl PathResolver {
             let placeholder = format!("${}", key);
             expand = expand.replace(&placeholder, &value);
         }
+        if expand.contains("$") {
+            return Err(PathError::EnvVarMissing(expand).into());
+        }
         Ok(expand)
     }
     fn expand_tilde(&self, path: String) -> Result<String> {
         if path.starts_with("~") {
-            let home = env::var("HOME").unwrap_or_else(|_| ".".to_string());
+            let home = env::var("HOME")
+                .map_err(|_| PathError::EnvVarMissing("Failed to resolve `~` ".to_string()))?;
             let result = path.replacen("~", &home, 1);
             return Ok(result);
         }
@@ -40,9 +44,6 @@ impl PathResolver {
             .and_then(|p| self.expand_env_vars(p))
             .with_context(|| PathError::ResolveFailed)?;
 
-        if resolve.contains("$") {
-            return Err(PathError::EnvVarMissing(resolve).into());
-        }
         Ok(PathBuf::from(resolve))
     }
     pub fn resolve_from(&self, base_path: &Path, path: &str) -> Result<PathBuf> {
