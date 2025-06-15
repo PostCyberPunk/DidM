@@ -7,7 +7,7 @@ mod model;
 mod path;
 mod plan;
 mod profile;
-mod validation;
+// mod validation;
 
 fn main() -> anyhow::Result<()> {
     cli::process()
