@@ -21,4 +21,10 @@ pub enum PathError {
 
     #[error("Failed to resolve path:{0}")]
     ResolveFailed(String),
+
+    #[error("Failed to resolve symlink: {0}")]
+    UnresolvedSymlink(String),
+
+    #[error("Unknown error: {0}")]
+    Unknown(String),
 }

@@ -1,10 +1,7 @@
 use super::ResolvedPath;
-use crate::helpers::path::PathError;
+use crate::{cli::prompt::confirm, helpers::path::PathError};
 use anyhow::{Context, Result};
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::{env, path::PathBuf};
 
 pub struct PathResolver {
     pub check_env: bool,
@@ -38,14 +35,24 @@ impl PathResolver {
         }
         Ok(path)
     }
+    fn check_symlink_then_absolute(&self, path: &str) -> Result<PathBuf> {
+        let pathbuf = PathBuf::from(&path);
+        if !pathbuf.is_symlink() || confirm(&format!("{} is a symlink, continue?", path)) {
+            return Err(PathError::UnresolvedSymlink("User cancelled".to_string()).into());
+        }
+        pathbuf
+            .canonicalize()
+            .map_err(|e| PathError::Unknown(e.to_string()).into())
+    }
     // -----------Public ----------------
     pub fn resolve(&self, path: &str) -> Result<ResolvedPath> {
-        let mut resolve = path.to_string();
-        resolve = self
-            .expand_tilde(resolve)
+        let resolve = self
+            .expand_tilde(path.to_string())
             .and_then(|p| self.expand_env_vars(p))
+            .and_then(|p| self.check_symlink_then_absolute(&p))
             .with_context(|| PathError::ResolveFailed(path.to_string()))?;
-        Ok(ResolvedPath::new(PathBuf::from(resolve), path.to_string()))
+
+        Ok(ResolvedPath::new(resolve, path.to_string()))
     }
     pub fn resolve_from(&self, base_path: &ResolvedPath, path: &str) -> Result<ResolvedPath> {
         let resolved = self.resolve(path)?;
