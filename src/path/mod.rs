@@ -1,11 +1,10 @@
 mod error;
-mod resolver;
 use anyhow::{Context, Result};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use error::PathError;
+pub use error::PathError;
 //TODO: refactor this first
 //TODO: We have to remember to resolve the path before using it.
 //But, introduce a new struct that repsent the resolved path ,that does not feel right...

@@ -2,23 +2,24 @@ use super::Backuper;
 use super::entry::Entries;
 use super::walk::WalkerContext;
 use crate::commands::{CommandsContext, CommandsRunner};
+use crate::helpers::Helpers;
 use crate::log::Logger;
 use crate::model::{Behaviour, Profile};
 use crate::path::PathBufExtension;
 use crate::plan::{PlanArgs, PlanContext};
-use crate::validation::check::check_target;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 
 pub struct ProfileContext<'a> {
     pub name: &'a str,
-    pub idx: usize,
+    // pub idx: usize,
     pub profile: &'a Profile,
     pub base_path: &'a PathBuf,
     pub behaviour: &'a Behaviour,
     pub backuper: &'a mut Backuper,
     pub args: &'a PlanArgs,
     pub logger: &'a Logger,
+    pub helpers: &'a Helpers,
 }
 
 impl<'a> ProfileContext<'a> {
@@ -28,6 +29,7 @@ impl<'a> ProfileContext<'a> {
         profile: &'a Profile,
         plan: &'a PlanContext,
         behaviour: &'a Behaviour,
+        //FIX: make this imutable!! just initialize it with check_config
         backuper: &'a mut Backuper,
     ) -> Self {
         let args = plan.args;
@@ -36,41 +38,41 @@ impl<'a> ProfileContext<'a> {
         let base_path = &plan.configs[idx].base_path;
         Self {
             name,
-            idx,
+            // idx,
             profile,
             base_path,
             behaviour,
             backuper,
             args,
             logger,
+            helpers: plan.helpers,
         }
     }
 
+    //FIX: path iniialize refcator to new
     pub fn apply(&mut self) -> Result<()> {
         let logger = self.logger;
         let profile = self.profile;
         let backuper = &mut self.backuper;
         let behaviour = self.behaviour;
+        let checker = &self.helpers.checker;
+        let path_resolver = &self.helpers.path_resolver;
 
-        let source_root = self
-            .base_path
-            .join(&profile.source_path)
-            .canonicalize()
+        //TODO: create a fucntion for this
+        //1.the path should be resolved first
+        //2.then we do a symlink check
+        //3. ask user whether to readlink or cancel the action
+        //NOTE:So... we should make a new resolved class...then path is now a mess
+        let source_root = path_resolver
+            .resolve_from(self.base_path, &profile.source_path)
+            .and_then(|p| p.canonicalize().map_err(|e| e.into()))
             .with_context(|| format!("Invalid source_path: {}", profile.source_path))?;
-        let target_root = PathBuf::from(&profile.target_path)
-            .resolve()?
-            .canonicalize()
+        //TODO: we also need to check the source path
+        let target_root = path_resolver
+            .resolve_from(self.base_path, &profile.target_path)
+            .and_then(|p| p.canonicalize().map_err(|e| e.into()))
             .with_context(|| format!("Invalid target_path: {}", profile.target_path))?;
-        //REFT: 1. check and resolve when load config
-        //      2. use a new struct Checker and PathResolver,init it when loading
-        //      3. pass check_config to here...
-        if !check_target(&target_root) {
-            //TODO: skippable error
-            return Err(anyhow::anyhow!(
-                "Target path not exists: {}",
-                target_root.display()
-            ));
-        }
+        checker.check_target(&target_root)?;
         logger.info(&format!("Source path: {}", source_root.display(),));
         logger.info(&format!("Target path: {}", target_root.display()));
 
