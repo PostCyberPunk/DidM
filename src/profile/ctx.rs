@@ -116,8 +116,8 @@ impl<'a> ProfileContext<'a> {
                     Ok(_) => Some((entry, p)),
                     Err(err) => {
                         logger.warn(&format!(
-                            "Backup failed Skipping {},\n {}",
-                            p.display(),
+                            "Skipping entry:{}\nCasuse:{}",
+                            entry.display(),
                             err
                         ));
                         None

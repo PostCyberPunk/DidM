@@ -6,9 +6,6 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum PathError {
-    #[error("Invalid path: {0}")]
-    InvalidPath(String),
-
     #[error("Environment variable `{0}` is missing")]
     EnvVarMissing(String),
 
@@ -17,10 +14,24 @@ pub enum PathError {
 
     #[error("File {0} already existed in {1}")]
     FileExists(String, String),
+
+    #[error("Permission denied: {0}")]
+    NoPermission(String),
+
+    #[error("Path is not a directory: {0}")]
+    NotDir(String),
+
+    #[error("Path is not a file: {0}")]
+    NotFile(String),
+
+    #[error("Failed to resolve path")]
+    ResolveFailed,
 }
 
+//TODO: refactor this first
 //TODO: We have to remember to resolve the path before using it.
 //But, introduce a new struct that repsent the resolved path ,that does not feel right...
+
 pub trait PathBufExtension: Sized {
     fn to_str_or_null(&self) -> &str
     where
@@ -34,11 +45,13 @@ pub trait PathBufExtension: Sized {
     {
         self.as_ref().to_string_lossy().to_string()
     }
+    fn check_dir(&self) -> Result<()>;
+    fn check_file(&self) -> Result<()>;
     fn check_permission(&self) -> Result<()>;
 
     fn resolve(self) -> Result<Self>;
     fn expand_env_vars(self) -> Result<Self>;
-    fn expand_tilde(self) -> Self;
+    fn expand_tilde(self) -> Result<Self>;
 
     fn resolve_or_from(&self, path: &Option<String>) -> Result<PathBuf>;
     // fn is_unresolved_absolute(&self) -> bool;
@@ -50,6 +63,18 @@ pub trait PathBufExtension: Sized {
 }
 
 impl PathBufExtension for PathBuf {
+    fn check_file(&self) -> Result<()> {
+        if !self.is_file() {
+            return Err(PathError::NotFile(self.to_string()).into());
+        }
+        Ok(())
+    }
+    fn check_dir(&self) -> Result<()> {
+        if !self.is_dir() {
+            return Err(PathError::NotDir(self.to_string()).into());
+        }
+        Ok(())
+    }
     fn check_permission(&self) -> Result<()> {
         match fs::metadata(self) {
             Ok(metadata) => {
@@ -63,9 +88,12 @@ impl PathBufExtension for PathBuf {
         }
         Ok(())
     }
-
+    //REFT: this definitely needs to be refactored to a resolver
     fn resolve(self) -> Result<Self> {
-        let resolved = self.expand_tilde().expand_env_vars()?;
+        let resolved = self
+            .expand_tilde()
+            .and_then(|p| p.expand_env_vars())
+            .with_context(|| PathError::ResolveFailed)?;
         let raw_path = resolved.to_string();
         if raw_path.contains("$") {
             return Err(PathError::EnvVarMissing(raw_path).into());
@@ -84,14 +112,14 @@ impl PathBufExtension for PathBuf {
         self = PathBuf::from(expanded);
         Ok(self)
     }
-    fn expand_tilde(mut self) -> Self {
+    fn expand_tilde(mut self) -> Result<Self> {
         if let Some(path) = self.to_str() {
             if path.starts_with("~") {
                 let home = env::var("HOME").unwrap_or_else(|_| ".".to_string());
                 self = PathBuf::from(path.replacen("~", &home, 1));
             }
         }
-        self
+        Ok(self)
     }
 
     // fn is_unresolved_absolute(&self) -> bool {
