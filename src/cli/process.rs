@@ -1,6 +1,7 @@
 use super::parser::{Cli, Commands};
 use crate::config::ConfigMap;
 use crate::log::LogLevel;
+use crate::validation::check::check_git_repo;
 use crate::{
     config,
     log::{Logger, StdoutLogTarget},
@@ -23,7 +24,12 @@ pub fn process() -> anyhow::Result<()> {
             verbose,
         }) => {
             let configs = config::load_configs(path.as_deref())?;
-            let config_map = ConfigMap::new(&configs);
+            let config_map = ConfigMap::new(&configs)?;
+
+            //check git_repo
+            if !check_git_repo(&config_map.main_config.base_path) {
+                return Ok(());
+            }
             let plan_args = PlanArgs {
                 is_dry_run: *dry_run,
                 is_verbose: *verbose,
