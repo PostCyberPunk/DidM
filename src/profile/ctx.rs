@@ -64,7 +64,7 @@ impl<'a> ProfileContext<'a> {
         //REFT: 1. check and resolve when load config
         //      2. use a new struct Checker and PathResolver,init it when loading
         //      3. pass check_config to here...
-        if check_target(&target_root) {
+        if !check_target(&target_root) {
             //TODO: skippable error
             return Err(anyhow::anyhow!(
                 "Target path not exists: {}",
