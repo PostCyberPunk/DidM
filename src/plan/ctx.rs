@@ -12,6 +12,7 @@ use anyhow::{Context, Result};
 pub struct PlanContext<'a> {
     pub args: &'a PlanArgs,
     pub logger: &'a Logger,
+    pub config_map: &'a ConfigMap<'a>,
     pub base_path: &'a ResolvedPath,
     pub plan: &'a Plan,
     pub name: &'a str,
@@ -50,6 +51,7 @@ impl<'a> PlanContext<'a> {
             args,
             logger,
             helpers,
+            config_map,
             base_path,
             plan,
             name: plan_name,
@@ -83,8 +85,16 @@ impl<'a> PlanContext<'a> {
         for (profile, idx, profile_name) in self.profiles.iter() {
             logger.info(&format!("Applying profile: {}", profile_name));
             let behaviour = &self.behaviour.override_by(&profile.override_behaviour);
-            let mut profile_ctx =
-                ProfileContext::new(profile_name, *idx, profile, self, behaviour, &mut backuper);
+            let base_path = self.config_map.get_base_path(*idx)?;
+            let mut profile_ctx = ProfileContext::new(
+                profile_name,
+                *idx,
+                base_path,
+                profile,
+                self,
+                behaviour,
+                &mut backuper,
+            );
             profile_ctx
                 .apply()
                 .context(format!("Profile apply failed:{}", profile_name))?;
