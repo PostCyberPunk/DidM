@@ -16,6 +16,7 @@ impl PathResolver {
             return Ok(path);
         }
         let mut expand = path;
+        //FIX:this could be expansive
         for (key, value) in env::vars() {
             let placeholder = format!("${}", key);
             expand = expand.replace(&placeholder, &value);

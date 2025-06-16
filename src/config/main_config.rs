@@ -5,18 +5,18 @@ use crate::model::Behaviour;
 
 pub struct MainConfig {
     pub(crate) behaviour: Behaviour,
-    pub(crate) skipcheck: CheckConfig,
+    pub(crate) check_config: CheckConfig,
 }
 impl MainConfig {
     pub fn new(config: &DidmConfig) -> Self {
         let behaviour = Behaviour::new(&config.behaviour);
-        let skipcheck = match config.skip_check {
+        let check_config = match config.check_config {
             Some(c) => c,
             None => CheckConfig::new(),
         };
         MainConfig {
             behaviour,
-            skipcheck,
+            check_config,
         }
     }
 }

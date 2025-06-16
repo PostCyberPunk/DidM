@@ -21,10 +21,9 @@ impl<'a> ConfigMap<'a> {
     pub fn new(base_path: ResolvedPath, config_sets: &'a [ConfigSet]) -> Result<Self> {
         let main_config = MainConfig::new(&config_sets[0].1);
         //---------Check Configs---------
-        //FIX: that is definitely wrong ,impl a parser instead
-        let skip_check = &main_config.skipcheck;
+        let check_config = &main_config.check_config;
 
-        let helpers = helpers::Helpers::new(skip_check);
+        let helpers = helpers::Helpers::new(check_config);
         helpers
             .checker
             .working_dir_is_symlink(config_sets[0].0.get_raw())?;
