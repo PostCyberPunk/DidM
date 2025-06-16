@@ -1,3 +1,4 @@
+use ignore::overrides;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -22,6 +23,13 @@ impl Default for Behaviour {
 //but for safe reason...
 //TODO:should use getter
 impl Behaviour {
+    pub fn new(other: &Option<Behaviour>) -> Self {
+        let me = Behaviour::default();
+        match other {
+            Some(b) => me.override_by(b),
+            None => me,
+        }
+    }
     pub fn should_backup(&self) -> bool {
         self.backup_existed.unwrap_or(true) && self.overwrite_existed.unwrap_or(false)
     }
