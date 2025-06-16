@@ -25,9 +25,10 @@ impl<'a> ConfigMap<'a> {
         let skip_check = &main_config.skipcheck;
 
         let helpers = helpers::Helpers::new(skip_check);
+        helpers
+            .checker
+            .working_dir_is_symlink(config_sets[0].0.get_raw())?;
         helpers.checker.check_git_repo(base_path.get())?;
-
-        let check_duplicates = !skip_check.duplicated_config;
 
         //---------Build Config Map---------
         let mut path_map = Vec::new();
@@ -41,14 +42,14 @@ impl<'a> ConfigMap<'a> {
             path_map.push(config_path);
 
             for (name, plan) in &config.plans {
-                if check_duplicates && plan_map.contains_key(name.as_str()) {
+                if plan_map.contains_key(name.as_str()) {
                     return Err(ConfigError::DuplicatedPlan(name.to_string()).into());
                 }
                 plan_map.insert(name.as_str(), plan);
             }
 
             for (name, profile) in &config.profiles {
-                if check_duplicates && profile_map.contains_key(name.as_str()) {
+                if profile_map.contains_key(name.as_str()) {
                     return Err(ConfigError::DuplicatedProfile(name.to_string()).into());
                 }
                 profile_map.insert(name.as_str(), (idx, profile));

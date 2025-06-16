@@ -42,6 +42,23 @@ impl Checker {
             Err(CheckError::TargetPathNotExists.into())
         }
     }
+    pub fn working_dir_is_symlink(&self, path_raw: &str) -> Result<()> {
+        if !self.config.is_working_dir_symlink {
+            return Ok(());
+        }
+        let path = Path::new(path_raw);
+        if path.is_symlink()
+            && !confirm(&format!(
+                "config located at: {}\n\
+                    which is a symlink,this may lead to some unexcepted issue\n\
+                    do you want to continue?",
+                path.display()
+            ))
+        {
+            return Err(CheckError::WorkingDirectoryIsSymlink.into());
+        }
+        Ok(())
+    }
 }
 
 #[derive(Error, Debug)]
@@ -50,6 +67,8 @@ pub enum CheckError {
     NotGitRepo,
     #[error("Target path not exists")]
     TargetPathNotExists,
+    #[error("Working directory is symlink")]
+    WorkingDirectoryIsSymlink,
 }
 
 //NOTE: macro is not lazy
