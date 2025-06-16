@@ -7,12 +7,10 @@ pub use behaviour::Behaviour;
 pub use plan::Plan;
 pub use profile::Profile;
 pub use skip_check::SkipCheck;
-use std::{collections::HashMap, path::PathBuf};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct DidmConfig {
-    #[serde(skip)]
-    pub base_path: PathBuf,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub include: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -23,9 +21,8 @@ pub struct DidmConfig {
     pub plans: HashMap<String, Plan>,
 }
 impl DidmConfig {
-    pub fn new(base_path: PathBuf) -> Self {
+    pub fn new() -> Self {
         DidmConfig {
-            base_path,
             include: Vec::new(),
             skip_check: None,
             behaviour: None,
