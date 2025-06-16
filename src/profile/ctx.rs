@@ -69,7 +69,7 @@ impl<'a> ProfileContext<'a> {
         let target_root = path_resolver
             .resolve_from(self.base_path, &profile.target_path)
             .with_context(|| format!("Invalid target_path: {}", profile.target_path))?;
-        checker.check_target(target_root.get())?;
+        checker.target_exisit_or_create(target_root.get())?;
         logger.info(&format!("Source path: {}", source_root.di_string(),));
         logger.info(&format!("Target path: {}", target_root.di_string()));
 

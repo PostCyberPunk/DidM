@@ -12,8 +12,8 @@ impl Checker {
     pub fn new(config: CheckConfig) -> Self {
         Checker { config }
     }
-    pub fn check_git_repo(&self, path: &Path) -> Result<()> {
-        if self.config.source_is_git {
+    pub fn is_git_workspace(&self, path: &Path) -> Result<()> {
+        if self.config.is_git_workspace {
             return Ok(());
         }
         if path.join(".git").exists()
@@ -28,7 +28,7 @@ impl Checker {
             Err(CheckError::NotGitRepo.into())
         }
     }
-    pub fn check_target(&self, path: &Path) -> Result<()> {
+    pub fn target_exisit_or_create(&self, path: &Path) -> Result<()> {
         if path.exists()
             || confirm(&format!(
                 "Target Path not exists: \n\

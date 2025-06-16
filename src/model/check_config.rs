@@ -6,12 +6,14 @@ use serde::{Deserialize, Serialize};
 #[serde(rename = "SkipChecks")]
 pub struct CheckConfig {
     #[serde(default, skip_serializing_if = "super::is_false")]
-    pub source_is_git: bool,
+    pub is_git_workspace: bool,
     #[serde(default, skip_serializing_if = "super::is_false")]
     //WARN:that's a flip!!
     pub unresolved_env: bool,
     #[serde(default, skip_serializing_if = "super::is_false")]
     pub is_working_dir_symlink: bool,
+    // #[serde(default, skip_serializing_if = "super::is_false")]
+    // pub outside_home: bool,
     // #[serde(default, skip_serializing_if = "super::is_false")]
     // pub target_exists: bool,
     // #[serde(default, skip_serializing_if = "super::is_false")]
