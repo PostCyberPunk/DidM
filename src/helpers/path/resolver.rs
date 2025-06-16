@@ -37,7 +37,12 @@ impl PathResolver {
     }
     fn check_symlink_then_absolute(&self, path: &str) -> Result<PathBuf> {
         let pathbuf = PathBuf::from(&path);
-        if !pathbuf.is_symlink() || confirm(&format!("{} is a symlink, continue?", path)) {
+        if pathbuf.is_symlink()
+            && !confirm(&format!(
+                "{} is a symlink,this may lead to some unexcepted issue,do you want to continue?",
+                path
+            ))
+        {
             return Err(PathError::UnresolvedSymlink("User cancelled".to_string()).into());
         }
         pathbuf
