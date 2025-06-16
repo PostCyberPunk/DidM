@@ -2,14 +2,14 @@ use anyhow::Result;
 use std::path::Path;
 use thiserror::Error;
 
-use crate::{cli::prompt::confirm, model::SkipCheck};
+use crate::{cli::prompt::confirm, model::CheckConfig};
 
 pub struct Checker {
-    pub config: SkipCheck,
+    pub config: CheckConfig,
 }
 
 impl Checker {
-    pub fn new(config: SkipCheck) -> Self {
+    pub fn new(config: CheckConfig) -> Self {
         Checker { config }
     }
     pub fn check_git_repo(&self, path: &Path) -> Result<()> {

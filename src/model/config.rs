@@ -1,4 +1,4 @@
-use super::{Behaviour, Plan, Profile, SkipCheck};
+use super::{Behaviour, CheckConfig, Plan, Profile};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -8,7 +8,7 @@ pub struct DidmConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub behaviour: Option<Behaviour>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub skip_check: Option<SkipCheck>,
+    pub skip_check: Option<CheckConfig>,
     pub profiles: HashMap<String, Profile>,
     pub plans: HashMap<String, Plan>,
 }

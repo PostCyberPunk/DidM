@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-//FIX: 1.fuck this name...rename it
-//2.use a parser
+//FIX:
+//2.use a parser maybe?
 #[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
-pub struct SkipCheck {
+#[serde(rename = "SkipChecks")]
+pub struct CheckConfig {
     #[serde(default, skip_serializing_if = "super::is_false")]
     pub target_exists: bool,
     #[serde(default, skip_serializing_if = "super::is_false")]
@@ -14,9 +15,9 @@ pub struct SkipCheck {
     pub duplicated_config: bool,
 }
 
-impl SkipCheck {
+impl CheckConfig {
     pub fn new() -> Self {
-        SkipCheck {
+        CheckConfig {
             ..Default::default()
         }
     }
