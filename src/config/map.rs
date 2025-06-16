@@ -4,11 +4,12 @@ use crate::{
     model::{Behaviour, Plan, Profile},
 };
 use anyhow::Result;
-use std::collections::HashMap;
+use std::{collections::HashMap, usize};
 use thiserror::Error;
 
 //TODO: We should own everything in this map,
 //convert back to normal configset when saving
+//everything should be private
 pub struct ConfigMap<'a> {
     pub path_map: Vec<ResolvedPath>,
     pub main_config: MainConfig,
@@ -93,6 +94,17 @@ impl<'a> ConfigMap<'a> {
     pub fn get_helpers(&self) -> &Helpers {
         &self.helpers
     }
+    pub fn get_base_path(&self, idx: usize) -> Result<&ResolvedPath> {
+        if idx > self.path_map.len() {
+            return Err(
+                ConfigError::IndexOutbound(String::from("PathMap"), idx.to_string()).into(),
+            );
+        }
+        Ok(&self.path_map[idx])
+    }
+    pub fn get_main_base_path(&self) -> Result<&ResolvedPath> {
+        self.get_base_path(0)
+    }
 }
 
 #[derive(Debug, Error)]
@@ -108,4 +120,7 @@ pub enum ConfigError {
 
     #[error("Profile `{0}` is duplicated")]
     DuplicatedProfile(String),
+
+    #[error("Index of `{0}` is out of bound: `{1}`")]
+    IndexOutbound(String, String),
 }
