@@ -16,11 +16,12 @@ pub fn load_config(config_path: ResolvedPath) -> Result<ConfigSet> {
     Ok(ConfigSet(config_path, config))
 }
 pub fn load_configs(path: Option<&str>) -> Result<(ResolvedPath, Vec<ConfigSet>)> {
+    //TODO: impl $DIDM_DEFAULT_CONFIG env
     let path = path.unwrap_or(DEFAULT_CONFIG_PATH);
     let resolver = &PathResolver::new(true);
     //TODO: map this error to Hint
     let resolved_config_path = resolver.resolve(path).with_context(|| {
-            "Config file not found in current path,consider use `didm init` or specify path with `--path`".to_string()
+            "Config file not found by current path,consider use `didm init` or specify path with `--path`".to_string()
         })?;
 
     let base_path = resolved_config_path.to_parent().unwrap();

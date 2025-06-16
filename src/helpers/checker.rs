@@ -5,7 +5,7 @@ use thiserror::Error;
 use crate::{cli::prompt::confirm, model::CheckConfig};
 
 pub struct Checker {
-    pub config: CheckConfig,
+    config: CheckConfig,
 }
 
 impl Checker {
@@ -13,6 +13,9 @@ impl Checker {
         Checker { config }
     }
     pub fn check_git_repo(&self, path: &Path) -> Result<()> {
+        if self.config.source_is_git {
+            return Ok(());
+        }
         if path.join(".git").exists()
             || confirm(&format!(
                 "Current Path: {}\n\

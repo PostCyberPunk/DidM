@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use std::{env, path::PathBuf};
 
 pub struct PathResolver {
-    pub check_env: bool,
+    check_env: bool,
 }
 impl PathResolver {
     pub fn new(check_env: bool) -> Self {
@@ -20,7 +20,7 @@ impl PathResolver {
             let placeholder = format!("${}", key);
             expand = expand.replace(&placeholder, &value);
         }
-        if expand.contains("$") {
+        if self.check_env && expand.contains("$") {
             return Err(PathError::EnvVarMissing(expand).into());
         }
         Ok(expand)
