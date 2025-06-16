@@ -18,6 +18,10 @@ impl ResolvedPath {
     pub fn get_raw(&self) -> &str {
         &self.raw
     }
+    //FIX: WTF is this name?...
+    pub fn di_string(&self) -> String {
+        self.path.display().to_string()
+    }
 
     //------------------------
     pub fn to_parent(&self) -> Result<ResolvedPath> {
