@@ -22,8 +22,8 @@ pub fn process() -> anyhow::Result<()> {
             dry_run,
             verbose,
         }) => {
-            let configs = config::load_configs(path.as_deref())?;
-            let config_map = ConfigMap::new(&configs)?;
+            let (base_path, config_sets) = config::load_configs(path.as_deref())?;
+            let config_map = ConfigMap::new(base_path, &config_sets)?;
 
             let plan_args = PlanArgs {
                 is_dry_run: *dry_run,
