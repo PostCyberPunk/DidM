@@ -1,6 +1,6 @@
 use super::PathError;
 use anyhow::Result;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct ResolvedPath {
@@ -24,11 +24,11 @@ impl ResolvedPath {
     }
 
     //------------------------
-    pub fn to_parent(&self) -> Result<ResolvedPath> {
-        if self.path == PathBuf::from("/") {
+    pub fn into_parent(mut self) -> Result<Self> {
+        if self.path == Path::new("/") {
             return Err(PathError::NoParent.into());
         }
-        let path = self.path.parent().unwrap().to_path_buf();
+        self.path.pop();
         //FIX: raw_path is not safe after all
         // let raw_path = PathBuf::from(&self.raw)
         //     .parent()
@@ -41,29 +41,25 @@ impl ResolvedPath {
         //     _ => raw_path,
         // };
         //TODO: i am lazy ,so lets use absolute...
-        let raw = path.display().to_string();
-        Ok(ResolvedPath { path, raw })
+        // self.path
+        Ok(self)
     }
-    pub fn to_child(&self, filename: &str) -> Result<ResolvedPath> {
-        let path = self.path.join(filename);
-        if path.exists() {
-            return Err(PathError::FileExists(filename.to_string(), self.raw.clone()).into());
-        };
-        let raw = PathBuf::from(self.raw.clone())
-            .join(filename)
-            .display()
-            .to_string();
-        Ok(ResolvedPath { path, raw })
+    pub fn to_parent(&self) -> Result<ResolvedPath> {
+        self.clone().into_parent()
+    }
+    pub fn to_child(&self, filename: &str, check_exist: bool) -> Result<ResolvedPath> {
+        self.clone().into_child(filename, check_exist)
     }
 
-    //FIX: this 2 method is bad
-    //when to_some,we need clone,but not into
-    //so the right way is impl into first, then impl to through self.clone.into.
-    pub fn into_parent(self) -> Result<Self> {
-        self.to_parent()
-    }
-    pub fn into_child(self, filename: &str) -> Result<Self> {
-        self.to_child(filename)
+    pub fn into_child(mut self, filename: &str, check_exist: bool) -> Result<Self> {
+        self.path.push(filename);
+        if check_exist && self.path.exists() {
+            return Err(PathError::FileExists(filename.to_string(), self.raw).into());
+        };
+        // let raw = PathBuf::from(self.raw).join(filename).display().to_string();
+        self.raw.push('/');
+        self.raw.push_str(filename);
+        Ok(self)
     }
 }
 impl PartialEq for ResolvedPath {
