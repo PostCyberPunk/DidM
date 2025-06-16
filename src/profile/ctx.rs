@@ -2,7 +2,7 @@ use super::Backuper;
 use super::entry::Entries;
 use super::walk::WalkerContext;
 use crate::commands::{CommandsContext, CommandsRunner};
-use crate::helpers::Helpers;
+use crate::helpers::{Helpers, ResolvedPath};
 use crate::log::Logger;
 use crate::model::{Behaviour, Profile};
 use crate::path::PathBufExtension;
@@ -14,7 +14,7 @@ pub struct ProfileContext<'a> {
     pub name: &'a str,
     // pub idx: usize,
     pub profile: &'a Profile,
-    pub base_path: &'a PathBuf,
+    pub base_path: &'a ResolvedPath,
     pub behaviour: &'a Behaviour,
     pub backuper: &'a mut Backuper,
     pub args: &'a PlanArgs,
@@ -26,16 +26,17 @@ impl<'a> ProfileContext<'a> {
     pub fn new(
         name: &'a str,
         idx: usize,
+        base_path: &'a ResolvedPath,
         profile: &'a Profile,
-        plan: &'a PlanContext,
+        plan_ctx: &'a PlanContext,
         behaviour: &'a Behaviour,
         //FIX: make this imutable!! just initialize it with check_config
         backuper: &'a mut Backuper,
     ) -> Self {
-        let args = plan.args;
-        let logger = plan.logger;
+        let args = plan_ctx.args;
+        let logger = plan_ctx.logger;
         //TODO: use vec[path] to avoid get path from configs
-        let base_path = &plan.configs[idx].base_path;
+        let base_path = base_path;
         Self {
             name,
             // idx,
@@ -45,7 +46,7 @@ impl<'a> ProfileContext<'a> {
             backuper,
             args,
             logger,
-            helpers: plan.helpers,
+            helpers: plan_ctx.helpers,
         }
     }
 
