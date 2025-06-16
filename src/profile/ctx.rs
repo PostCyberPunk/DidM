@@ -5,7 +5,6 @@ use crate::commands::{CommandsContext, CommandsRunner};
 use crate::helpers::{Helpers, ResolvedPath};
 use crate::log::Logger;
 use crate::model::{Behaviour, Profile};
-use crate::path::PathBufExtension;
 use crate::plan::{PlanArgs, PlanContext};
 use anyhow::{Context, Result};
 use std::path::PathBuf;
@@ -36,7 +35,6 @@ impl<'a> ProfileContext<'a> {
         let args = plan_ctx.args;
         let logger = plan_ctx.logger;
         //TODO: use vec[path] to avoid get path from configs
-        let base_path = base_path;
         Self {
             name,
             // idx,
@@ -66,29 +64,26 @@ impl<'a> ProfileContext<'a> {
         //NOTE:So... we should make a new resolved class...then path is now a mess
         let source_root = path_resolver
             .resolve_from(self.base_path, &profile.source_path)
-            .and_then(|p| p.canonicalize().map_err(|e| e.into()))
             .with_context(|| format!("Invalid source_path: {}", profile.source_path))?;
         //TODO: we also need to check the source path
         let target_root = path_resolver
             .resolve_from(self.base_path, &profile.target_path)
-            .and_then(|p| p.canonicalize().map_err(|e| e.into()))
             .with_context(|| format!("Invalid target_path: {}", profile.target_path))?;
-        checker.check_target(&target_root)?;
-        logger.info(&format!("Source path: {}", source_root.display(),));
-        logger.info(&format!("Target path: {}", target_root.display()));
+        checker.check_target(target_root.get())?;
+        logger.info(&format!("Source path: {}", source_root.di_string(),));
+        logger.info(&format!("Target path: {}", target_root.di_string()));
 
         if behaviour.should_backup() {
             let prefix = format!("profile_{}", self.name);
             backuper.set_ctx(prefix);
         }
 
-        let commands_path = self
-            .base_path
-            .resolve_or_from(&self.profile.commands_path)?;
+        let commands_path =
+            path_resolver.resolve_from_or_base(self.base_path, &self.profile.commands_path)?;
         let cmds_runner = CommandsRunner::new(
             CommandsContext {
                 environment: &profile.environment,
-                path: &commands_path,
+                path: commands_path.get(),
                 logger,
                 args: self.args,
                 stop_at_commands_error: behaviour.stop_at_commands_error.unwrap_or(false),
@@ -100,21 +95,21 @@ impl<'a> ProfileContext<'a> {
 
         logger.info("Generating entries ...");
         //Generate entries by walker
-        let entries = WalkerContext::new(profile, &source_root, logger)
+        let entries = WalkerContext::new(profile, source_root.get(), logger)
             .get_walker()?
             .run()?;
         //Genrate target entries and backup them
         let entries: Vec<Option<(PathBuf, PathBuf)>> = entries
             .into_iter()
             .map(|entry| {
-                let relative_path = match entry.strip_prefix(&source_root) {
+                let relative_path = match entry.strip_prefix(source_root.get()) {
                     Ok(p) => p,
                     Err(e) => {
                         logger.warn(&format!("Invalid entry path: {}", e));
                         return None;
                     }
                 };
-                let p = target_root.clone().join(relative_path);
+                let p = target_root.get().join(relative_path);
                 match backuper.backup(&p, relative_path, logger, || p.exists()) {
                     Ok(_) => Some((entry, p)),
                     Err(err) => {
