@@ -40,8 +40,26 @@ impl ResolvedPath {
         let raw = path.display().to_string();
         Ok(ResolvedPath { path, raw })
     }
+    pub fn to_child(&self, filename: &str) -> Result<ResolvedPath> {
+        let path = self.path.join(filename);
+        if path.exists() {
+            return Err(PathError::FileExists(filename.to_string(), self.raw.clone()).into());
+        };
+        let raw = PathBuf::from(self.raw.clone())
+            .join(filename)
+            .display()
+            .to_string();
+        Ok(ResolvedPath { path, raw })
+    }
+
+    //FIX: this 2 method is bad
+    //when to_some,we need clone,but not into
+    //so the right way is impl into first, then impl to through self.clone.into.
     pub fn into_parent(self) -> Result<Self> {
         self.to_parent()
+    }
+    pub fn into_child(self, filename: &str) -> Result<Self> {
+        self.to_child(filename)
     }
 }
 impl PartialEq for ResolvedPath {
