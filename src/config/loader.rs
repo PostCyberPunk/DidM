@@ -20,9 +20,8 @@ pub fn load_configs(path: Option<&str>) -> Result<(ResolvedPath, Vec<ConfigSet>)
     let resolver = &PathResolver::new(true);
     //TODO: map this error to Hint
     let resolved_config_path = resolver.resolve(path).with_context(|| {
-        format!(
-            "Config file not found in current path,consider use `didm init` or specify path with `--path`"
-        )})?;
+            "Config file not found in current path,consider use `didm init` or specify path with `--path`".to_string()
+        })?;
 
     let base_path = resolved_config_path.to_parent().unwrap();
     let base_configset = load_config(resolved_config_path)?;

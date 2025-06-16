@@ -25,7 +25,7 @@ impl<'a> ConfigMap<'a> {
         let skip_check = &main_config.skipcheck;
 
         let helpers = helpers::Helpers::new(skip_check);
-        helpers.checker.check_git_repo(&base_path.get())?;
+        helpers.checker.check_git_repo(base_path.get())?;
 
         let check_duplicates = !skip_check.duplicated_config;
 
