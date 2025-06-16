@@ -1,7 +1,7 @@
 use super::{ConfigSet, MainConfig};
 use crate::{
     helpers::{self, Helpers, ResolvedPath},
-    model::{Plan, Profile},
+    model::{Behaviour, Plan, Profile},
 };
 use anyhow::Result;
 use std::collections::HashMap;
@@ -86,6 +86,12 @@ impl<'a> ConfigMap<'a> {
             result.push(p);
         }
         Ok(result)
+    }
+    pub fn get_main_behaviour(&self) -> &Behaviour {
+        &self.main_config.behaviour
+    }
+    pub fn get_helpers(&self) -> &Helpers {
+        &self.helpers
     }
 }
 
