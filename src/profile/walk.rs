@@ -3,10 +3,10 @@ use crate::model::profile::{Mode, Profile, Unit};
 use anyhow::{Context, Result};
 use ignore::WalkBuilder;
 use ignore::overrides::OverrideBuilder;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub struct WalkerContext<'a> {
-    pub base_path: &'a PathBuf,
+    pub base_path: &'a Path,
     pub unit: &'a Unit,
     pub mode: &'a Mode,
     pub ignore: &'a Vec<String>,
@@ -16,7 +16,7 @@ pub struct WalkerContext<'a> {
     walker: Option<WalkBuilder>,
 }
 impl<'a> WalkerContext<'a> {
-    pub fn new(profile: &'a Profile, base_path: &'a PathBuf, logger: &'a Logger) -> Self {
+    pub fn new(profile: &'a Profile, base_path: &'a Path, logger: &'a Logger) -> Self {
         Self {
             base_path,
             unit: &profile.unit,

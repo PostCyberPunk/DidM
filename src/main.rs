@@ -4,7 +4,6 @@ mod config;
 mod helpers;
 mod log;
 mod model;
-mod path;
 mod plan;
 mod profile;
 // mod validation;
