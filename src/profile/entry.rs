@@ -5,7 +5,6 @@ use std::{
 
 use anyhow::{Context, Result};
 
-use super::Backuper;
 use crate::{
     helpers::PathExtension,
     log::Logger,
@@ -16,7 +15,6 @@ pub struct Entries<'a> {
     pub entries: Vec<Option<(PathBuf, PathBuf)>>,
     pub behaviour: &'a Behaviour,
     pub logger: &'a Logger,
-    pub backuper: &'a mut Backuper,
     pub mode: &'a Mode,
     pub is_dryrun: bool,
 }
@@ -25,7 +23,6 @@ impl<'a> Entries<'a> {
         entries: Vec<Option<(PathBuf, PathBuf)>>,
         behaviour: &'a Behaviour,
         logger: &'a Logger,
-        backuper: &'a mut Backuper,
         mode: &'a Mode,
         is_dryrun: bool,
     ) -> Self {
@@ -33,7 +30,6 @@ impl<'a> Entries<'a> {
             entries,
             behaviour,
             logger,
-            backuper,
             mode,
             is_dryrun,
         }

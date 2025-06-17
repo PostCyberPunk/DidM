@@ -129,7 +129,6 @@ impl<'a> ProfileContext<'a> {
             entries,
             self.behaviour,
             logger,
-            backuper,
             &self.profile.mode,
             self.args.is_dry_run,
         );
