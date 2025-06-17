@@ -1,6 +1,7 @@
 mod cli;
 mod commands;
 mod config;
+mod entries;
 mod helpers;
 mod log;
 mod model;
