@@ -15,6 +15,9 @@ impl ResolvedPath {
     pub fn get(&self) -> &Path {
         &self.path
     }
+    pub fn into_pathbuf(self) -> PathBuf {
+        self.path
+    }
     pub fn get_raw(&self) -> &str {
         &self.raw
     }

@@ -10,16 +10,15 @@ use crate::{
 use anyhow::{Context, Result};
 
 pub struct PlanContext<'a> {
-    pub args: &'a PlanArgs,
-    pub logger: &'a Logger,
-    pub config_map: &'a ConfigMap<'a>,
-    pub base_path: &'a ResolvedPath,
-    pub plan: &'a Plan,
-    pub name: &'a str,
-    pub behaviour: Behaviour,
-    pub helpers: &'a Helpers,
-    pub commands_path: ResolvedPath,
-    pub profiles: Vec<(&'a Profile, usize, &'a str)>,
+    // pub args: &'a PlanArgs,
+    // pub logger: &'a Logger,
+    // pub config_map: &'a ConfigMap<'a>,
+    // pub base_path: &'a ResolvedPath,
+    // pub plan: &'a Plan,
+    // pub name: &'a str,
+    // pub behaviour: Behaviour,
+    pub commands_runner: CommandsRunner<'a>,
+    pub profile_ctxs: Vec<(&'a str, ProfileContext<'a>)>,
 }
 
 impl<'a> PlanContext<'a> {
@@ -37,40 +36,22 @@ impl<'a> PlanContext<'a> {
         let plan = config_map.get_plan(plan_name)?;
         let helpers = config_map.get_helpers();
 
-        let commands_path = helpers
-            .path_resolver
-            .resolve_from_or_base(base_path, &plan.commands_path)?;
-
-        let profiles = config_map.get_profiles(&plan.profiles)?;
-
+        //Get Bhaviour
         let behaviour = config_map
             .get_main_behaviour()
             .override_by(&plan.override_behaviour);
 
-        Ok(PlanContext {
-            args,
-            logger,
-            helpers,
-            config_map,
-            base_path,
-            plan,
-            name: plan_name,
-            profiles,
-            commands_path,
-            behaviour,
-        })
-    }
-    pub fn deploy(&self) -> Result<()> {
-        let logger = self.logger;
-        let plan = self.plan;
+        //Prepare Command runner
         let envrironment = &plan.environment;
-        let args = self.args;
-        let stop_at_commands_error = self.behaviour.stop_at_commands_error.unwrap();
-        let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
-        let cmds_runner = CommandsRunner::new(
+        let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
+        let commands_path = helpers
+            .path_resolver
+            .resolve_from_or_base(base_path, &plan.commands_path)?
+            .into_pathbuf();
+        let commands_runner = CommandsRunner::new(
             CommandsContext {
                 environment: envrironment,
-                path: &self.commands_path.get(),
+                path: commands_path,
                 logger,
                 args,
                 stop_at_commands_error,
@@ -78,29 +59,50 @@ impl<'a> PlanContext<'a> {
             &plan.pre_build_commands,
             &plan.post_build_commands,
         );
-        cmds_runner.run_pre_commands()?;
 
-        // Apply profiles
-        //FIX: initialize all profiles to a Vec,then apply
-        for (profile, idx, profile_name) in self.profiles.iter() {
+        //apply profiles
+        let profiles = config_map.get_profiles(&plan.profiles)?;
+        let mut profile_ctxs = Vec::new();
+
+        for (profile, idx, profile_name) in profiles {
             logger.info(&format!("Applying profile: {}", profile_name));
-            let behaviour = &self.behaviour.override_by(&profile.override_behaviour);
-            let base_path = self.config_map.get_base_path(*idx)?;
-            let mut profile_ctx = ProfileContext::new(
+            let base_path = config_map.get_base_path(idx)?;
+            let profile_ctx = ProfileContext::new(
+                args,
+                logger,
+                helpers,
                 profile_name,
-                *idx,
                 base_path,
                 profile,
-                self,
-                behaviour,
-                &mut backuper,
-            );
-            profile_ctx
-                .apply()
-                .context(format!("Profile apply failed:{}", profile_name))?;
+                behaviour.clone(),
+            )?;
+            profile_ctxs.push((profile_name, profile_ctx));
         }
 
-        cmds_runner.run_post_commands()?;
+        Ok(PlanContext {
+            // args,
+            // logger,
+            // helpers,
+            // config_map,
+            // base_path,
+            // plan,
+            // name: plan_name,
+            // behaviour,
+            profile_ctxs,
+            commands_runner,
+        })
+    }
+    pub fn deploy(self) -> Result<()> {
+        // let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
+        self.commands_runner.run_pre_commands()?;
+
+        for (profile_name, p) in self.profile_ctxs {
+            p.apply()
+                .context(format!("Profile apply failed:{}", profile_name))?;
+        }
+        // self.profile_ctxs.iter().try_for_each(|(_, p)| p.apply())?;
+
+        self.commands_runner.run_post_commands()?;
         Ok(())
     }
 }
