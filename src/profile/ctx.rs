@@ -13,7 +13,7 @@ pub struct ProfileContext<'a> {
     pub name: &'a str,
     pub profile: &'a Profile,
     pub base_path: &'a ResolvedPath,
-    pub behaviour: &'a Behaviour,
+    pub behaviour: Behaviour,
     pub args: &'a PlanArgs,
     pub logger: &'a Logger,
     pub helpers: &'a Helpers,
@@ -25,11 +25,12 @@ impl<'a> ProfileContext<'a> {
         base_path: &'a ResolvedPath,
         profile: &'a Profile,
         plan_ctx: &'a PlanContext,
-        behaviour: &'a Behaviour,
+        behaviour: Behaviour,
     ) -> Self {
         let args = plan_ctx.args;
         let logger = plan_ctx.logger;
         //TODO: use vec[path] to avoid get path from configs
+        let behaviour = behaviour.override_by(&profile.override_behaviour);
         Self {
             name,
             profile,
@@ -119,7 +120,7 @@ impl<'a> ProfileContext<'a> {
 
         let mut entries = Entries::new(
             entries,
-            self.behaviour,
+            &self.behaviour,
             logger,
             &self.profile.mode,
             self.args.is_dry_run,
