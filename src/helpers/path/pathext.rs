@@ -1,9 +1,6 @@
 use super::error::PathError;
 use anyhow::{Context, Result};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 pub trait PathExtension: AsRef<Path> {
     fn to_string(&self) -> String {
         self.as_ref().to_string_lossy().to_string()
@@ -38,4 +35,4 @@ pub trait PathExtension: AsRef<Path> {
     // fn find_file(&self, filename: &str) -> Result<Self>;
 }
 
-impl PathExtension for PathBuf {}
+impl PathExtension for Path {}

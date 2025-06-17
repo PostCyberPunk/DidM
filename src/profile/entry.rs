@@ -48,7 +48,7 @@ impl<'a> Entries<'a> {
         Ok(())
     }
 
-    fn apply_entry(&self, src: &Path, tgt: &PathBuf) -> Result<()> {
+    fn apply_entry(&self, src: &Path, tgt: &Path) -> Result<()> {
         let logger = self.logger;
         let mode = self.mode;
         let hit = tgt.exists();
