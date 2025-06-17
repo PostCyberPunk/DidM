@@ -70,7 +70,7 @@ impl<'a> PlanContext<'a> {
         let cmds_runner = CommandsRunner::new(
             CommandsContext {
                 environment: envrironment,
-                path: &self.commands_path.get(),
+                path: self.commands_path.get(),
                 logger,
                 args,
                 stop_at_commands_error,
@@ -81,7 +81,6 @@ impl<'a> PlanContext<'a> {
         cmds_runner.run_pre_commands()?;
 
         // Apply profiles
-        //FIX: initialize all profiles to a Vec,then apply
         for (profile, idx, profile_name) in self.profiles.iter() {
             logger.info(&format!("Applying profile: {}", profile_name));
             let behaviour = &self.behaviour.override_by(&profile.override_behaviour);
