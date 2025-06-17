@@ -11,7 +11,6 @@ use std::path::PathBuf;
 
 pub struct ProfileContext<'a> {
     pub name: &'a str,
-    // pub idx: usize,
     pub profile: &'a Profile,
     pub base_path: &'a ResolvedPath,
     pub behaviour: &'a Behaviour,
@@ -23,7 +22,6 @@ pub struct ProfileContext<'a> {
 impl<'a> ProfileContext<'a> {
     pub fn new(
         name: &'a str,
-        idx: usize,
         base_path: &'a ResolvedPath,
         profile: &'a Profile,
         plan_ctx: &'a PlanContext,

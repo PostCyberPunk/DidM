@@ -87,7 +87,7 @@ impl<'a> PlanContext<'a> {
             let behaviour = &self.behaviour.override_by(&profile.override_behaviour);
             let base_path = self.config_map.get_base_path(*idx)?;
             let mut profile_ctx =
-                ProfileContext::new(profile_name, *idx, base_path, profile, self, behaviour);
+                ProfileContext::new(profile_name, base_path, profile, self, behaviour);
             profile_ctx
                 .apply()
                 .context(format!("Profile apply failed:{}", profile_name))?;
