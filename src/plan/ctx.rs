@@ -47,11 +47,12 @@ impl<'a> PlanContext<'a> {
         let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
         let commands_path = helpers
             .path_resolver
-            .resolve_from_or_base(base_path, &plan.commands_path)?;
+            .resolve_from_or_base(base_path, &plan.commands_path)?
+            .into_pathbuf();
         let commands_runner = CommandsRunner::new(
             CommandsContext {
                 environment: envrironment,
-                path: commands_path.get(),
+                path: commands_path,
                 logger,
                 args,
                 stop_at_commands_error,
@@ -59,6 +60,7 @@ impl<'a> PlanContext<'a> {
             &plan.pre_build_commands,
             &plan.post_build_commands,
         );
+
         let profiles = config_map.get_profiles(&plan.profiles)?;
 
         Ok(PlanContext {
