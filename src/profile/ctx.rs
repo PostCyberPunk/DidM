@@ -15,7 +15,6 @@ pub struct ProfileContext<'a> {
     pub profile: &'a Profile,
     pub base_path: &'a ResolvedPath,
     pub behaviour: &'a Behaviour,
-    pub backuper: &'a mut Backuper,
     pub args: &'a PlanArgs,
     pub logger: &'a Logger,
     pub helpers: &'a Helpers,
@@ -30,18 +29,15 @@ impl<'a> ProfileContext<'a> {
         plan_ctx: &'a PlanContext,
         behaviour: &'a Behaviour,
         //FIX: make this imutable!! just initialize it with check_config
-        backuper: &'a mut Backuper,
     ) -> Self {
         let args = plan_ctx.args;
         let logger = plan_ctx.logger;
         //TODO: use vec[path] to avoid get path from configs
         Self {
             name,
-            // idx,
             profile,
             base_path,
             behaviour,
-            backuper,
             args,
             logger,
             helpers: plan_ctx.helpers,
@@ -52,7 +48,6 @@ impl<'a> ProfileContext<'a> {
     pub fn apply(&mut self) -> Result<()> {
         let logger = self.logger;
         let profile = self.profile;
-        let backuper = &mut self.backuper;
         let behaviour = self.behaviour;
         let checker = &self.helpers.checker;
         let path_resolver = &self.helpers.path_resolver;
@@ -74,10 +69,9 @@ impl<'a> ProfileContext<'a> {
         logger.info(&format!("Source path: {}", source_root.di_string(),));
         logger.info(&format!("Target path: {}", target_root.di_string()));
 
-        if behaviour.should_backup() {
-            let prefix = format!("profile_{}", self.name);
-            backuper.set_ctx(prefix);
-        }
+        // if behaviour.should_backup() {
+        //     let prefix = format!("profile_{}", self.name);
+        // }
 
         let commands_path =
             path_resolver.resolve_from_or_base(self.base_path, &self.profile.commands_path)?;
@@ -111,17 +105,19 @@ impl<'a> ProfileContext<'a> {
                     }
                 };
                 let p = target_root.get().join(relative_path);
-                match backuper.backup(&p, relative_path, logger, || p.exists()) {
-                    Ok(_) => Some((entry, p)),
-                    Err(err) => {
-                        logger.warn(&format!(
-                            "Skipping entry:{}\nCasuse:{}",
-                            entry.display(),
-                            err
-                        ));
-                        None
-                    }
-                }
+                Some((entry, p))
+                //FIX:BAKCUP
+                // match backuper.backup(&p, relative_path, logger, || p.exists()) {
+                //     Ok(_) => Some((entry, p)),
+                //     Err(err) => {
+                //         logger.warn(&format!(
+                //             "Skipping entry:{}\nCasuse:{}",
+                //             entry.display(),
+                //             err
+                //         ));
+                //         None
+                //     }
+                // }
             })
             .collect();
 
@@ -138,7 +134,7 @@ impl<'a> ProfileContext<'a> {
 
         cmds_runner.run_post_commands()?;
 
-        backuper.drop_ctx(logger);
+        // backuper.drop_ctx(logger);
         Ok(())
     }
 }

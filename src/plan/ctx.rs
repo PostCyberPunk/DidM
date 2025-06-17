@@ -66,7 +66,7 @@ impl<'a> PlanContext<'a> {
         let envrironment = &plan.environment;
         let args = self.args;
         let stop_at_commands_error = self.behaviour.stop_at_commands_error.unwrap();
-        let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
+        // let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
         let cmds_runner = CommandsRunner::new(
             CommandsContext {
                 environment: envrironment,
@@ -86,15 +86,8 @@ impl<'a> PlanContext<'a> {
             logger.info(&format!("Applying profile: {}", profile_name));
             let behaviour = &self.behaviour.override_by(&profile.override_behaviour);
             let base_path = self.config_map.get_base_path(*idx)?;
-            let mut profile_ctx = ProfileContext::new(
-                profile_name,
-                *idx,
-                base_path,
-                profile,
-                self,
-                behaviour,
-                &mut backuper,
-            );
+            let mut profile_ctx =
+                ProfileContext::new(profile_name, *idx, base_path, profile, self, behaviour);
             profile_ctx
                 .apply()
                 .context(format!("Profile apply failed:{}", profile_name))?;
