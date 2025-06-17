@@ -2,14 +2,14 @@
 use anyhow::{Result, anyhow};
 use std::collections::HashMap;
 use std::io;
-use std::path::PathBuf;
+use std::path::Path;
 use std::process::{Command, Output};
 
 use crate::log::Logger;
 use crate::plan::PlanArgs;
 pub struct CommandExecutor<'a> {
     pub environment: &'a HashMap<String, String>,
-    pub path: &'a PathBuf,
+    pub path: &'a Path,
     pub command: &'a String,
 }
 
@@ -25,7 +25,7 @@ impl<'a> CommandExecutor<'a> {
 }
 pub struct CommandsContext<'a> {
     pub environment: &'a HashMap<String, String>,
-    pub path: &'a PathBuf,
+    pub path: &'a Path,
     pub logger: &'a Logger,
     pub args: &'a PlanArgs,
     pub stop_at_commands_error: bool,
