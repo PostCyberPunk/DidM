@@ -6,7 +6,7 @@ use std::{
 };
 use thiserror::Error;
 
-use crate::path::PathBufExtension;
+use crate::helpers::PathExtension;
 use crate::{helpers::ResolvedPath, log::Logger};
 
 //FIX: the ctx should be borrow from plan, not from profile
@@ -68,7 +68,7 @@ impl Backuper {
     //         None => Err(BackupError::BackupContextIsNotSet.into()),
     //     }
     // }
-    fn do_backup(&self, src: &Path, dest: &PathBuf, logger: &Logger) -> Result<()> {
+    fn do_backup(&self, src: &Path, dest: &Path, logger: &Logger) -> Result<()> {
         if dest.exists() {
             return Err(BackupError::BackupExsisted(dest.display().to_string()).into());
         }

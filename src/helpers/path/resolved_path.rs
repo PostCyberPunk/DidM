@@ -12,7 +12,7 @@ impl ResolvedPath {
     pub fn new(path: PathBuf, raw: String) -> Self {
         ResolvedPath { path, raw }
     }
-    pub fn get(&self) -> &PathBuf {
+    pub fn get(&self) -> &Path {
         &self.path
     }
     pub fn get_raw(&self) -> &str {
