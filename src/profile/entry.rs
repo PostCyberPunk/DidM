@@ -7,9 +7,9 @@ use anyhow::{Context, Result};
 
 use super::Backuper;
 use crate::{
+    helpers::PathExtension,
     log::Logger,
     model::{Behaviour, profile::Mode},
-    path::PathBufExtension,
 };
 
 pub struct Entries<'a> {

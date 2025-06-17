@@ -6,7 +6,7 @@ use std::{
 };
 use thiserror::Error;
 
-use crate::path::PathBufExtension;
+use crate::helpers::PathExtension;
 use crate::{helpers::ResolvedPath, log::Logger};
 
 //FIX: the ctx should be borrow from plan, not from profile
