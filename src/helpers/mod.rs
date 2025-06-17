@@ -1,6 +1,7 @@
 mod checker;
 mod path;
 pub use checker::Checker;
+pub use path::PathExtension;
 pub use path::PathResolver;
 pub use path::ResolvedPath;
 
