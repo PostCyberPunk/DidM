@@ -75,6 +75,7 @@ impl Backuper {
         if !self.is_dryrun {
             dest.ensure_parent_exists()?;
             fs::rename(src, dest)?;
+            //FIX: if src.exists() still there
         }
         logger.warn(&format!(
             "Backup {} to\n        {}",
