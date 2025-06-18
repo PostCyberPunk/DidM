@@ -30,7 +30,25 @@ pub struct CommandsContext<'a> {
     pub post_commands: &'a Vec<String>,
 }
 impl<'a> CommandsContext<'a> {
-    pub fn run(&self, cmds: &Vec<String>, logger: &'a Logger, is_dryrun: bool) -> Result<()> {
+    pub fn new(
+        environment: &'a HashMap<String, String>,
+        path: PathBuf,
+        stop_at_commands_error: bool,
+        pre_commands: &'a Vec<String>,
+        post_commands: &'a Vec<String>,
+    ) -> Self {
+        Self {
+            environment,
+            path,
+            stop_at_commands_error,
+            pre_commands,
+            post_commands,
+        }
+    }
+    pub fn run(&self, cmds: &[String], logger: &'a Logger, is_dryrun: bool) -> Result<()> {
+        if cmds.is_empty() {
+            return Ok(());
+        }
         let environment = self.environment;
         let path = &self.path;
         logger.debug(&format!("command path {}", path.display()));
@@ -96,11 +114,10 @@ impl<'a> CommandsRunner<'a> {
             is_dryrun,
         }
     }
+    pub fn add_context(&mut self, context: CommandsContext<'a>) {
+        self.context.push(context);
+    }
     pub fn run_pre_commands(&self) -> Result<()> {
-        //FIX:!!!!!!
-        // if self.pre_commands.is_empty() {
-        //     return Ok(());
-        // }
         if self.context.is_empty() {
             return Ok(());
         }
