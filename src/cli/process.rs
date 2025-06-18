@@ -24,7 +24,7 @@ pub fn process() -> anyhow::Result<()> {
         }) => {
             //Porcess arg first,we may use in loader
             let plan_args = PlanArgs {
-                is_dry_run: *dry_run,
+                is_dryrun: *dry_run,
                 is_verbose: *verbose,
             };
             //TODO:File logger
