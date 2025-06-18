@@ -56,17 +56,24 @@ impl PathResolver {
         }
     }
     // -----------Public ----------------
-    pub fn resolve(&self, path: &str) -> Result<ResolvedPath> {
+    pub fn resolve(&self, path: &str, should_check_exist: bool) -> Result<ResolvedPath> {
         let resolve = self
             .expand_tilde(path.to_string())
             .and_then(|p| self.expand_env_vars(p))
             .and_then(|p| self.check_symlink_then_absolute(&p))
             .with_context(|| PathError::ResolveFailed(path.to_string()))?;
-
-        Ok(ResolvedPath::new(resolve, path.to_string()))
+        match (should_check_exist, resolve.exists()) {
+            (true, false) => Err(PathError::NotExists(resolve).into()),
+            _ => Ok(ResolvedPath::new(resolve, path.to_string())),
+        }
     }
-    pub fn resolve_from(&self, base_path: &ResolvedPath, path: &str) -> Result<ResolvedPath> {
-        let resolved = self.resolve(path)?;
+    pub fn resolve_from(
+        &self,
+        base_path: &ResolvedPath,
+        path: &str,
+        should_check_exist: bool,
+    ) -> Result<ResolvedPath> {
+        let resolved = self.resolve(path, should_check_exist)?;
         if resolved.get().is_absolute() {
             Ok(resolved)
         } else {
@@ -82,7 +89,7 @@ impl PathResolver {
         path: &Option<String>,
     ) -> Result<ResolvedPath> {
         match path {
-            Some(p) => self.resolve_from(base_path, p.as_str()),
+            Some(p) => self.resolve_from(base_path, p.as_str(), true),
             None => Ok(base_path.clone()),
         }
     }
