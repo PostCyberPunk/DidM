@@ -1,10 +1,10 @@
-use super::{ConfigSet, MainConfig};
+use super::{CHCECK_CONFIG, ConfigSet, MainConfig};
 use crate::{
-    helpers::{self, Helpers, ResolvedPath},
     model::{Behaviour, Plan, Profile},
+    utils::{Checker, ResolvedPath},
 };
 use anyhow::Result;
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 use thiserror::Error;
 
 //TODO: We should own everything in this map,
@@ -16,19 +16,18 @@ pub struct ConfigMap<'a> {
     pub main_config: MainConfig,
     pub profile_map: HashMap<&'a str, (usize, &'a Profile)>,
     pub plan_map: HashMap<&'a str, &'a Plan>,
-    pub helpers: Helpers,
 }
 impl<'a> ConfigMap<'a> {
     pub fn new(base_path: ResolvedPath, config_sets: &'a [ConfigSet]) -> Result<Self> {
         let main_config = MainConfig::new(&config_sets[0].1);
+
         //---------Check Configs---------
         let check_config = &main_config.check_config;
-
-        let helpers = helpers::Helpers::new(check_config);
-        helpers
-            .checker
-            .working_dir_is_symlink(config_sets[0].0.get_raw())?;
-        helpers.checker.is_git_workspace(base_path.get())?;
+        CHCECK_CONFIG
+            .set(*check_config)
+            .map_err(|_| ConfigError::BugCheckConfig)?;
+        Checker::working_dir_is_symlink(config_sets[0].0.get_raw())?;
+        Checker::is_git_workspace(base_path.get())?;
 
         //---------Build Config Map---------
         let mut path_map = Vec::new();
@@ -68,7 +67,6 @@ impl<'a> ConfigMap<'a> {
             main_config,
             plan_map,
             profile_map,
-            helpers,
         })
     }
     pub fn get_plan(&self, plan_name: &str) -> Result<&Plan> {
@@ -98,9 +96,6 @@ impl<'a> ConfigMap<'a> {
     pub fn get_main_behaviour(&self) -> &Behaviour {
         &self.main_config.behaviour
     }
-    pub fn get_helpers(&self) -> &Helpers {
-        &self.helpers
-    }
     pub fn get_base_path(&self, idx: usize) -> Result<&ResolvedPath> {
         if idx > self.path_map.len() {
             return Err(
@@ -116,11 +111,14 @@ impl<'a> ConfigMap<'a> {
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
-    #[error("Plan {0}  not found.")]
-    PlanNotFound(String),
+    #[error("Config file already existed in {0}")]
+    ConfigExists(PathBuf),
 
-    #[error("Profile `{0}` not found.")]
-    ProfileNotFound(String),
+    #[error("Can't find any plan,check your config,maybe there is a typo?")]
+    NoPlanFound,
+
+    #[error("Can't find any profile,check your config,maybe there is a typo?")]
+    NoProfileFound,
 
     #[error("Plan `{0}` is duplicated")]
     DuplicatedPlan(String),
@@ -128,12 +126,15 @@ pub enum ConfigError {
     #[error("Profile `{0}` is duplicated")]
     DuplicatedProfile(String),
 
+    #[error("Plan {0}  not found.")]
+    PlanNotFound(String),
+
+    #[error("Profile `{0}` not found.")]
+    ProfileNotFound(String),
+
     #[error("Index of `{0}` is out of bound: `{1}`")]
     IndexOutbound(String, String),
 
-    #[error("Can't find any plan,check your config,maybe there is a typo?")]
-    NoPlanFound,
-
-    #[error("Can't find any profile,check your config,maybe there is a typo?")]
-    NoProfileFound,
+    #[error("Check config is set twice,this is a bug,\n please report it with log")]
+    BugCheckConfig,
 }

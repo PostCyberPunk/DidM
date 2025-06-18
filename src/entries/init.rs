@@ -1,19 +1,18 @@
 use super::{AllEntries, Entry};
 use crate::{
     entries::WalkerContext,
-    helpers::{Helpers, ResolvedPath},
     log::Logger,
     model::{Behaviour, Profile, profile::Mode},
+    utils::{Checker, PathResolver, ResolvedPath},
 };
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 impl<'a> AllEntries<'a> {
-    pub fn new(helpers: &'a Helpers, logger: &'a Logger, is_dryrun: bool) -> Self {
+    pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
         Self {
             copy_list: Vec::new(),
             link_list: Vec::new(),
-            helpers,
             logger,
             is_dryrun,
             // overwrite_existed,
@@ -27,10 +26,7 @@ impl<'a> AllEntries<'a> {
         ctx: &str,
         should_check_exist: bool,
     ) -> Result<ResolvedPath> {
-        let result = self
-            .helpers
-            .path_resolver
-            .resolve_from(base_path, path, should_check_exist)
+        let result = PathResolver::resolve_from(base_path, path, should_check_exist)
             .with_context(|| format!("Invalid {} path: {}", ctx, path))?;
         self.logger
             .info(&format!("{} path: {}", ctx, result.di_string()));
@@ -74,10 +70,7 @@ impl<'a> AllEntries<'a> {
         mode: Mode,
     ) -> Result<()> {
         for path in paths.iter() {
-            let rp = self
-                .helpers
-                .path_resolver
-                .resolve_from(base_path, path, false);
+            let rp = PathResolver::resolve_from(base_path, path, false);
             let entry = match rp {
                 Err(err) => {
                     self.logger
@@ -143,9 +136,7 @@ impl<'a> AllEntries<'a> {
         //Reoslve Path
         let source_root = self.resolve_path(base_path, &profile.source_path, "source", true)?;
         let target_root = self.resolve_path(base_path, &profile.target_path, "target", false)?;
-        self.helpers
-            .checker
-            .target_exisit_or_create(target_root.get())?;
+        Checker::target_exisit_or_create(target_root.get())?;
 
         //Get Normal Entries
         self.get_normal_entries(profile, &source_root, &target_root, overwrite_existed)
