@@ -10,6 +10,7 @@ mod prompt;
 
 use crate::model::CheckConfig;
 
+#[derive(Debug)]
 pub struct Helpers {
     pub checker: Checker,
     pub path_resolver: PathResolver,

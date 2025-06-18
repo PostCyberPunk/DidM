@@ -10,6 +10,7 @@ use thiserror::Error;
 //TODO: We should own everything in this map,
 //convert back to normal configset when saving
 //everything should be private
+#[derive(Debug)]
 pub struct ConfigMap<'a> {
     pub path_map: Vec<ResolvedPath>,
     pub main_config: MainConfig,

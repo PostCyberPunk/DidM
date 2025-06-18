@@ -6,6 +6,7 @@ use thiserror::Error;
 
 //REFT: could be use association function
 //get config from static once_cell or failed
+#[derive(Debug)]
 pub struct Checker {
     config: CheckConfig,
 }

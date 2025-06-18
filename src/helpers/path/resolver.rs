@@ -10,6 +10,7 @@ static ENV_VARS: Lazy<HashMap<String, String>> = Lazy::new(|| env::vars().collec
 //REFT: should be use association function
 //get config from static once_cell
 //get_bool or false
+#[derive(Debug)]
 pub struct PathResolver {
     check_env: bool,
 }

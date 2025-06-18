@@ -3,6 +3,7 @@ use crate::model::DidmConfig;
 
 use crate::model::Behaviour;
 
+#[derive(Debug)]
 pub struct MainConfig {
     pub(crate) behaviour: Behaviour,
     pub(crate) check_config: CheckConfig,
