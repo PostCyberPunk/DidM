@@ -77,15 +77,18 @@ impl PathResolver {
         path: &str,
         should_check_exist: bool,
     ) -> Result<ResolvedPath> {
-        let resolved = self.resolve(path, should_check_exist)?;
-        if resolved.get().is_absolute() {
-            Ok(resolved)
-        } else {
-            Ok(ResolvedPath::new(
-                base_path.get().join(resolved.get()),
-                path.to_string(),
-            ))
+        if !Self::is_unresolved_absolute(path) {
+            return base_path.to_child(path, should_check_exist);
         }
+        self.resolve(path, should_check_exist)
+        // if resolved.get().is_absolute() {
+        //     Ok(resolved)
+        // } else {
+        //     Ok(ResolvedPath::new(
+        //         base_path.get().join(resolved.get()),
+        //         path.to_string(),
+        //     ))
+        // }
     }
     pub fn resolve_from_or_base(
         &self,
@@ -96,5 +99,8 @@ impl PathResolver {
             Some(p) => self.resolve_from(base_path, p.as_str(), true),
             None => Ok(base_path.clone()),
         }
+    }
+    fn is_unresolved_absolute(s: &str) -> bool {
+        s.starts_with("$") || s.starts_with("~") || s.starts_with("/")
     }
 }

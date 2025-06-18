@@ -52,7 +52,13 @@ pub fn init_config(path: Option<&str>) -> Result<()> {
 
     let resolved_path = resolver.resolve(path, false)?;
 
-    let config_path = resolved_path.into_child(CONFIG_FILE_NAME, true)?;
+    let config_path = resolved_path.into_child(CONFIG_FILE_NAME, false)?;
+    if config_path.get().exists() {
+        return Err(anyhow::anyhow!(
+            "There is a config file already in :{}",
+            config_path.get().display()
+        ));
+    }
     let config = DidmConfig::new();
     let cfgset = ConfigSet(config_path, config);
     save_config(&cfgset)

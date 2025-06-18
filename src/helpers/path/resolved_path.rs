@@ -1,5 +1,6 @@
 use super::PathError;
 use anyhow::Result;
+use path_absolutize::Absolutize;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
@@ -49,14 +50,15 @@ impl ResolvedPath {
     pub fn to_parent(&self) -> Result<ResolvedPath> {
         self.clone().into_parent()
     }
-    pub fn to_child(&self, filename: &str, check_exist: bool) -> Result<ResolvedPath> {
-        self.clone().into_child(filename, check_exist)
+    pub fn to_child(&self, filename: &str, should_check_exist: bool) -> Result<ResolvedPath> {
+        self.clone().into_child(filename, should_check_exist)
     }
 
-    pub fn into_child(mut self, filename: &str, check_exist: bool) -> Result<Self> {
+    pub fn into_child(mut self, filename: &str, should_check_exist: bool) -> Result<Self> {
         self.path.push(filename);
-        if check_exist && self.path.exists() {
-            return Err(PathError::FileExists(filename.to_string(), self.path).into());
+        self.path = self.path.absolutize()?.into();
+        if should_check_exist && !self.path.exists() {
+            return Err(PathError::NotExists(self.path).into());
         };
         // let raw = PathBuf::from(self.raw).join(filename).display().to_string();
         self.raw.push('/');
