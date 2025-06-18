@@ -27,8 +27,8 @@ impl<'a> PlanContext<'a> {
         let plan = config_map.get_plan(plan_name)?;
         let helpers = config_map.get_helpers();
 
-        let mut commands_runner = CommandsRunner::new(logger, args.is_dry_run);
-        let mut all_entries = AllEntries::new(helpers, logger, args.is_dry_run);
+        let mut commands_runner = CommandsRunner::new(logger, args.is_dryrun);
+        let mut all_entries = AllEntries::new(helpers, logger, args.is_dryrun);
 
         //Get Bhaviour
         let behaviour = config_map
