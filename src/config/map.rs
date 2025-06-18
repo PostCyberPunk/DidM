@@ -4,12 +4,13 @@ use crate::{
     model::{Behaviour, Plan, Profile},
 };
 use anyhow::Result;
-use std::{collections::HashMap, usize};
+use std::collections::HashMap;
 use thiserror::Error;
 
 //TODO: We should own everything in this map,
 //convert back to normal configset when saving
 //everything should be private
+#[derive(Debug)]
 pub struct ConfigMap<'a> {
     pub path_map: Vec<ResolvedPath>,
     pub main_config: MainConfig,
@@ -53,6 +54,12 @@ impl<'a> ConfigMap<'a> {
                 }
                 profile_map.insert(name.as_str(), (idx, profile));
             }
+        }
+        if profile_map.is_empty() {
+            return Err(ConfigError::NoProfileFound.into());
+        }
+        if plan_map.is_empty() {
+            return Err(ConfigError::NoPlanFound.into());
         }
 
         //---------return Config Map---------
@@ -123,4 +130,10 @@ pub enum ConfigError {
 
     #[error("Index of `{0}` is out of bound: `{1}`")]
     IndexOutbound(String, String),
+
+    #[error("Can't find any plan,check your config,maybe there is a typo?")]
+    NoPlanFound,
+
+    #[error("Can't find any profile,check your config,maybe there is a typo?")]
+    NoProfileFound,
 }

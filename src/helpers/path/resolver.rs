@@ -1,12 +1,16 @@
 use super::{super::prompt::confirm, ResolvedPath};
 use crate::helpers::path::PathError;
 use anyhow::{Context, Result};
+use once_cell::sync::Lazy;
 use path_absolutize::Absolutize;
-use std::{env, path::PathBuf};
+use std::{collections::HashMap, env, path::PathBuf};
+
+static ENV_VARS: Lazy<HashMap<String, String>> = Lazy::new(|| env::vars().collect());
 
 //REFT: should be use association function
 //get config from static once_cell
 //get_bool or false
+#[derive(Debug)]
 pub struct PathResolver {
     check_env: bool,
 }
@@ -21,9 +25,9 @@ impl PathResolver {
         }
         let mut expand = path;
         //FIX:this could be expansive
-        for (key, value) in env::vars() {
+        for (key, value) in ENV_VARS.iter() {
             let placeholder = format!("${}", key);
-            expand = expand.replace(&placeholder, &value);
+            expand = expand.replace(&placeholder, value);
         }
         if self.check_env && expand.contains("$") {
             return Err(PathError::EnvVarMissing(expand).into());
@@ -73,15 +77,18 @@ impl PathResolver {
         path: &str,
         should_check_exist: bool,
     ) -> Result<ResolvedPath> {
-        let resolved = self.resolve(path, should_check_exist)?;
-        if resolved.get().is_absolute() {
-            Ok(resolved)
-        } else {
-            Ok(ResolvedPath::new(
-                base_path.get().join(resolved.get()),
-                path.to_string(),
-            ))
+        if !Self::is_unresolved_absolute(path) {
+            return base_path.to_child(path, should_check_exist);
         }
+        self.resolve(path, should_check_exist)
+        // if resolved.get().is_absolute() {
+        //     Ok(resolved)
+        // } else {
+        //     Ok(ResolvedPath::new(
+        //         base_path.get().join(resolved.get()),
+        //         path.to_string(),
+        //     ))
+        // }
     }
     pub fn resolve_from_or_base(
         &self,
@@ -92,5 +99,8 @@ impl PathResolver {
             Some(p) => self.resolve_from(base_path, p.as_str(), true),
             None => Ok(base_path.clone()),
         }
+    }
+    fn is_unresolved_absolute(s: &str) -> bool {
+        s.starts_with("$") || s.starts_with("~") || s.starts_with("/")
     }
 }
