@@ -6,7 +6,6 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 use crate::log::Logger;
-use crate::plan::PlanArgs;
 pub struct CommandExecutor<'a> {
     pub environment: &'a HashMap<String, String>,
     pub path: &'a Path,
@@ -26,20 +25,19 @@ impl<'a> CommandExecutor<'a> {
 pub struct CommandsContext<'a> {
     pub environment: &'a HashMap<String, String>,
     pub path: PathBuf,
-    pub logger: &'a Logger,
-    pub args: &'a PlanArgs,
     pub stop_at_commands_error: bool,
+    pub pre_commands: &'a Vec<String>,
+    pub post_commands: &'a Vec<String>,
 }
 impl<'a> CommandsContext<'a> {
-    pub fn run(&self, cmds: &Vec<String>) -> Result<()> {
-        let logger = self.logger;
+    pub fn run(&self, cmds: &Vec<String>, logger: &'a Logger, is_dryrun: bool) -> Result<()> {
         let environment = self.environment;
         let path = &self.path;
         logger.debug(&format!("command path {}", path.display()));
         for cmd in cmds {
             logger.info(&format!("Executing: {}", cmd));
 
-            if self.args.is_dry_run {
+            if is_dryrun {
                 logger.info(&format!("(dry-run): {}", cmd));
                 continue;
             }
@@ -86,34 +84,40 @@ impl<'a> CommandsContext<'a> {
     }
 }
 pub struct CommandsRunner<'a> {
-    pub pre_commands: &'a Vec<String>,
-    pub post_commands: &'a Vec<String>,
-    pub context: CommandsContext<'a>,
+    pub context: Vec<CommandsContext<'a>>,
+    pub logger: &'a Logger,
+    pub is_dryrun: bool,
 }
 impl<'a> CommandsRunner<'a> {
-    pub fn new(
-        context: CommandsContext<'a>,
-        pre_commands: &'a Vec<String>,
-        post_commands: &'a Vec<String>,
-    ) -> Self {
+    pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
         Self {
-            pre_commands,
-            post_commands,
-            context,
+            context: Vec::new(),
+            logger,
+            is_dryrun,
         }
     }
     pub fn run_pre_commands(&self) -> Result<()> {
-        if self.pre_commands.is_empty() {
+        //FIX:!!!!!!
+        // if self.pre_commands.is_empty() {
+        //     return Ok(());
+        // }
+        if self.context.is_empty() {
             return Ok(());
         }
-        self.context.logger.info("Running pre commands");
-        self.context.run(self.pre_commands)
+        self.logger.info("Running pre commands");
+        for ctx in &self.context {
+            ctx.run(ctx.pre_commands, self.logger, self.is_dryrun)?;
+        }
+        Ok(())
     }
     pub fn run_post_commands(&self) -> Result<()> {
-        if self.post_commands.is_empty() {
+        if self.context.is_empty() {
             return Ok(());
         }
-        self.context.logger.info("Running post commands");
-        self.context.run(self.post_commands)
+        self.logger.info("Running post commands");
+        for ctx in &self.context {
+            ctx.run(ctx.post_commands, self.logger, self.is_dryrun)?;
+        }
+        Ok(())
     }
 }
