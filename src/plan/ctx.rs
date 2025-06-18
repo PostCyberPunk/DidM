@@ -76,7 +76,7 @@ impl<'a> PlanContext<'a> {
             ));
             //prepare entries
             all_entries
-                .add_profile(profile, base_path, &behaviour)
+                .add_profile(profile, base_path, &behaviour, profile_name)
                 .context(profile_name.to_string())?;
         }
 
