@@ -13,13 +13,11 @@ use crate::model::CheckConfig;
 #[derive(Debug)]
 pub struct Helpers {
     pub checker: Checker,
-    pub path_resolver: PathResolver,
 }
 impl Helpers {
     pub fn new(check_config: &CheckConfig) -> Self {
         Helpers {
             checker: Checker::new(*check_config),
-            path_resolver: PathResolver::new(!check_config.unresolved_env),
         }
     }
 }

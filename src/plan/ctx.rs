@@ -3,6 +3,7 @@ use crate::{
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
     entries::AllEntries,
+    helpers::PathResolver,
     log::Logger,
 };
 use anyhow::{Context, Result};
@@ -38,10 +39,8 @@ impl<'a> PlanContext<'a> {
         //Prepare Command runner
         let envrironment = &plan.environment;
         let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
-        let commands_path = helpers
-            .path_resolver
-            .resolve_from_or_base(base_path, &plan.commands_path)?
-            .into_pathbuf();
+        let commands_path =
+            PathResolver::resolve_from_or_base(base_path, &plan.commands_path)?.into_pathbuf();
         let plan_cmd_ctx = CommandsContext::new(
             envrironment,
             commands_path,
@@ -62,11 +61,10 @@ impl<'a> PlanContext<'a> {
             let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
 
             let envrironment = &profile.environment;
-            let commands_path = helpers
-                .path_resolver
-                .resolve_from_or_base(base_path, &profile.commands_path)
-                .context(profile_name.to_string())?
-                .into_pathbuf();
+            let commands_path =
+                PathResolver::resolve_from_or_base(base_path, &profile.commands_path)
+                    .context(profile_name.to_string())?
+                    .into_pathbuf();
             commands_runner.add_context(CommandsContext::new(
                 envrironment,
                 commands_path,

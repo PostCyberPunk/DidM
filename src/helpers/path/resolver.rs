@@ -7,17 +7,9 @@ use std::{collections::HashMap, env, path::PathBuf};
 
 static ENV_VARS: Lazy<HashMap<String, String>> = Lazy::new(|| env::vars().collect());
 
-//REFT: should be use association function
-//get config from static once_cell
-//get_bool or false
 #[derive(Debug)]
-pub struct PathResolver {
-    // check_env: bool,
-}
+pub struct PathResolver {}
 impl PathResolver {
-    pub fn new(check_env: bool) -> Self {
-        PathResolver {}
-    }
     fn should_check_env() -> bool {
         match CHCECK_CONFIG.get() {
             //TODO: flip flag is anooying
@@ -26,7 +18,7 @@ impl PathResolver {
         }
     }
     // -----------Internal------
-    fn expand_env_vars(&self, path: String) -> Result<String> {
+    fn expand_env_vars(path: String) -> Result<String> {
         if !path.contains("$") {
             return Ok(path);
         }
@@ -41,7 +33,7 @@ impl PathResolver {
         }
         Ok(expand)
     }
-    fn expand_tilde(&self, path: String) -> Result<String> {
+    fn expand_tilde(path: String) -> Result<String> {
         if path.starts_with("~") {
             let home = env::var("HOME").map_err(|_| {
                 PathError::EnvVarMissing("Failed to resolve `~` from $HOME ".to_string())
@@ -51,7 +43,7 @@ impl PathResolver {
         }
         Ok(path)
     }
-    fn check_symlink_then_absolute(&self, path: &str) -> Result<PathBuf> {
+    fn check_symlink_then_absolute(path: &str) -> Result<PathBuf> {
         let pathbuf = PathBuf::from(&path);
         if pathbuf.is_symlink()
             && !confirm(&format!(
@@ -67,11 +59,10 @@ impl PathResolver {
         }
     }
     // -----------Public ----------------
-    pub fn resolve(&self, path: &str, should_check_exist: bool) -> Result<ResolvedPath> {
-        let resolve = self
-            .expand_tilde(path.to_string())
-            .and_then(|p| self.expand_env_vars(p))
-            .and_then(|p| self.check_symlink_then_absolute(&p))
+    pub fn resolve(path: &str, should_check_exist: bool) -> Result<ResolvedPath> {
+        let resolve = Self::expand_tilde(path.to_string())
+            .and_then(|p| Self::expand_env_vars(p))
+            .and_then(|p| Self::check_symlink_then_absolute(&p))
             .with_context(|| PathError::ResolveFailed(path.to_string()))?;
         match (should_check_exist, resolve.exists()) {
             (true, false) => Err(PathError::NotExists(resolve).into()),
@@ -79,7 +70,6 @@ impl PathResolver {
         }
     }
     pub fn resolve_from(
-        &self,
         base_path: &ResolvedPath,
         path: &str,
         should_check_exist: bool,
@@ -87,7 +77,7 @@ impl PathResolver {
         if !Self::is_unresolved_absolute(path) {
             return base_path.to_child(path, should_check_exist);
         }
-        self.resolve(path, should_check_exist)
+        Self::resolve(path, should_check_exist)
         // if resolved.get().is_absolute() {
         //     Ok(resolved)
         // } else {
@@ -98,12 +88,11 @@ impl PathResolver {
         // }
     }
     pub fn resolve_from_or_base(
-        &self,
         base_path: &ResolvedPath,
         path: &Option<String>,
     ) -> Result<ResolvedPath> {
         match path {
-            Some(p) => self.resolve_from(base_path, p.as_str(), true),
+            Some(p) => Self::resolve_from(base_path, p.as_str(), true),
             None => Ok(base_path.clone()),
         }
     }

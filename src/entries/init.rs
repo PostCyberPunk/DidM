@@ -1,7 +1,7 @@
 use super::{AllEntries, Entry};
 use crate::{
     entries::WalkerContext,
-    helpers::{Helpers, ResolvedPath},
+    helpers::{Helpers, PathResolver, ResolvedPath},
     log::Logger,
     model::{Behaviour, Profile, profile::Mode},
 };
@@ -27,10 +27,7 @@ impl<'a> AllEntries<'a> {
         ctx: &str,
         should_check_exist: bool,
     ) -> Result<ResolvedPath> {
-        let result = self
-            .helpers
-            .path_resolver
-            .resolve_from(base_path, path, should_check_exist)
+        let result = PathResolver::resolve_from(base_path, path, should_check_exist)
             .with_context(|| format!("Invalid {} path: {}", ctx, path))?;
         self.logger
             .info(&format!("{} path: {}", ctx, result.di_string()));
@@ -74,10 +71,7 @@ impl<'a> AllEntries<'a> {
         mode: Mode,
     ) -> Result<()> {
         for path in paths.iter() {
-            let rp = self
-                .helpers
-                .path_resolver
-                .resolve_from(base_path, path, false);
+            let rp = PathResolver::resolve_from(base_path, path, false);
             let entry = match rp {
                 Err(err) => {
                     self.logger
