@@ -129,11 +129,13 @@ impl<'a> AllEntries<'a> {
         profile: &Profile,
         base_path: &ResolvedPath,
         behaviour: &Behaviour,
+        profile_name: &str,
     ) -> Result<()> {
         let logger = self.logger;
         let should_backup = behaviour.should_backup();
         let overwrite_existed = behaviour.overwrite_existed.unwrap();
 
+        logger.info(&format!("Generating entries for `{}` ...", profile_name));
         //Reoslve Path
         let source_root = self.resolve_path(base_path, &profile.source_path, "source")?;
         let target_root = self.resolve_path(base_path, &profile.target_path, "target")?;
