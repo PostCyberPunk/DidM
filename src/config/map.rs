@@ -1,6 +1,6 @@
 use super::{CHCECK_CONFIG, ConfigSet, MainConfig};
 use crate::{
-    helpers::{self, Helpers, ResolvedPath},
+    helpers::{self, Checker, Helpers, ResolvedPath},
     model::{Behaviour, Plan, Profile},
 };
 use anyhow::Result;
@@ -29,10 +29,8 @@ impl<'a> ConfigMap<'a> {
         CHCECK_CONFIG
             .set(*check_config)
             .map_err(|_| ConfigError::BugCheckConfig)?;
-        helpers
-            .checker
-            .working_dir_is_symlink(config_sets[0].0.get_raw())?;
-        helpers.checker.is_git_workspace(base_path.get())?;
+        Checker::working_dir_is_symlink(config_sets[0].0.get_raw())?;
+        Checker::is_git_workspace(base_path.get())?;
 
         //---------Build Config Map---------
         let mut path_map = Vec::new();

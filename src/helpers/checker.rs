@@ -9,9 +9,6 @@ use thiserror::Error;
 #[derive(Debug)]
 pub struct Checker {}
 impl Checker {
-    pub fn new(config: CheckConfig) -> Self {
-        Checker {}
-    }
     fn get_config() -> Option<&'static CheckConfig> {
         match CHCECK_CONFIG.get() {
             Some(c) => Some(c),
@@ -21,7 +18,7 @@ impl Checker {
             }
         }
     }
-    pub fn is_git_workspace(&self, path: &Path) -> Result<()> {
+    pub fn is_git_workspace(path: &Path) -> Result<()> {
         if let Some(c) = Self::get_config() {
             if c.is_git_workspace {
                 return Ok(());
@@ -39,7 +36,7 @@ impl Checker {
             Err(CheckError::NotGitRepo.into())
         }
     }
-    pub fn target_exisit_or_create(&self, path: &Path) -> Result<()> {
+    pub fn target_exisit_or_create(path: &Path) -> Result<()> {
         if path.exists()
             || confirm(&format!(
                 "Target Path not exists: \n\
@@ -53,7 +50,7 @@ impl Checker {
             Err(CheckError::TargetPathNotExists.into())
         }
     }
-    pub fn working_dir_is_symlink(&self, path_raw: &str) -> Result<()> {
+    pub fn working_dir_is_symlink(path_raw: &str) -> Result<()> {
         if let Some(c) = Self::get_config() {
             if c.is_working_dir_symlink {
                 return Ok(());
