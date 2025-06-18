@@ -1,5 +1,5 @@
 use super::prompt::confirm;
-use crate::model::CheckConfig;
+use crate::{config::CHCECK_CONFIG, model::CheckConfig};
 use anyhow::Result;
 use std::path::Path;
 use thiserror::Error;
@@ -7,17 +7,25 @@ use thiserror::Error;
 //REFT: could be use association function
 //get config from static once_cell or failed
 #[derive(Debug)]
-pub struct Checker {
-    config: CheckConfig,
-}
-
+pub struct Checker {}
 impl Checker {
     pub fn new(config: CheckConfig) -> Self {
-        Checker { config }
+        Checker {}
+    }
+    fn get_config() -> Option<&'static CheckConfig> {
+        match CHCECK_CONFIG.get() {
+            Some(c) => Some(c),
+            None => {
+                None
+                //TODO: logger here
+            }
+        }
     }
     pub fn is_git_workspace(&self, path: &Path) -> Result<()> {
-        if self.config.is_git_workspace {
-            return Ok(());
+        if let Some(c) = Self::get_config() {
+            if c.is_git_workspace {
+                return Ok(());
+            }
         }
         if path.join(".git").exists()
             || confirm(&format!(
@@ -46,8 +54,10 @@ impl Checker {
         }
     }
     pub fn working_dir_is_symlink(&self, path_raw: &str) -> Result<()> {
-        if !self.config.is_working_dir_symlink {
-            return Ok(());
+        if let Some(c) = Self::get_config() {
+            if c.is_working_dir_symlink {
+                return Ok(());
+            }
         }
         let path = Path::new(path_raw);
         if path.is_symlink()
