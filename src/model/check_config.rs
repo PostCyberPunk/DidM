@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 //FIX:
 //2.use a parser maybe?
 #[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
-#[serde(rename = "SkipChecks")]
+#[serde(rename = "skip_check")]
 pub struct CheckConfig {
     #[serde(default, skip_serializing_if = "super::is_false")]
     pub is_git_workspace: bool,

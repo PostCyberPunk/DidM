@@ -1,23 +1,26 @@
 use super::prompt::confirm;
-use crate::model::CheckConfig;
+use crate::{config::CHCECK_CONFIG, model::CheckConfig};
 use anyhow::Result;
 use std::path::Path;
 use thiserror::Error;
 
-//REFT: could be use association function
-//get config from static once_cell or failed
 #[derive(Debug)]
-pub struct Checker {
-    config: CheckConfig,
-}
-
+pub struct Checker {}
 impl Checker {
-    pub fn new(config: CheckConfig) -> Self {
-        Checker { config }
+    fn get_config() -> Option<&'static CheckConfig> {
+        match CHCECK_CONFIG.get() {
+            Some(c) => Some(c),
+            None => {
+                None
+                //TODO: logger here
+            }
+        }
     }
-    pub fn is_git_workspace(&self, path: &Path) -> Result<()> {
-        if self.config.is_git_workspace {
-            return Ok(());
+    pub fn is_git_workspace(path: &Path) -> Result<()> {
+        if let Some(c) = Self::get_config() {
+            if c.is_git_workspace {
+                return Ok(());
+            }
         }
         if path.join(".git").exists()
             || confirm(&format!(
@@ -31,7 +34,7 @@ impl Checker {
             Err(CheckError::NotGitRepo.into())
         }
     }
-    pub fn target_exisit_or_create(&self, path: &Path) -> Result<()> {
+    pub fn target_exisit_or_create(path: &Path) -> Result<()> {
         if path.exists()
             || confirm(&format!(
                 "Target Path not exists: \n\
@@ -45,9 +48,11 @@ impl Checker {
             Err(CheckError::TargetPathNotExists.into())
         }
     }
-    pub fn working_dir_is_symlink(&self, path_raw: &str) -> Result<()> {
-        if !self.config.is_working_dir_symlink {
-            return Ok(());
+    pub fn working_dir_is_symlink(path_raw: &str) -> Result<()> {
+        if let Some(c) = Self::get_config() {
+            if c.is_working_dir_symlink {
+                return Ok(());
+            }
         }
         let path = Path::new(path_raw);
         if path.is_symlink()

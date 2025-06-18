@@ -11,7 +11,7 @@ pub struct MainConfig {
 impl MainConfig {
     pub fn new(config: &DidmConfig) -> Self {
         let behaviour = Behaviour::new(&config.behaviour);
-        let check_config = match config.check_config {
+        let check_config = match config.skip_check {
             Some(c) => c,
             None => CheckConfig::new(),
         };

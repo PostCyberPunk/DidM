@@ -8,7 +8,7 @@ pub struct DidmConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub behaviour: Option<Behaviour>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub check_config: Option<CheckConfig>,
+    pub skip_check: Option<CheckConfig>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub profiles: HashMap<String, Profile>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
@@ -18,7 +18,7 @@ impl DidmConfig {
     pub fn new() -> Self {
         DidmConfig {
             include: Vec::new(),
-            check_config: None,
+            skip_check: None,
             behaviour: None,
             profiles: HashMap::from([("basic".to_string(), Profile::new())]),
             plans: HashMap::from([(
