@@ -1,11 +1,17 @@
 mod apply;
-mod entry;
-mod error;
 mod init;
 
-use crate::{helpers::Helpers, log::Logger};
+mod entry;
 pub use entry::Entry;
 
+mod walk;
+use walk::WalkerContext;
+
+mod error;
+
+use crate::{helpers::Helpers, log::Logger};
+
+//TODO: we need a better name for this
 pub struct AllEntries<'a> {
     // backuper:Backuper,
     copy_list: Vec<Entry>,
