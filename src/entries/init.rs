@@ -20,7 +20,7 @@ impl<'a> AllEntries<'a> {
         }
     }
 
-    pub(crate) fn resolve_path(
+    fn resolve_path(
         &self,
         base_path: &ResolvedPath,
         path: &str,
@@ -36,7 +36,7 @@ impl<'a> AllEntries<'a> {
         Ok(result)
     }
 
-    pub(crate) fn get_normal_entries(
+    fn get_normal_entries(
         &mut self,
         profile: &Profile,
         source_root: &ResolvedPath,
@@ -64,7 +64,7 @@ impl<'a> AllEntries<'a> {
         Ok(())
     }
 
-    pub(crate) fn collect_same_source(
+    fn collect_same_source(
         &mut self,
         paths: &[String],
         base_path: &ResolvedPath,
@@ -94,7 +94,7 @@ impl<'a> AllEntries<'a> {
         Ok(())
     }
 
-    pub fn get_extra_entris(
+    fn get_extra_entris(
         &mut self,
         profile: &Profile,
         source_root: &ResolvedPath,

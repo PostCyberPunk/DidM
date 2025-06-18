@@ -6,7 +6,12 @@ use super::{AllEntries, error::EntryApplyError};
 use anyhow::Result;
 
 impl<'a> AllEntries<'a> {
-    pub fn apply_list(&self, mode: Mode) {
+    pub fn copy_and_link(&self) -> Result<()> {
+        self.apply_list(Mode::Symlink);
+        self.apply_list(Mode::Copy);
+        Ok(())
+    }
+    fn apply_list(&self, mode: Mode) {
         let logger = self.logger;
         let list = match mode {
             Mode::Copy => &self.copy_list,
