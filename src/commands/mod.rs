@@ -114,27 +114,33 @@ impl<'a> CommandsRunner<'a> {
             is_dryrun,
         }
     }
+
     pub fn add_context(&mut self, context: CommandsContext<'a>) {
         self.context.push(context);
     }
+
     pub fn run_pre_commands(&self) -> Result<()> {
-        if self.context.is_empty() {
-            return Ok(());
-        }
-        self.logger.info("Running pre commands");
-        for ctx in &self.context {
-            ctx.run(ctx.pre_commands, self.logger, self.is_dryrun)?;
-        }
-        Ok(())
+        self.run_commands("pre", |ctx| ctx.pre_commands)
     }
+
     pub fn run_post_commands(&self) -> Result<()> {
+        self.run_commands("post", |ctx| ctx.post_commands)
+    }
+
+    fn run_commands<F>(&self, label: &str, commands_selector: F) -> Result<()>
+    where
+        F: Fn(&CommandsContext<'a>) -> &'a [String],
+    {
         if self.context.is_empty() {
             return Ok(());
         }
-        self.logger.info("Running post commands");
+
+        self.logger.info(&format!("Running {} commands", label));
+
         for ctx in &self.context {
-            ctx.run(ctx.post_commands, self.logger, self.is_dryrun)?;
+            ctx.run(commands_selector(ctx), self.logger, self.is_dryrun)?;
         }
+
         Ok(())
     }
 }
