@@ -1,4 +1,5 @@
 mod entry;
+mod error;
 mod init;
 
 use crate::{helpers::Helpers, log::Logger};
