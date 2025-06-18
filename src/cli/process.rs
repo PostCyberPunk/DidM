@@ -24,11 +24,12 @@ pub fn process() -> anyhow::Result<()> {
         }) => {
             //Porcess arg first,we may use in loader
             let plan_args = PlanArgs {
-                is_dry_run: *dry_run,
+                is_dryrun: *dry_run,
                 is_verbose: *verbose,
             };
             //TODO:File logger
             //Prepare logger, we may use in loaer too
+            //FIX: File logger need flush ,but error will cause it never flush
             let mut logger = Logger::new();
             let std_log_level = match (plan_args.is_verbose, args.debug) {
                 (_, true) => LogLevel::Debug,

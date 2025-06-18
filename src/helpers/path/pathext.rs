@@ -1,6 +1,7 @@
 use super::error::PathError;
 use anyhow::{Context, Result};
 use std::{fs, path::Path};
+//REFT: should be in util
 pub trait PathExtension: AsRef<Path> {
     fn to_string(&self) -> String {
         self.as_ref().to_string_lossy().to_string()

@@ -27,8 +27,8 @@ impl<'a> PlanContext<'a> {
         let plan = config_map.get_plan(plan_name)?;
         let helpers = config_map.get_helpers();
 
-        let mut commands_runner = CommandsRunner::new(logger, args.is_dry_run);
-        let mut all_entries = AllEntries::new(helpers, logger, args.is_dry_run);
+        let mut commands_runner = CommandsRunner::new(logger, args.is_dryrun);
+        let mut all_entries = AllEntries::new(helpers, logger, args.is_dryrun);
 
         //Get Bhaviour
         let behaviour = config_map
@@ -76,7 +76,7 @@ impl<'a> PlanContext<'a> {
             ));
             //prepare entries
             all_entries
-                .add_profile(profile, base_path, &behaviour)
+                .add_profile(profile, base_path, &behaviour, profile_name)
                 .context(profile_name.to_string())?;
         }
 
