@@ -1,10 +1,6 @@
 use super::args::PlanArgs;
 use crate::config::ConfigMap;
 use crate::entries::AllEntries;
-use crate::helpers::Helpers;
-use crate::model::behaviour;
-use crate::profile::ProfileContext;
-use crate::{commands, helpers};
 use crate::{
     commands::{CommandsContext, CommandsRunner},
     log::Logger,
@@ -59,8 +55,6 @@ impl<'a> PlanContext<'a> {
 
         //apply profiles
         let profiles = config_map.get_profiles(&plan.profiles)?;
-        // let mut profile_ctxs = Vec::new();
-
         for (profile, idx, profile_name) in profiles {
             logger.info(&format!("Preparing profile: {}", profile_name));
             let base_path = config_map.get_base_path(idx)?;
