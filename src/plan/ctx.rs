@@ -1,8 +1,8 @@
 use super::args::PlanArgs;
-use crate::config::ConfigMap;
-use crate::entries::AllEntries;
 use crate::{
     commands::{CommandsContext, CommandsRunner},
+    config::ConfigMap,
+    entries::AllEntries,
     log::Logger,
 };
 use anyhow::{Context, Result};
@@ -57,14 +57,17 @@ impl<'a> PlanContext<'a> {
         let profiles = config_map.get_profiles(&plan.profiles)?;
         for (profile, idx, profile_name) in profiles {
             logger.info(&format!("Preparing profile: {}", profile_name));
-            let base_path = config_map.get_base_path(idx)?;
+            let base_path = config_map
+                .get_base_path(idx)
+                .context(profile_name.to_string())?;
             let behaviour = behaviour.override_by(&profile.override_behaviour);
             let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
 
             let envrironment = &profile.environment;
             let commands_path = helpers
                 .path_resolver
-                .resolve_from_or_base(base_path, &profile.commands_path)?
+                .resolve_from_or_base(base_path, &profile.commands_path)
+                .context(profile_name.to_string())?
                 .into_pathbuf();
             commands_runner.add_context(CommandsContext::new(
                 envrironment,
@@ -74,7 +77,9 @@ impl<'a> PlanContext<'a> {
                 &profile.post_build_commands,
             ));
             //prepare entries
-            all_entries.add_profile(profile, base_path, &behaviour)?;
+            all_entries
+                .add_profile(profile, base_path, &behaviour)
+                .context(profile_name.to_string())?;
         }
 
         Ok(PlanContext {
