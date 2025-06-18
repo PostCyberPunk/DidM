@@ -6,4 +6,4 @@ pub use path::PathExtension;
 pub use path::PathResolver;
 pub use path::ResolvedPath;
 
-mod prompt;
+pub mod prompt;
