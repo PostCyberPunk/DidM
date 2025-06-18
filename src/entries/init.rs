@@ -25,11 +25,12 @@ impl<'a> AllEntries<'a> {
         base_path: &ResolvedPath,
         path: &str,
         ctx: &str,
+        should_check_exist: bool,
     ) -> Result<ResolvedPath> {
         let result = self
             .helpers
             .path_resolver
-            .resolve_from(base_path, path)
+            .resolve_from(base_path, path, should_check_exist)
             .with_context(|| format!("Invalid {} path: {}", ctx, path))?;
         self.logger
             .info(&format!("{} path: {}", ctx, result.di_string()));
@@ -73,7 +74,10 @@ impl<'a> AllEntries<'a> {
         mode: Mode,
     ) -> Result<()> {
         for path in paths.iter() {
-            let rp = self.helpers.path_resolver.resolve_from(base_path, path);
+            let rp = self
+                .helpers
+                .path_resolver
+                .resolve_from(base_path, path, false);
             let entry = match rp {
                 Err(err) => {
                     self.logger
@@ -103,9 +107,9 @@ impl<'a> AllEntries<'a> {
     ) -> Result<()> {
         for extra in profile.extra_entries.iter() {
             let e = Entry::new(
-                self.resolve_path(source_root, &extra.source_path, "extra entry")?
+                self.resolve_path(source_root, &extra.source_path, "extra entry", true)?
                     .into_pathbuf(),
-                self.resolve_path(target_root, &extra.target_path, "extra entry target")?
+                self.resolve_path(target_root, &extra.target_path, "extra entry target", false)?
                     .into_pathbuf(),
                 overwrite_existed,
             );
@@ -137,9 +141,8 @@ impl<'a> AllEntries<'a> {
 
         logger.info(&format!("Generating entries for `{}` ...", profile_name));
         //Reoslve Path
-        let source_root = self.resolve_path(base_path, &profile.source_path, "source")?;
-        let target_root = self.resolve_path(base_path, &profile.target_path, "target")?;
-        //FIX:this will never work since we are using canonicalize
+        let source_root = self.resolve_path(base_path, &profile.source_path, "source", true)?;
+        let target_root = self.resolve_path(base_path, &profile.target_path, "target", false)?;
         self.helpers
             .checker
             .target_exisit_or_create(target_root.get())?;

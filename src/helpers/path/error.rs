@@ -1,8 +1,13 @@
+use std::path::PathBuf;
+
 use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum PathError {
     #[error("Unresolved envrionment varible: `{0}`")]
     EnvVarMissing(String),
+
+    #[error("Path not existed: {0}")]
+    NotExists(PathBuf),
 
     #[error("Failed to create parent directory: {0}")]
     CreateDirFailed(String),
