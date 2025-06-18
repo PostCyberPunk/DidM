@@ -1,10 +1,10 @@
-use super::{ConfigSet, MainConfig};
+use super::{CHCECK_CONFIG, ConfigSet, MainConfig};
 use crate::{
     helpers::{self, Helpers, ResolvedPath},
     model::{Behaviour, Plan, Profile},
 };
 use anyhow::Result;
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 use thiserror::Error;
 
 //TODO: We should own everything in this map,
@@ -24,7 +24,11 @@ impl<'a> ConfigMap<'a> {
         //---------Check Configs---------
         let check_config = &main_config.check_config;
 
+        //FIX::!!!!!!!!!
         let helpers = helpers::Helpers::new(check_config);
+        CHCECK_CONFIG
+            .set(*check_config)
+            .map_err(|_| ConfigError::BugCheckConfig)?;
         helpers
             .checker
             .working_dir_is_symlink(config_sets[0].0.get_raw())?;
@@ -140,9 +144,6 @@ pub enum ConfigError {
     #[error("Index of `{0}` is out of bound: `{1}`")]
     IndexOutbound(String, String),
 
-    #[error("Can't find any plan,check your config,maybe there is a typo?")]
-    NoPlanFound,
-
-    #[error("Can't find any profile,check your config,maybe there is a typo?")]
-    NoProfileFound,
+    #[error("Check config is set twice,this is a bug,\n please report it with log")]
+    BugCheckConfig,
 }
