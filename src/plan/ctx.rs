@@ -5,6 +5,7 @@ use crate::{
     entries::AllEntries,
     helpers::PathResolver,
     log::Logger,
+    model::Profile,
 };
 use anyhow::{Context, Result};
 
@@ -52,30 +53,16 @@ impl<'a> PlanContext<'a> {
 
         //apply profiles
         let profiles = config_map.get_profiles(&plan.profiles)?;
-        for (profile, idx, profile_name) in profiles {
-            logger.info(&format!("Preparing profile: {}", profile_name));
-            let base_path = config_map
-                .get_base_path(idx)
-                .context(profile_name.to_string())?;
-            let behaviour = behaviour.override_by(&profile.override_behaviour);
-            let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
-
-            let envrironment = &profile.environment;
-            let commands_path =
-                PathResolver::resolve_from_or_base(base_path, &profile.commands_path)
-                    .context(profile_name.to_string())?
-                    .into_pathbuf();
-            commands_runner.add_context(CommandsContext::new(
-                envrironment,
-                commands_path,
-                stop_at_commands_error,
-                &profile.pre_build_commands,
-                &profile.post_build_commands,
-            ));
-            //prepare entries
-            all_entries
-                .add_profile(profile, base_path, &behaviour, profile_name)
-                .context(profile_name.to_string())?;
+        for tuple in profiles {
+            logger.info(&format!("Preparing profile: {}", tuple.2));
+            Self::collect_profile(
+                config_map,
+                &mut commands_runner,
+                &mut all_entries,
+                behaviour,
+                tuple,
+            )
+            .context(format!("Profile: {}", tuple.2))?;
         }
 
         Ok(PlanContext {
@@ -91,6 +78,30 @@ impl<'a> PlanContext<'a> {
         self.all_entries.copy_and_link()?;
 
         self.commands_runner.run_post_commands()?;
+        Ok(())
+    }
+    fn collect_profile(
+        config_map: &'a ConfigMap<'_>,
+        commands_runner: &mut CommandsRunner<'a>,
+        all_entries: &mut AllEntries<'a>,
+        behaviour: crate::model::Behaviour,
+        tuple: (&'a Profile, usize, &str),
+    ) -> Result<(), anyhow::Error> {
+        let (profile, idx, profile_name) = tuple;
+        let base_path = config_map.get_base_path(idx)?;
+        let behaviour = behaviour.override_by(&profile.override_behaviour);
+        let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
+        let envrironment = &profile.environment;
+        let commands_path =
+            PathResolver::resolve_from_or_base(base_path, &profile.commands_path)?.into_pathbuf();
+        commands_runner.add_context(CommandsContext::new(
+            envrironment,
+            commands_path,
+            stop_at_commands_error,
+            &profile.pre_build_commands,
+            &profile.post_build_commands,
+        ));
+        all_entries.add_profile(profile, base_path, &behaviour, profile_name)?;
         Ok(())
     }
 }
