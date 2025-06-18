@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use crate::model::behaviour::Behaviour;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 pub struct Plan {
     pub profiles: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use crate::model::behaviour::Behaviour;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 pub struct Profile {
     pub source_path: String,
     pub target_path: String,
@@ -51,7 +52,7 @@ impl Profile {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 pub struct ExtraEntry {
     pub source_path: String,
     pub target_path: String,
@@ -59,7 +60,7 @@ pub struct ExtraEntry {
     pub mode: Option<Mode>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 #[derive(Default)]
 pub enum Mode {
@@ -73,7 +74,7 @@ impl Mode {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 #[derive(Default)]
 pub enum Unit {
