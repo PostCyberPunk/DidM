@@ -9,7 +9,9 @@ pub struct DidmConfig {
     pub behaviour: Option<Behaviour>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub check_config: Option<CheckConfig>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub profiles: HashMap<String, Profile>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub plans: HashMap<String, Plan>,
 }
 impl DidmConfig {
