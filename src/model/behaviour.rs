@@ -1,7 +1,7 @@
 use ignore::overrides;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct Behaviour {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub overwrite_existed: Option<bool>,
@@ -34,7 +34,7 @@ impl Behaviour {
     //but still not good enough...
     //since this overried workflow is not common
     //
-    pub fn override_by(&self, option_behaviour: &Option<Behaviour>) -> Self {
+    pub fn override_by(&self, option_behaviour: &Option<Behaviour>) -> Behaviour {
         match option_behaviour {
             Some(other) => Behaviour {
                 overwrite_existed: other.overwrite_existed.or(self.overwrite_existed),
