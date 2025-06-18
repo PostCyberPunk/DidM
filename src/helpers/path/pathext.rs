@@ -26,6 +26,7 @@ pub trait PathExtension: AsRef<Path> {
         Ok(())
     }
 
+    //FIX: that's not right
     fn ensure_parent_exists(&self) -> Result<&Self> {
         if !self.as_ref().exists() {
             fs::create_dir_all(self.as_ref().parent().unwrap())
@@ -33,7 +34,6 @@ pub trait PathExtension: AsRef<Path> {
         }
         Ok(self)
     }
-    // fn find_file(&self, filename: &str) -> Result<Self>;
 }
 
 impl PathExtension for Path {}
