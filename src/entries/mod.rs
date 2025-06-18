@@ -1,3 +1,4 @@
+mod apply;
 mod entry;
 mod error;
 mod init;
