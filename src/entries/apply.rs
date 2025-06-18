@@ -1,6 +1,6 @@
 use std::{fs, io, path::Path};
 
-use crate::{helpers::PathExtension, model::profile::Mode};
+use crate::{model::profile::Mode, utils::PathExtension};
 
 use super::{AllEntries, error::EntryApplyError};
 use anyhow::Result;

@@ -1,5 +1,5 @@
 use super::{super::prompt::confirm, ResolvedPath};
-use crate::{config::CHCECK_CONFIG, helpers::path::PathError};
+use crate::{config::CHCECK_CONFIG, utils::path::PathError};
 use anyhow::{Context, Result};
 use once_cell::sync::Lazy;
 use path_absolutize::Absolutize;

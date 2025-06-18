@@ -1,9 +1,9 @@
 use super::{AllEntries, Entry};
 use crate::{
     entries::WalkerContext,
-    helpers::{Checker, PathResolver, ResolvedPath},
     log::Logger,
     model::{Behaviour, Profile, profile::Mode},
+    utils::{Checker, PathResolver, ResolvedPath},
 };
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};

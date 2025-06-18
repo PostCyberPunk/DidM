@@ -1,5 +1,5 @@
-use crate::helpers::{PathResolver, ResolvedPath};
 use crate::model::DidmConfig;
+use crate::utils::{PathResolver, ResolvedPath};
 use anyhow::{Context, Result};
 
 use super::ConfigSet;

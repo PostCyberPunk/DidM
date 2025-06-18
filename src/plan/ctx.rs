@@ -3,9 +3,9 @@ use crate::{
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
     entries::AllEntries,
-    helpers::PathResolver,
     log::Logger,
     model::Profile,
+    utils::PathResolver,
 };
 use anyhow::{Context, Result};
 

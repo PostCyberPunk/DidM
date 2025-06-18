@@ -1,7 +1,7 @@
 use super::{CHCECK_CONFIG, ConfigSet, MainConfig};
 use crate::{
-    helpers::{Checker, ResolvedPath},
     model::{Behaviour, Plan, Profile},
+    utils::{Checker, ResolvedPath},
 };
 use anyhow::Result;
 use std::{collections::HashMap, path::PathBuf};
