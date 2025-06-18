@@ -6,3 +6,4 @@ mod walk;
 
 pub use bakcup::Backuper;
 pub use ctx::ProfileContext;
+pub use walk::WalkerContext;
