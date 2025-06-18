@@ -1,6 +1,7 @@
 use super::{super::prompt::confirm, ResolvedPath};
 use crate::helpers::path::PathError;
 use anyhow::{Context, Result};
+use path_absolutize::Absolutize;
 use std::{env, path::PathBuf};
 
 //REFT: should be use association function
@@ -49,9 +50,10 @@ impl PathResolver {
         {
             return Err(PathError::UnresolvedSymlink("User cancelled".to_string()).into());
         }
-        pathbuf
-            .canonicalize()
-            .map_err(|e| PathError::Unknown(e.to_string()).into())
+        match pathbuf.absolutize() {
+            Ok(p) => Ok(p.to_path_buf()),
+            Err(e) => Err(PathError::Unknown(e.to_string()).into()),
+        }
     }
     // -----------Public ----------------
     pub fn resolve(&self, path: &str) -> Result<ResolvedPath> {
