@@ -1,10 +1,12 @@
 mod checker;
-mod path;
-mod prompt;
 pub use checker::Checker;
+
+mod path;
 pub use path::PathExtension;
 pub use path::PathResolver;
 pub use path::ResolvedPath;
+
+mod prompt;
 
 use crate::model::CheckConfig;
 
