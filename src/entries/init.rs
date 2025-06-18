@@ -1,7 +1,7 @@
 use super::{AllEntries, Entry};
 use crate::{
     entries::WalkerContext,
-    helpers::{Helpers, PathResolver, ResolvedPath},
+    helpers::{Checker, PathResolver, ResolvedPath},
     log::Logger,
     model::{Behaviour, Profile, profile::Mode},
 };
@@ -9,11 +9,10 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 impl<'a> AllEntries<'a> {
-    pub fn new(helpers: &'a Helpers, logger: &'a Logger, is_dryrun: bool) -> Self {
+    pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
         Self {
             copy_list: Vec::new(),
             link_list: Vec::new(),
-            helpers,
             logger,
             is_dryrun,
             // overwrite_existed,
@@ -137,9 +136,7 @@ impl<'a> AllEntries<'a> {
         //Reoslve Path
         let source_root = self.resolve_path(base_path, &profile.source_path, "source", true)?;
         let target_root = self.resolve_path(base_path, &profile.target_path, "target", false)?;
-        self.helpers
-            .checker
-            .target_exisit_or_create(target_root.get())?;
+        Checker::target_exisit_or_create(target_root.get())?;
 
         //Get Normal Entries
         self.get_normal_entries(profile, &source_root, &target_root, overwrite_existed)

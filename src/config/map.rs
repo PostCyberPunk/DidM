@@ -1,6 +1,6 @@
 use super::{CHCECK_CONFIG, ConfigSet, MainConfig};
 use crate::{
-    helpers::{self, Checker, Helpers, ResolvedPath},
+    helpers::{Checker, ResolvedPath},
     model::{Behaviour, Plan, Profile},
 };
 use anyhow::Result;
@@ -16,16 +16,13 @@ pub struct ConfigMap<'a> {
     pub main_config: MainConfig,
     pub profile_map: HashMap<&'a str, (usize, &'a Profile)>,
     pub plan_map: HashMap<&'a str, &'a Plan>,
-    pub helpers: Helpers,
 }
 impl<'a> ConfigMap<'a> {
     pub fn new(base_path: ResolvedPath, config_sets: &'a [ConfigSet]) -> Result<Self> {
         let main_config = MainConfig::new(&config_sets[0].1);
+
         //---------Check Configs---------
         let check_config = &main_config.check_config;
-
-        //FIX::!!!!!!!!!
-        let helpers = helpers::Helpers::new(check_config);
         CHCECK_CONFIG
             .set(*check_config)
             .map_err(|_| ConfigError::BugCheckConfig)?;
@@ -70,7 +67,6 @@ impl<'a> ConfigMap<'a> {
             main_config,
             plan_map,
             profile_map,
-            helpers,
         })
     }
     pub fn get_plan(&self, plan_name: &str) -> Result<&Plan> {
@@ -99,9 +95,6 @@ impl<'a> ConfigMap<'a> {
     }
     pub fn get_main_behaviour(&self) -> &Behaviour {
         &self.main_config.behaviour
-    }
-    pub fn get_helpers(&self) -> &Helpers {
-        &self.helpers
     }
     pub fn get_base_path(&self, idx: usize) -> Result<&ResolvedPath> {
         if idx > self.path_map.len() {
