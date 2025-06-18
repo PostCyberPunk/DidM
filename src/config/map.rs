@@ -116,17 +116,26 @@ impl<'a> ConfigMap<'a> {
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
-    #[error("Plan {0}  not found.")]
-    PlanNotFound(String),
+    #[error("Config file already existed in {0}")]
+    ConfigExists(PathBuf),
 
-    #[error("Profile `{0}` not found.")]
-    ProfileNotFound(String),
+    #[error("Can't find any plan,check your config,maybe there is a typo?")]
+    NoPlanFound,
+
+    #[error("Can't find any profile,check your config,maybe there is a typo?")]
+    NoProfileFound,
 
     #[error("Plan `{0}` is duplicated")]
     DuplicatedPlan(String),
 
     #[error("Profile `{0}` is duplicated")]
     DuplicatedProfile(String),
+
+    #[error("Plan {0}  not found.")]
+    PlanNotFound(String),
+
+    #[error("Profile `{0}` not found.")]
+    ProfileNotFound(String),
 
     #[error("Index of `{0}` is out of bound: `{1}`")]
     IndexOutbound(String, String),

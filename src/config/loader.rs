@@ -3,6 +3,7 @@ use crate::model::DidmConfig;
 use anyhow::{Context, Result};
 
 use super::ConfigSet;
+use super::map::ConfigError;
 use std::fs;
 
 const CONFIG_FILE_NAME: &str = "didm.toml";
@@ -54,10 +55,7 @@ pub fn init_config(path: Option<&str>) -> Result<()> {
 
     let config_path = resolved_path.into_child(CONFIG_FILE_NAME, false)?;
     if config_path.get().exists() {
-        return Err(anyhow::anyhow!(
-            "There is a config file already in :{}",
-            config_path.get().display()
-        ));
+        return Err(ConfigError::ConfigExists(config_path.into_pathbuf()).into());
     }
     let config = DidmConfig::new();
     let cfgset = ConfigSet(config_path, config);
