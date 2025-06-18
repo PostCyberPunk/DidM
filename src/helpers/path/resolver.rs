@@ -1,5 +1,5 @@
 use super::{super::prompt::confirm, ResolvedPath};
-use crate::helpers::path::PathError;
+use crate::{config::CHCECK_CONFIG, helpers::path::PathError};
 use anyhow::{Context, Result};
 use once_cell::sync::Lazy;
 use path_absolutize::Absolutize;
@@ -12,11 +12,18 @@ static ENV_VARS: Lazy<HashMap<String, String>> = Lazy::new(|| env::vars().collec
 //get_bool or false
 #[derive(Debug)]
 pub struct PathResolver {
-    check_env: bool,
+    // check_env: bool,
 }
 impl PathResolver {
     pub fn new(check_env: bool) -> Self {
-        PathResolver { check_env }
+        PathResolver {}
+    }
+    fn should_check_env() -> bool {
+        match CHCECK_CONFIG.get() {
+            //TODO: flip flag is anooying
+            Some(c) => !c.unresolved_env,
+            None => true,
+        }
     }
     // -----------Internal------
     fn expand_env_vars(&self, path: String) -> Result<String> {
@@ -29,7 +36,7 @@ impl PathResolver {
             let placeholder = format!("${}", key);
             expand = expand.replace(&placeholder, value);
         }
-        if self.check_env && expand.contains("$") {
+        if Self::should_check_env() && expand.contains("$") {
             return Err(PathError::EnvVarMissing(expand).into());
         }
         Ok(expand)
