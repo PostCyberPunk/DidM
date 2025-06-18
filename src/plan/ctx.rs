@@ -1,8 +1,6 @@
 use super::args::PlanArgs;
 use crate::config::ConfigMap;
-use crate::helpers::{Helpers, ResolvedPath};
-use crate::model::{Behaviour, Plan, Profile};
-use crate::profile::{Backuper, ProfileContext};
+use crate::profile::ProfileContext;
 use crate::{
     commands::{CommandsContext, CommandsRunner},
     log::Logger,
@@ -10,13 +8,6 @@ use crate::{
 use anyhow::{Context, Result};
 
 pub struct PlanContext<'a> {
-    // pub args: &'a PlanArgs,
-    // pub logger: &'a Logger,
-    // pub config_map: &'a ConfigMap<'a>,
-    // pub base_path: &'a ResolvedPath,
-    // pub plan: &'a Plan,
-    // pub name: &'a str,
-    // pub behaviour: Behaviour,
     pub commands_runner: CommandsRunner<'a>,
     pub profile_ctxs: Vec<(&'a str, ProfileContext<'a>)>,
 }
@@ -42,23 +33,21 @@ impl<'a> PlanContext<'a> {
             .override_by(&plan.override_behaviour);
 
         //Prepare Command runner
+        let mut commands_runner = CommandsRunner::new(logger, args.is_dry_run);
         let envrironment = &plan.environment;
         let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
         let commands_path = helpers
             .path_resolver
             .resolve_from_or_base(base_path, &plan.commands_path)?
             .into_pathbuf();
-        let commands_runner = CommandsRunner::new(
-            CommandsContext {
-                environment: envrironment,
-                path: commands_path,
-                logger,
-                args,
-                stop_at_commands_error,
-            },
+        let plan_cmd_ctx = CommandsContext::new(
+            envrironment,
+            commands_path,
+            stop_at_commands_error,
             &plan.pre_build_commands,
             &plan.post_build_commands,
         );
+        commands_runner.add_context(plan_cmd_ctx);
 
         //apply profiles
         let profiles = config_map.get_profiles(&plan.profiles)?;
@@ -80,14 +69,6 @@ impl<'a> PlanContext<'a> {
         }
 
         Ok(PlanContext {
-            // args,
-            // logger,
-            // helpers,
-            // config_map,
-            // base_path,
-            // plan,
-            // name: plan_name,
-            // behaviour,
             profile_ctxs,
             commands_runner,
         })
