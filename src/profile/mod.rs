@@ -1,5 +1,4 @@
 mod bakcup;
-mod entry;
 mod error;
 mod walk;
 
