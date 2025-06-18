@@ -10,7 +10,6 @@ use anyhow::{Context, Result};
 pub struct PlanContext<'a> {
     pub commands_runner: CommandsRunner<'a>,
     pub all_entries: AllEntries<'a>,
-    // pub profile_ctxs: Vec<(&'a str, ProfileContext<'a>)>,
 }
 
 impl<'a> PlanContext<'a> {
@@ -37,7 +36,6 @@ impl<'a> PlanContext<'a> {
             .override_by(&plan.override_behaviour);
 
         //Prepare Command runner
-        let mut commands_runner = CommandsRunner::new(logger, args.is_dry_run);
         let envrironment = &plan.environment;
         let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
         let commands_path = helpers
@@ -92,11 +90,7 @@ impl<'a> PlanContext<'a> {
         // let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
         self.commands_runner.run_pre_commands()?;
 
-        // for (profile_name, p) in self.profile_ctxs {
-        //     p.apply()
-        //         .context(format!("Profile apply failed:{}", profile_name))?;
-        // }
-        // self.profile_ctxs.iter().try_for_each(|(_, p)| p.apply())?;
+        self.all_entries.copy_and_link()?;
 
         self.commands_runner.run_post_commands()?;
         Ok(())
