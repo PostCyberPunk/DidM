@@ -1,5 +1,5 @@
-use super::ResolvedPath;
-use crate::{cli::prompt::confirm, helpers::path::PathError};
+use super::{super::prompt::confirm, ResolvedPath};
+use crate::helpers::path::PathError;
 use anyhow::{Context, Result};
 use std::{env, path::PathBuf};
 

@@ -1,8 +1,8 @@
+use super::prompt::confirm;
+use crate::model::CheckConfig;
 use anyhow::Result;
 use std::path::Path;
 use thiserror::Error;
-
-use crate::{cli::prompt::confirm, model::CheckConfig};
 
 //REFT: could be use association function
 //get config from static once_cell or failed
