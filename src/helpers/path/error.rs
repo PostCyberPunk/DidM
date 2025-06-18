@@ -13,7 +13,7 @@ pub enum PathError {
     CreateDirFailed(String),
 
     #[error("File {0} already existed in {1}")]
-    FileExists(String, String),
+    FileExists(String, PathBuf),
 
     #[error("Permission denied: {0}")]
     NoPermission(String),
@@ -22,7 +22,7 @@ pub enum PathError {
     NotDir(String),
 
     #[error("Path is not a file: {0}")]
-    NotFile(String),
+    NotFile(PathBuf),
 
     #[error("Failed to resolve path:{0}")]
     ResolveFailed(String),

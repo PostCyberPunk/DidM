@@ -56,7 +56,7 @@ impl ResolvedPath {
     pub fn into_child(mut self, filename: &str, check_exist: bool) -> Result<Self> {
         self.path.push(filename);
         if check_exist && self.path.exists() {
-            return Err(PathError::FileExists(filename.to_string(), self.raw).into());
+            return Err(PathError::FileExists(filename.to_string(), self.path).into());
         };
         // let raw = PathBuf::from(self.raw).join(filename).display().to_string();
         self.raw.push('/');
