@@ -108,8 +108,6 @@ fn link_entry(target: &Path, source: &Path) -> Result<()> {
     }
 }
 fn copy_entry(target: &Path, source: &Path) -> Result<()> {
-    //FIX:⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️
-
     match source.is_dir() {
         //TODO: should remove this,
         //but maybe we could use this for switcher if swticher is a folder
