@@ -1,14 +1,17 @@
-pub mod behaviour;
-mod check_config;
 mod config;
-pub mod plan;
-pub mod profile;
-
-pub use behaviour::Behaviour;
-pub use check_config::CheckConfig;
 pub use config::DidmConfig;
-pub use plan::Plan;
+
+pub mod profile;
 pub use profile::Profile;
+
+mod check_config;
+pub use check_config::CheckConfig;
+
+mod plan;
+pub use plan::Plan;
+
+mod behaviour;
+pub use behaviour::Behaviour;
 
 fn is_true(val: &bool) -> bool {
     *val

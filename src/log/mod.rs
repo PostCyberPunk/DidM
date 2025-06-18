@@ -1,7 +1,8 @@
-pub mod level;
 pub mod logger;
-pub mod target;
+pub use logger::Logger;
 
-pub use self::level::LogLevel;
-pub use self::logger::Logger;
-pub use self::target::{FileLogTarget, LogTarget, StdoutLogTarget};
+pub mod level;
+pub use level::LogLevel;
+
+pub mod target;
+pub use target::{FileLogTarget, LogTarget, StdoutLogTarget};

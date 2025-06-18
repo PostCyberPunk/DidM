@@ -6,7 +6,6 @@ mod helpers;
 mod log;
 mod model;
 mod plan;
-mod profile;
 // mod validation;
 
 fn main() -> anyhow::Result<()> {
