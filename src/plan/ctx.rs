@@ -1,6 +1,10 @@
 use super::args::PlanArgs;
 use crate::config::ConfigMap;
+use crate::entries::AllEntries;
+use crate::helpers::Helpers;
+use crate::model::behaviour;
 use crate::profile::ProfileContext;
+use crate::{commands, helpers};
 use crate::{
     commands::{CommandsContext, CommandsRunner},
     log::Logger,
@@ -9,7 +13,8 @@ use anyhow::{Context, Result};
 
 pub struct PlanContext<'a> {
     pub commands_runner: CommandsRunner<'a>,
-    pub profile_ctxs: Vec<(&'a str, ProfileContext<'a>)>,
+    pub all_entries: AllEntries<'a>,
+    // pub profile_ctxs: Vec<(&'a str, ProfileContext<'a>)>,
 }
 
 impl<'a> PlanContext<'a> {
@@ -26,6 +31,9 @@ impl<'a> PlanContext<'a> {
         // (&plan.commands_path)?;
         let plan = config_map.get_plan(plan_name)?;
         let helpers = config_map.get_helpers();
+
+        let mut commands_runner = CommandsRunner::new(logger, args.is_dry_run);
+        let mut all_entries = AllEntries::new(helpers, logger, args.is_dry_run);
 
         //Get Bhaviour
         let behaviour = config_map
@@ -51,36 +59,44 @@ impl<'a> PlanContext<'a> {
 
         //apply profiles
         let profiles = config_map.get_profiles(&plan.profiles)?;
-        let mut profile_ctxs = Vec::new();
+        // let mut profile_ctxs = Vec::new();
 
         for (profile, idx, profile_name) in profiles {
-            logger.info(&format!("Applying profile: {}", profile_name));
+            logger.info(&format!("Preparing profile: {}", profile_name));
             let base_path = config_map.get_base_path(idx)?;
-            let profile_ctx = ProfileContext::new(
-                args,
-                logger,
-                helpers,
-                profile_name,
-                base_path,
-                profile,
-                behaviour.clone(),
-            )?;
-            profile_ctxs.push((profile_name, profile_ctx));
+            let behaviour = behaviour.override_by(&profile.override_behaviour);
+            let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
+
+            let envrironment = &profile.environment;
+            let commands_path = helpers
+                .path_resolver
+                .resolve_from_or_base(base_path, &profile.commands_path)?
+                .into_pathbuf();
+            commands_runner.add_context(CommandsContext::new(
+                envrironment,
+                commands_path,
+                stop_at_commands_error,
+                &profile.pre_build_commands,
+                &profile.post_build_commands,
+            ));
+            //prepare entries
+            all_entries.add_profile(profile, base_path, &behaviour)?;
         }
 
         Ok(PlanContext {
-            profile_ctxs,
+            // profile_ctxs,
             commands_runner,
+            all_entries,
         })
     }
     pub fn deploy(self) -> Result<()> {
         // let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
         self.commands_runner.run_pre_commands()?;
 
-        for (profile_name, p) in self.profile_ctxs {
-            p.apply()
-                .context(format!("Profile apply failed:{}", profile_name))?;
-        }
+        // for (profile_name, p) in self.profile_ctxs {
+        //     p.apply()
+        //         .context(format!("Profile apply failed:{}", profile_name))?;
+        // }
         // self.profile_ctxs.iter().try_for_each(|(_, p)| p.apply())?;
 
         self.commands_runner.run_post_commands()?;
