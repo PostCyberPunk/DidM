@@ -29,6 +29,7 @@ pub fn process() -> anyhow::Result<()> {
             };
             //TODO:File logger
             //Prepare logger, we may use in loaer too
+            //FIX: File logger need flush ,but error will cause it never flush
             let mut logger = Logger::new();
             let std_log_level = match (plan_args.is_verbose, args.debug) {
                 (_, true) => LogLevel::Debug,

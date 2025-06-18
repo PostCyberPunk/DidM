@@ -3,6 +3,9 @@ use crate::{cli::prompt::confirm, helpers::path::PathError};
 use anyhow::{Context, Result};
 use std::{env, path::PathBuf};
 
+//REFT: should be use association function
+//get config from static once_cell
+//get_bool or false
 pub struct PathResolver {
     check_env: bool,
 }
