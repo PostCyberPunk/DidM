@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 use crate::log::Logger;
-pub struct CommandExecutor<'a> {
+struct CommandExecutor<'a> {
     pub environment: &'a HashMap<String, String>,
     pub path: &'a Path,
     pub command: &'a String,
@@ -23,11 +23,11 @@ impl<'a> CommandExecutor<'a> {
     }
 }
 pub struct CommandsContext<'a> {
-    pub environment: &'a HashMap<String, String>,
-    pub path: PathBuf,
-    pub stop_at_commands_error: bool,
-    pub pre_commands: &'a Vec<String>,
-    pub post_commands: &'a Vec<String>,
+    environment: &'a HashMap<String, String>,
+    path: PathBuf,
+    stop_at_commands_error: bool,
+    pre_commands: &'a Vec<String>,
+    post_commands: &'a Vec<String>,
 }
 impl<'a> CommandsContext<'a> {
     pub fn new(
@@ -102,9 +102,9 @@ impl<'a> CommandsContext<'a> {
     }
 }
 pub struct CommandsRunner<'a> {
-    pub context: Vec<CommandsContext<'a>>,
-    pub logger: &'a Logger,
-    pub is_dryrun: bool,
+    context: Vec<CommandsContext<'a>>,
+    logger: &'a Logger,
+    is_dryrun: bool,
 }
 impl<'a> CommandsRunner<'a> {
     pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
