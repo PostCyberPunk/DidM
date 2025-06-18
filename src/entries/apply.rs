@@ -1,9 +1,9 @@
-use std::{fs, path::Path};
+use std::{fs, io, path::Path};
 
 use crate::{helpers::PathExtension, model::profile::Mode};
 
-use super::{AllEntries, Entry, error::EntryApplyError};
-use anyhow::{Context, Result};
+use super::{AllEntries, error::EntryApplyError};
+use anyhow::Result;
 
 impl<'a> AllEntries<'a> {
     pub fn apply_list(&self, mode: Mode) {
@@ -12,19 +12,39 @@ impl<'a> AllEntries<'a> {
             Mode::Copy => &self.copy_list,
             Mode::Symlink => &self.link_list,
         };
+        let mode_hint = match mode {
+            Mode::Copy => "Copy",
+            Mode::Symlink => "Symlink",
+        };
         for entry in list.iter() {
             let target = &entry.target_path;
             let source = &entry.source_path;
-            let is_dryrun = self.is_dryrun;
 
-            // TODO: if is_dryrun and should_backup is true,we should handle hit differently
-            // match (self.behaviour.should_backup(),self.is_dryrun,self.behaviour.overwrite_existed.unwrap(),hit)
+            if self.is_dryrun {
+                logger.info(&format!(
+                    "Dry-run: {}: from {}\n to {}",
+                    mode_hint,
+                    source.display(),
+                    target.display()
+                ));
+                continue;
+            }
+
             if target.exists() {
                 if entry.overwrite_existed {
-                    let _ = std::fs::remove_file(target);
-                    //Make sure the file is deleted or Skipped
+                    if let Err(e) = remove_target(target) {
+                        logger.error(&format!(
+                            "Skipped {} \n Failed to remove target, \n reason: {}",
+                            target.display(),
+                            e
+                        ));
+                        continue;
+                    }
                     if target.exists() {
-                        logger.error(&format!("Overwrite failed, Skipped : {}", target.display()));
+                        logger.error(&format!(
+                            "Skipped {} \n Failed to remove target, \n reason: Unknown,Please Remove it mannually",
+                            target.display(),
+                        ));
                         continue;
                     }
                 } else {
@@ -33,41 +53,43 @@ impl<'a> AllEntries<'a> {
                 }
             }
 
-            if !is_dryrun {
-                let result = target.ensure_parent_exists();
-                if let Err(e) = result {
-                    logger.error(&format!(
-                        "Fail to create parent folder,Skipped {} \nReason:{}",
-                        target.display(),
-                        e
-                    ));
-                }
-                let result = match mode {
-                    Mode::Copy => copy_entry(target, source),
-                    Mode::Symlink => link_entry(target, source),
-                };
-                if let Err(e) = result {
-                    logger.error(&format!("Skipped {} \nReason:{}", target.display(), e));
-                    continue;
-                }
+            if let Err(e) = target.ensure_parent_exists() {
+                logger.error(&format!(
+                    "Skippied {} \n Failed to create parent folder,\n reason: {}",
+                    target.display(),
+                    e
+                ));
+                continue;
             }
-            match mode {
-                Mode::Copy => {
-                    logger.info(&format!(
-                        "Copied {} ->\n        {}",
-                        target.display(),
-                        source.display()
-                    ));
-                }
-                Mode::Symlink => {
-                    logger.info(&format!(
-                        "Linked {} ->\n        {}",
-                        target.display(),
-                        source.display()
-                    ));
-                }
+
+            if let Err(e) = match mode {
+                Mode::Copy => copy_entry(target, source),
+                Mode::Symlink => link_entry(target, source),
+            } {
+                logger.error(&format!(
+                    "Failed to create {}:from {} \n to {}, reason: {}",
+                    mode_hint,
+                    source.display(),
+                    target.display(),
+                    e
+                ));
+                continue;
             }
+
+            logger.info(&format!(
+                "{}:from {}\n to {}",
+                mode_hint,
+                source.display(),
+                target.display()
+            ));
         }
+    }
+}
+fn remove_target(target: &Path) -> io::Result<()> {
+    if target.is_dir() {
+        fs::remove_dir_all(target)
+    } else {
+        fs::remove_file(target)
     }
 }
 fn link_entry(target: &Path, source: &Path) -> Result<()> {
