@@ -25,6 +25,12 @@ impl ResolvedPath {
     pub fn di_string(&self) -> String {
         self.path.display().to_string()
     }
+    pub fn exists(self) -> Result<Self> {
+        match self.path.exists() {
+            true => Ok(self),
+            false => Err(PathError::NotExists(self.path).into()),
+        }
+    }
 
     //------------------------
     pub fn into_parent(mut self) -> Result<Self> {
