@@ -8,8 +8,12 @@ use crate::{entries::SouceType, log::Logger, utils::PathExtension};
 
 use super::{BackupRoot, BackupState, error::BackupError};
 
-//FIX: the ctx should be borrow from composition, not from sketch
-//initialize in sketch then it can be imutable
+//TODO: the ideal way to backup should be
+//collect and borrow entries that need to backuped,then deal them together
+//to achieve that,we need to add sourcetype to entry
+//this can also fix encoding problem by replace encoding with index
+//TODO: we also need a summary ,so we can restore backup
+
 pub struct BackupManager {
     is_dryrun: bool,
     normal_path: PathBuf,
@@ -18,6 +22,7 @@ pub struct BackupManager {
     extra_path: PathBuf,
 }
 
+//TODO: not an ideal name, but i dont like backuper
 impl BackupManager {
     pub fn init(root_info: &BackupRoot, dir_name: String) -> Result<Self> {
         let base_dir = &root_info.base_dir.join(dir_name);
@@ -68,6 +73,7 @@ impl BackupManager {
             SouceType::Empty => &self.empty_path,
             SouceType::Extra => &self.extra_path,
         };
+
         let encoded_path = urlencoding::encode(&src.to_string_lossy()).into_owned();
         let backup_path = _dir.join(encoded_path);
 
