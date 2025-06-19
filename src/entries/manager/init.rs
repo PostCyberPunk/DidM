@@ -1,6 +1,6 @@
-use super::{AllEntries, Entry};
+use super::{EntriesManager, Entry, list::EntriesList};
 use crate::{
-    entries::WalkerContext,
+    entries::DirWalker,
     log::Logger,
     model::{Behaviour, Sketch, sketch::Mode},
     utils::{Checker, PathResolver, ResolvedPath},
@@ -8,14 +8,12 @@ use crate::{
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
-impl<'a> AllEntries<'a> {
+impl<'a> EntriesManager<'a> {
     pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
         Self {
-            copy_list: Vec::new(),
-            link_list: Vec::new(),
             logger,
             is_dryrun,
-            // overwrite_existed,
+            entry_list: EntriesList::default(),
         }
     }
 
@@ -40,11 +38,7 @@ impl<'a> AllEntries<'a> {
         target_root: &ResolvedPath,
         overwrite_existed: bool,
     ) -> Result<()> {
-        let target_list = match sketch.mode {
-            Mode::Symlink => &mut self.link_list,
-            Mode::Copy => &mut self.copy_list,
-        };
-        let source_paths = WalkerContext::new(sketch, source_root.get(), self.logger)
+        let source_paths = DirWalker::new(sketch, source_root.get(), self.logger)
             .get_walker()?
             .run()?;
         for source_path in source_paths {
@@ -56,7 +50,10 @@ impl<'a> AllEntries<'a> {
                 }
             };
             let target_path = target_root.get().join(relative_path);
-            target_list.push(Entry::new(source_path, target_path, overwrite_existed));
+            self.add_entry(
+                sketch.mode,
+                Entry::new(source_path, target_path, overwrite_existed),
+            );
         }
         Ok(())
     }
@@ -83,10 +80,7 @@ impl<'a> AllEntries<'a> {
                     overwrite_existed,
                 ),
             };
-            match mode {
-                Mode::Symlink => self.link_list.push(entry),
-                Mode::Copy => self.copy_list.push(entry),
-            }
+            self.add_entry(mode, entry);
         }
         Ok(())
     }
@@ -106,20 +100,17 @@ impl<'a> AllEntries<'a> {
                     .into_pathbuf(),
                 overwrite_existed,
             );
-            match &extra.mode {
-                Some(mode) => match mode {
-                    Mode::Copy => self.copy_list.push(e),
-                    Mode::Symlink => self.link_list.push(e),
-                },
-                None => match sketch.mode {
-                    Mode::Copy => self.copy_list.push(e),
-                    Mode::Symlink => self.link_list.push(e),
-                },
+            match extra.mode {
+                Some(mode) => self.add_entry(mode, e),
+                None => self.add_entry(sketch.mode, e),
             }
         }
         Ok(())
     }
 
+    fn add_entry(&mut self, mode: Mode, entry: Entry) {
+        self.entry_list.add_entry(mode, entry);
+    }
     //TODO: we need add logs
     pub fn add_sketch(
         &mut self,
