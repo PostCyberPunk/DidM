@@ -136,7 +136,12 @@ impl<'a> AllEntries<'a> {
         //Reoslve Path
         let source_root = self.resolve_path(base_path, &sketch.source_path, "source", true)?;
         let target_root = self.resolve_path(base_path, &sketch.target_path, "target", false)?;
-        Checker::target_exisit_or_create(target_root.get())?;
+
+        //Check target exist
+        let exist = Checker::target_exisit_or_create(target_root.get())?;
+        if !exist && !self.is_dryrun {
+            std::fs::create_dir(target_root.get())?;
+        }
 
         //Get Normal Entries
         self.get_normal_entries(sketch, &source_root, &target_root, overwrite_existed)
