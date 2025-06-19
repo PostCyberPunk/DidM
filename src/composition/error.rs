@@ -5,8 +5,8 @@ pub enum PlanError {
     #[error("Plan not found.")]
     PlanNotFound,
 
-    #[error("Profile `{0}` not found.")]
-    ProfileNotFound(String),
+    #[error("Sketch `{0}` not found.")]
+    SketchNotFound(String),
 
     #[error("Command execution failed: {0}")]
     CommandFailed(String),

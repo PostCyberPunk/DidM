@@ -9,8 +9,8 @@ use thiserror::Error;
 use crate::helpers::PathExtension;
 use crate::{helpers::ResolvedPath, log::Logger};
 
-//FIX: the ctx should be borrow from composition, not from profile
-//initialize in profile then it can be imutable
+//FIX: the ctx should be borrow from composition, not from sketch
+//initialize in sketch then it can be imutable
 pub struct Backuper {
     ctx: Option<BackuperContext>,
     base_dir: PathBuf,
