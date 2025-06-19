@@ -91,16 +91,7 @@ impl<'a> CompContext<'a> {
         let behaviour = behaviour.override_by(&sketch.override_behaviour);
 
         let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
-        let envrironment = &sketch.environment;
-        let commands_path =
-            PathResolver::resolve_from_or_base(base_path, &sketch.commands_path)?.into_pathbuf();
-        commands_runner.add_context(CommandsContext::new(
-            envrironment,
-            commands_path,
-            stop_at_commands_error,
-            &sketch.pre_build_commands,
-            &sketch.post_build_commands,
-        ));
+        commands_runner.add_sketch_context(sketch, base_path, stop_at_commands_error)?;
 
         entries_manager.add_sketch(sketch, base_path, &behaviour, sketch_name)?;
         Ok(())
