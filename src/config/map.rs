@@ -1,6 +1,6 @@
 use super::{CHCECK_CONFIG, ConfigSet, MainConfig};
 use crate::{
-    model::{Behaviour, Plan, Profile},
+    model::{Behaviour, Composition, Profile},
     utils::{Checker, ResolvedPath},
 };
 use anyhow::Result;
@@ -15,7 +15,7 @@ pub struct ConfigMap<'a> {
     pub path_map: Vec<ResolvedPath>,
     pub main_config: MainConfig,
     pub profile_map: HashMap<&'a str, (usize, &'a Profile)>,
-    pub plan_map: HashMap<&'a str, &'a Plan>,
+    pub plan_map: HashMap<&'a str, &'a Composition>,
 }
 impl<'a> ConfigMap<'a> {
     pub fn new(base_path: ResolvedPath, config_sets: &'a [ConfigSet]) -> Result<Self> {
@@ -40,7 +40,7 @@ impl<'a> ConfigMap<'a> {
             let config_path = config_path.to_parent()?;
             path_map.push(config_path);
 
-            for (name, plan) in &config.plans {
+            for (name, plan) in &config.composition {
                 if plan_map.contains_key(name.as_str()) {
                     return Err(ConfigError::DuplicatedPlan(name.to_string()).into());
                 }
@@ -69,7 +69,7 @@ impl<'a> ConfigMap<'a> {
             profile_map,
         })
     }
-    pub fn get_plan(&self, plan_name: &str) -> Result<&Plan> {
+    pub fn get_plan(&self, plan_name: &str) -> Result<&Composition> {
         //NOTE: use match to avoid deref of a ref...
         match self.plan_map.get(plan_name) {
             Some(plan) => Ok(plan),
