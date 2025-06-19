@@ -6,8 +6,8 @@ use std::{
 };
 use thiserror::Error;
 
-use crate::helpers::PathExtension;
-use crate::{helpers::ResolvedPath, log::Logger};
+use crate::utils::ResolvedPath;
+use crate::{log::Logger, utils::PathExtension};
 
 //FIX: the ctx should be borrow from composition, not from sketch
 //initialize in sketch then it can be imutable
