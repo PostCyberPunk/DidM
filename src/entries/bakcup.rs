@@ -36,11 +36,11 @@ impl BackupRoot {
     }
 }
 pub struct Backuper {
-    ctx: Option<BackuperContext>,
+    dirs: Option<BackupDirs>,
     base_dir: PathBuf,
     is_dryrun: bool,
 }
-pub struct BackuperContext {
+pub struct BackupDirs {
     normal_path: PathBuf,
     extra_path: PathBuf,
     empty_path: PathBuf,
@@ -62,29 +62,29 @@ impl Backuper {
             .join(format!("composition_{}-{}", comp_name, now));
 
         Ok(Self {
-            ctx: None,
+            dirs: None,
             base_dir,
             is_dryrun,
         })
     }
-    pub fn set_ctx(&mut self, prefix: String) {
+    pub fn set_dir(&mut self, prefix: String) {
         let base_dir = &self.base_dir.join(prefix);
         let normal_path = base_dir.join("normal");
         let extra_path = base_dir.join("extra");
         let empty_path = base_dir.join("empty");
         let null_path = base_dir.join("null");
-        self.ctx = Some(BackuperContext {
+        self.dirs = Some(BackupDirs {
             normal_path,
             extra_path,
             empty_path,
             null_path,
         });
     }
-    pub fn drop_ctx(&mut self, logger: &Logger) {
+
+    pub fn finish(self, logger: &Logger) {
         if self.base_dir.exists() {
             logger.warn(&format!("Backup created at :{}", self.base_dir.display()));
         }
-        self.ctx = None;
     }
     // fn get_ctx(&self) -> Result<&BackuperContext> {
     //     match &self.ctx {
@@ -112,7 +112,7 @@ impl Backuper {
     where
         F: Fn() -> bool,
     {
-        let ctx = match &self.ctx {
+        let ctx = match &self.dirs {
             Some(ctx) => ctx,
             None => return Ok(()),
         };
@@ -137,6 +137,7 @@ impl Backuper {
         Ok(())
     }
 }
+
 #[derive(Error, Debug)]
 pub enum BackupError {
     #[error("Failed to initialize backuper")]
