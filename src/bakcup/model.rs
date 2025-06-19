@@ -22,7 +22,7 @@ pub struct BackupRoot {
     pub is_dryrun: bool,
 }
 impl BackupRoot {
-    pub fn new(base_path: &ResolvedPath, comp_name: String, is_dryrun: bool) -> Result<Self> {
+    pub fn new(base_path: &ResolvedPath, comp_name: &str, is_dryrun: bool) -> Result<Self> {
         //Make sure we can write at the base path
         base_path
             .get()
