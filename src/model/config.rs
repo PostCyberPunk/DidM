@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{Behaviour, CheckConfig, Plan, Profile};
+use super::{Behaviour, CheckConfig, Composition, Sketch};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -13,9 +13,9 @@ pub struct DidmConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub skip_check: Option<CheckConfig>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub profiles: HashMap<String, Profile>,
+    pub sketch: HashMap<String, Sketch>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub plans: HashMap<String, Plan>,
+    pub composition: HashMap<String, Composition>,
 }
 impl DidmConfig {
     pub fn new() -> Self {
@@ -23,11 +23,11 @@ impl DidmConfig {
             include: Vec::new(),
             skip_check: None,
             behaviour: None,
-            profiles: HashMap::from([("basic".to_string(), Profile::new())]),
-            plans: HashMap::from([(
+            sketch: HashMap::from([("basic".to_string(), Sketch::new())]),
+            composition: HashMap::from([(
                 "basic".to_string(),
-                Plan {
-                    profiles: vec!["basic".to_string()],
+                Composition {
+                    sketch: vec!["basic".to_string()],
                     ..Default::default()
                 },
             )]),

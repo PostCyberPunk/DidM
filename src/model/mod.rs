@@ -1,14 +1,14 @@
 mod config;
 pub use config::DidmConfig;
 
-pub mod profile;
-pub use profile::Profile;
+pub mod sketch;
+pub use sketch::Sketch;
 
 mod check_config;
 pub use check_config::CheckConfig;
 
-mod plan;
-pub use plan::Plan;
+mod composition;
+pub use composition::Composition;
 
 mod behaviour;
 pub use behaviour::Behaviour;

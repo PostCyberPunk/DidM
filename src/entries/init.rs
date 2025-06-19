@@ -2,7 +2,7 @@ use super::{AllEntries, Entry};
 use crate::{
     entries::WalkerContext,
     log::Logger,
-    model::{Behaviour, Profile, profile::Mode},
+    model::{Behaviour, Sketch, sketch::Mode},
     utils::{Checker, PathResolver, ResolvedPath},
 };
 use anyhow::{Context, Result};
@@ -35,16 +35,16 @@ impl<'a> AllEntries<'a> {
 
     fn get_normal_entries(
         &mut self,
-        profile: &Profile,
+        sketch: &Sketch,
         source_root: &ResolvedPath,
         target_root: &ResolvedPath,
         overwrite_existed: bool,
     ) -> Result<()> {
-        let target_list = match profile.mode {
+        let target_list = match sketch.mode {
             Mode::Symlink => &mut self.link_list,
             Mode::Copy => &mut self.copy_list,
         };
-        let source_paths = WalkerContext::new(profile, source_root.get(), self.logger)
+        let source_paths = WalkerContext::new(sketch, source_root.get(), self.logger)
             .get_walker()?
             .run()?;
         for source_path in source_paths {
@@ -93,12 +93,12 @@ impl<'a> AllEntries<'a> {
 
     fn get_extra_entris(
         &mut self,
-        profile: &Profile,
+        sketch: &Sketch,
         source_root: &ResolvedPath,
         target_root: &ResolvedPath,
         overwrite_existed: bool,
     ) -> Result<()> {
-        for extra in profile.extra_entries.iter() {
+        for extra in sketch.extra_entries.iter() {
             let e = Entry::new(
                 self.resolve_path(source_root, &extra.source_path, "extra entry", true)?
                     .into_pathbuf(),
@@ -111,7 +111,7 @@ impl<'a> AllEntries<'a> {
                     Mode::Copy => self.copy_list.push(e),
                     Mode::Symlink => self.link_list.push(e),
                 },
-                None => match profile.mode {
+                None => match sketch.mode {
                     Mode::Copy => self.copy_list.push(e),
                     Mode::Symlink => self.link_list.push(e),
                 },
@@ -121,31 +121,31 @@ impl<'a> AllEntries<'a> {
     }
 
     //TODO: we need add logs
-    pub fn add_profile(
+    pub fn add_sketch(
         &mut self,
-        profile: &Profile,
+        sketch: &Sketch,
         base_path: &ResolvedPath,
         behaviour: &Behaviour,
-        profile_name: &str,
+        sketch_name: &str,
     ) -> Result<()> {
         let logger = self.logger;
         let should_backup = behaviour.should_backup();
         let overwrite_existed = behaviour.overwrite_existed.unwrap();
 
-        logger.info(&format!("Generating entries for `{}` ...", profile_name));
+        logger.info(&format!("Generating entries for `{}` ...", sketch_name));
         //Reoslve Path
-        let source_root = self.resolve_path(base_path, &profile.source_path, "source", true)?;
-        let target_root = self.resolve_path(base_path, &profile.target_path, "target", false)?;
+        let source_root = self.resolve_path(base_path, &sketch.source_path, "source", true)?;
+        let target_root = self.resolve_path(base_path, &sketch.target_path, "target", false)?;
         Checker::target_exisit_or_create(target_root.get())?;
 
         //Get Normal Entries
-        self.get_normal_entries(profile, &source_root, &target_root, overwrite_existed)
+        self.get_normal_entries(sketch, &source_root, &target_root, overwrite_existed)
             .context("Failed to get normal entries")?;
         //Get null entries
         //FIX:that looks like pretty fucked up
         let dev_null = PathBuf::from("/dev/null");
         self.collect_same_source(
-            &profile.null_files,
+            &sketch.null_files,
             &source_root,
             &dev_null,
             overwrite_existed,
@@ -154,7 +154,7 @@ impl<'a> AllEntries<'a> {
         .context("Failed to get null entries")?;
         //Get empty entries
         self.collect_same_source(
-            &profile.empty_files,
+            &sketch.empty_files,
             &source_root,
             &dev_null,
             overwrite_existed,
@@ -162,7 +162,7 @@ impl<'a> AllEntries<'a> {
         )
         .context("Failed to get empty entries")?;
         //Get extra entries
-        self.get_extra_entris(profile, &source_root, &target_root, overwrite_existed)
+        self.get_extra_entris(sketch, &source_root, &target_root, overwrite_existed)
             .context("Failed to get extra entries")?;
         //Done!
         Ok(())
