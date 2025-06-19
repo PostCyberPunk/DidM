@@ -14,8 +14,8 @@ use thiserror::Error;
 pub struct ConfigMap<'a> {
     pub path_map: Vec<ResolvedPath>,
     pub main_config: MainConfig,
-    pub profile_map: HashMap<&'a str, (usize, &'a Sketch)>,
-    pub plan_map: HashMap<&'a str, &'a Composition>,
+    pub sketch_map: HashMap<&'a str, (usize, &'a Sketch)>,
+    pub comp_map: HashMap<&'a str, &'a Composition>,
 }
 impl<'a> ConfigMap<'a> {
     pub fn new(base_path: ResolvedPath, config_sets: &'a [ConfigSet]) -> Result<Self> {
@@ -31,8 +31,8 @@ impl<'a> ConfigMap<'a> {
 
         //---------Build Config Map---------
         let mut path_map = Vec::new();
-        let mut plan_map = HashMap::new();
-        let mut profile_map = HashMap::new();
+        let mut comp_map = HashMap::new();
+        let mut sketch_map = HashMap::new();
 
         for (idx, ConfigSet(config_path, config)) in config_sets.iter().enumerate() {
             //-------create config Path-----------------
@@ -40,55 +40,55 @@ impl<'a> ConfigMap<'a> {
             let config_path = config_path.to_parent()?;
             path_map.push(config_path);
 
-            for (name, plan) in &config.composition {
-                if plan_map.contains_key(name.as_str()) {
-                    return Err(ConfigError::DuplicatedPlan(name.to_string()).into());
+            for (name, comp) in &config.composition {
+                if comp_map.contains_key(name.as_str()) {
+                    return Err(ConfigError::DuplicatedComp(name.to_string()).into());
                 }
-                plan_map.insert(name.as_str(), plan);
+                comp_map.insert(name.as_str(), comp);
             }
 
-            for (name, profile) in &config.sketch {
-                if profile_map.contains_key(name.as_str()) {
-                    return Err(ConfigError::DuplicatedProfile(name.to_string()).into());
+            for (name, sketch) in &config.sketch {
+                if sketch_map.contains_key(name.as_str()) {
+                    return Err(ConfigError::DuplicatedSketch(name.to_string()).into());
                 }
-                profile_map.insert(name.as_str(), (idx, profile));
+                sketch_map.insert(name.as_str(), (idx, sketch));
             }
         }
-        if profile_map.is_empty() {
-            return Err(ConfigError::NoProfileFound.into());
+        if sketch_map.is_empty() {
+            return Err(ConfigError::NoSketchFound.into());
         }
-        if plan_map.is_empty() {
-            return Err(ConfigError::NoPlanFound.into());
+        if comp_map.is_empty() {
+            return Err(ConfigError::NoCompFound.into());
         }
 
         //---------return Config Map---------
         Ok(ConfigMap {
             path_map,
             main_config,
-            plan_map,
-            profile_map,
+            comp_map,
+            sketch_map,
         })
     }
-    pub fn get_plan(&self, plan_name: &str) -> Result<&Composition> {
+    pub fn get_comp(&self, comp_name: &str) -> Result<&Composition> {
         //NOTE: use match to avoid deref of a ref...
-        match self.plan_map.get(plan_name) {
-            Some(plan) => Ok(plan),
-            None => Err(ConfigError::PlanNotFound(plan_name.to_string()).into()),
+        match self.comp_map.get(comp_name) {
+            Some(comp) => Ok(comp),
+            None => Err(ConfigError::CompNotFound(comp_name.to_string()).into()),
         }
     }
-    pub fn get_profile(&self, profile_name: &'a str) -> Result<(&Sketch, usize, &'a str)> {
-        match self.profile_map.get(profile_name) {
-            Some((idx, profile)) => Ok((profile, *idx, profile_name)),
-            None => Err(ConfigError::ProfileNotFound(profile_name.to_string()).into()),
+    pub fn get_sketch(&self, sketch_name: &'a str) -> Result<(&Sketch, usize, &'a str)> {
+        match self.sketch_map.get(sketch_name) {
+            Some((idx, sketch)) => Ok((sketch, *idx, sketch_name)),
+            None => Err(ConfigError::SketchNotFound(sketch_name.to_string()).into()),
         }
     }
-    pub fn get_profiles(
+    pub fn get_sketches(
         &'a self,
-        profiles: &'a [String],
+        sketch: &'a [String],
     ) -> Result<Vec<(&'a Sketch, usize, &'a str)>> {
         let mut result = Vec::new();
-        for profile_name in profiles {
-            let p = self.get_profile(profile_name)?;
+        for sketch_name in sketch {
+            let p = self.get_sketch(sketch_name)?;
             result.push(p);
         }
         Ok(result)
@@ -114,23 +114,23 @@ pub enum ConfigError {
     #[error("Config file already existed in {0}")]
     ConfigExists(PathBuf),
 
-    #[error("Can't find any plan,check your config,maybe there is a typo?")]
-    NoPlanFound,
+    #[error("Can't find any composition,check your config,maybe there is a typo?")]
+    NoCompFound,
 
-    #[error("Can't find any profile,check your config,maybe there is a typo?")]
-    NoProfileFound,
+    #[error("Can't find any sketch,check your config,maybe there is a typo?")]
+    NoSketchFound,
 
-    #[error("Plan `{0}` is duplicated")]
-    DuplicatedPlan(String),
+    #[error("Composition `{0}` is duplicated")]
+    DuplicatedComp(String),
 
-    #[error("Profile `{0}` is duplicated")]
-    DuplicatedProfile(String),
+    #[error("Sketch `{0}` is duplicated")]
+    DuplicatedSketch(String),
 
-    #[error("Plan {0}  not found.")]
-    PlanNotFound(String),
+    #[error("Composition {0}  not found.")]
+    CompNotFound(String),
 
-    #[error("Profile `{0}` not found.")]
-    ProfileNotFound(String),
+    #[error("Sketch `{0}` not found.")]
+    SketchNotFound(String),
 
     #[error("Index of `{0}` is out of bound: `{1}`")]
     IndexOutbound(String, String),

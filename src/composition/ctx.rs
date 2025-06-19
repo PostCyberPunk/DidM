@@ -25,7 +25,7 @@ impl<'a> CompContext<'a> {
         logger.info(&format!("Deploying Composition : {} ...", comp_name));
 
         let base_path = config_map.get_main_base_path()?;
-        let comp = config_map.get_plan(comp_name)?;
+        let comp = config_map.get_comp(comp_name)?;
 
         let mut commands_runner = CommandsRunner::new(logger, args.is_dryrun);
         let mut all_entries = AllEntries::new(logger, args.is_dryrun);
@@ -50,7 +50,7 @@ impl<'a> CompContext<'a> {
         commands_runner.add_context(comp_cmd_ctx);
 
         //apply profiles
-        let profiles = config_map.get_profiles(&comp.sketch)?;
+        let profiles = config_map.get_sketches(&comp.sketch)?;
         for tuple in profiles {
             logger.info(&format!("Preparing profile: {}", tuple.2));
             Self::collect_profile(
