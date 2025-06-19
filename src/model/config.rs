@@ -1,7 +1,10 @@
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
 use super::{Behaviour, CheckConfig, Plan, Profile};
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct DidmConfig {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub include: Vec<String>,

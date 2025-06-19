@@ -1,7 +1,7 @@
-use ignore::overrides;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, JsonSchema)]
 pub struct Behaviour {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub overwrite_existed: Option<bool>,

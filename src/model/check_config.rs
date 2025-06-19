@@ -1,8 +1,9 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 //FIX:
 //2.use a parser maybe?
-#[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, Copy, JsonSchema)]
 #[serde(rename = "skip_check")]
 pub struct CheckConfig {
     #[serde(default, skip_serializing_if = "super::is_false")]
