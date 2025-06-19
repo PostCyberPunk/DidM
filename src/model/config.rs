@@ -27,7 +27,7 @@ impl DidmConfig {
             composition: HashMap::from([(
                 "basic".to_string(),
                 Composition {
-                    profiles: vec!["basic".to_string()],
+                    sketch: vec!["basic".to_string()],
                     ..Default::default()
                 },
             )]),

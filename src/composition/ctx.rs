@@ -50,7 +50,7 @@ impl<'a> CompContext<'a> {
         commands_runner.add_context(comp_cmd_ctx);
 
         //apply profiles
-        let profiles = config_map.get_profiles(&comp.profiles)?;
+        let profiles = config_map.get_profiles(&comp.sketch)?;
         for tuple in profiles {
             logger.info(&format!("Preparing profile: {}", tuple.2));
             Self::collect_profile(

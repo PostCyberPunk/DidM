@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 pub struct Composition {
-    pub profiles: Vec<String>,
+    pub sketch: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub pre_build_commands: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
