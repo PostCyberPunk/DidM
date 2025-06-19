@@ -5,29 +5,32 @@ use ignore::WalkBuilder;
 use ignore::overrides::OverrideBuilder;
 use std::path::{Path, PathBuf};
 
-pub struct WalkerContext<'a> {
-    base_path: &'a Path,
-    unit: &'a Unit,
-    mode: &'a Mode,
-    ignore: &'a Vec<String>,
-    respect_gitignore: &'a bool,
-    ignore_hidden: &'a bool,
-    only_ignore: bool,
-    logger: &'a Logger,
+//TODO: can't kill self,
+//this should be oneshot,so init and run then dead
+pub struct DirWalker<'a> {
     walker: Option<WalkBuilder>,
+    base_path: &'a Path,
+    logger: &'a Logger,
+    ignore: &'a Vec<String>,
+    respect_gitignore: bool,
+    ignore_hidden: bool,
+    only_ignore: bool,
+    unit: Unit,
+    mode: Mode,
 }
-impl<'a> WalkerContext<'a> {
+
+impl<'a> DirWalker<'a> {
     pub fn new(sketch: &'a Sketch, base_path: &'a Path, logger: &'a Logger) -> Self {
         Self {
-            base_path,
-            unit: &sketch.unit,
-            mode: &sketch.mode,
-            ignore: &sketch.ignore,
-            respect_gitignore: &sketch.respect_gitignore,
-            ignore_hidden: &sketch.ignore_hidden,
-            only_ignore: sketch.only_ignore,
-            logger,
             walker: None,
+            logger,
+            base_path,
+            ignore: &sketch.ignore,
+            respect_gitignore: sketch.respect_gitignore,
+            ignore_hidden: sketch.ignore_hidden,
+            only_ignore: sketch.only_ignore,
+            unit: sketch.unit,
+            mode: sketch.mode,
         }
     }
 
@@ -52,13 +55,13 @@ impl<'a> WalkerContext<'a> {
                 .add(&format!("{}{}", _prefix, ignore_item))
                 .context(format!("Failed to add ignore item:{}", ignore_item))?;
         }
-        if *self.unit == Unit::Dir && *self.mode == Mode::Symlink {
+        if self.unit == Unit::Dir && self.mode == Mode::Symlink {
             walker.max_depth(Some(1));
         };
         walker
             .overrides(overrides.build()?)
-            .hidden(*self.ignore_hidden)
-            .git_ignore(*self.respect_gitignore);
+            .hidden(self.ignore_hidden)
+            .git_ignore(self.respect_gitignore);
 
         self.walker = Some(walker);
         Ok(self)
@@ -85,7 +88,7 @@ impl<'a> WalkerContext<'a> {
             }
         }
         //FIX: the result always return the base_path as first entry?
-        if *self.unit == Unit::Dir && *self.mode == Mode::Symlink {
+        if self.unit == Unit::Dir && self.mode == Mode::Symlink {
             entries.remove(0);
         }
         Ok(entries)

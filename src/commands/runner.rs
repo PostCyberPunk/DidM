@@ -1,6 +1,10 @@
 use anyhow::Result;
 
-use crate::log::Logger;
+use crate::{
+    log::Logger,
+    model::Sketch,
+    utils::{PathResolver, ResolvedPath},
+};
 
 use super::CommandsContext;
 
@@ -21,6 +25,23 @@ impl<'a> CommandsRunner<'a> {
 
     pub fn add_context(&mut self, context: CommandsContext<'a>) {
         self.context.push(context);
+    }
+    pub fn add_sketch_context(
+        &mut self,
+        sketch: &'a Sketch,
+        base_path: &ResolvedPath,
+        stop_at_commands_error: bool,
+    ) -> Result<()> {
+        let commands_path =
+            PathResolver::resolve_from_or_base(base_path, &sketch.commands_path)?.into_pathbuf();
+        self.context.push(CommandsContext::new(
+            &sketch.environment,
+            commands_path,
+            stop_at_commands_error,
+            &sketch.pre_build_commands,
+            &sketch.post_build_commands,
+        ));
+        Ok(())
     }
 
     pub fn run_pre_commands(&self) -> Result<()> {
