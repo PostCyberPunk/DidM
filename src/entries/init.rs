@@ -40,10 +40,6 @@ impl<'a> AllEntries<'a> {
         target_root: &ResolvedPath,
         overwrite_existed: bool,
     ) -> Result<()> {
-        let target_list = match sketch.mode {
-            Mode::Symlink => &mut self.link_list,
-            Mode::Copy => &mut self.copy_list,
-        };
         let source_paths = WalkerContext::new(sketch, source_root.get(), self.logger)
             .get_walker()?
             .run()?;
@@ -56,7 +52,10 @@ impl<'a> AllEntries<'a> {
                 }
             };
             let target_path = target_root.get().join(relative_path);
-            target_list.push(Entry::new(source_path, target_path, overwrite_existed));
+            self.add_entry(
+                sketch.mode,
+                Entry::new(source_path, target_path, overwrite_existed),
+            );
         }
         Ok(())
     }
@@ -83,10 +82,7 @@ impl<'a> AllEntries<'a> {
                     overwrite_existed,
                 ),
             };
-            match mode {
-                Mode::Symlink => self.link_list.push(entry),
-                Mode::Copy => self.copy_list.push(entry),
-            }
+            self.add_entry(mode, entry);
         }
         Ok(())
     }
@@ -106,20 +102,20 @@ impl<'a> AllEntries<'a> {
                     .into_pathbuf(),
                 overwrite_existed,
             );
-            match &extra.mode {
-                Some(mode) => match mode {
-                    Mode::Copy => self.copy_list.push(e),
-                    Mode::Symlink => self.link_list.push(e),
-                },
-                None => match sketch.mode {
-                    Mode::Copy => self.copy_list.push(e),
-                    Mode::Symlink => self.link_list.push(e),
-                },
+            match extra.mode {
+                Some(mode) => self.add_entry(mode, e),
+                None => self.add_entry(sketch.mode, e),
             }
         }
         Ok(())
     }
 
+    fn add_entry(&mut self, mode: Mode, entry: Entry) {
+        match mode {
+            Mode::Symlink => self.link_list.push(entry),
+            Mode::Copy => self.copy_list.push(entry),
+        }
+    }
     //TODO: we need add logs
     pub fn add_sketch(
         &mut self,
