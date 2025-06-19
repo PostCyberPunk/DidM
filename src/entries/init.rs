@@ -158,10 +158,15 @@ impl<'a> AllEntries<'a> {
         )
         .context("Failed to get null entries")?;
         //Get empty entries
+        //FIX: os .bad practice
+        let _empty_tmp = PathBuf::from("/tmp/didm_empty");
+        if !self.is_dryrun && !&sketch.empty_files.is_empty() {
+            std::fs::write(_empty_tmp.clone(), "")?;
+        }
         self.collect_same_source(
             &sketch.empty_files,
             &target_root,
-            &dev_null,
+            &_empty_tmp,
             overwrite_existed,
             Mode::Copy,
         )
