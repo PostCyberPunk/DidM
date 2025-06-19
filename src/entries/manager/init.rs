@@ -1,4 +1,4 @@
-use super::{EntriesManager, Entry};
+use super::{EntriesManager, Entry, list::EntriesList};
 use crate::{
     entries::DirWalker,
     log::Logger,
@@ -11,11 +11,9 @@ use std::path::{Path, PathBuf};
 impl<'a> EntriesManager<'a> {
     pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
         Self {
-            copy_list: Vec::new(),
-            link_list: Vec::new(),
             logger,
             is_dryrun,
-            // overwrite_existed,
+            entry_list: EntriesList::default(),
         }
     }
 
@@ -111,10 +109,7 @@ impl<'a> EntriesManager<'a> {
     }
 
     fn add_entry(&mut self, mode: Mode, entry: Entry) {
-        match mode {
-            Mode::Symlink => self.link_list.push(entry),
-            Mode::Copy => self.copy_list.push(entry),
-        }
+        self.entry_list.add_entry(mode, entry);
     }
     //TODO: we need add logs
     pub fn add_sketch(

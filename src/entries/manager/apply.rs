@@ -14,8 +14,8 @@ impl<'a> EntriesManager<'a> {
     fn apply_list(&self, mode: Mode) {
         let logger = self.logger;
         let list = match mode {
-            Mode::Copy => &self.copy_list,
-            Mode::Symlink => &self.link_list,
+            Mode::Copy => &self.entry_list.copy_list,
+            Mode::Symlink => &self.entry_list.link_list,
         };
         let mode_hint = match mode {
             Mode::Copy => "Copy",
