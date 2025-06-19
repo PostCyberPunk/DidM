@@ -1,9 +1,10 @@
+///?
 use super::args::AppArgs;
 use crate::{
     bakcup::BackupRoot,
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
-    entries::EntriesManager,
+    entries::{EntriesManager, EntryCollector},
     log::Logger,
     model::Sketch,
     utils::PathResolver,
@@ -98,7 +99,17 @@ impl<'a> CompContext<'a> {
         let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
         commands_runner.add_sketch_context(sketch, base_path, stop_at_commands_error)?;
 
-        entries_manager.add_sketch(sketch, base_path, &behaviour, sketch_name)?;
+        EntryCollector::new(
+            entries_manager,
+            sketch,
+            base_path,
+            sketch_name,
+            &behaviour,
+            None,
+        )?
+        .collect()?;
+
+        // entries_manager.add_sketch(sketch, base_path, &behaviour, sketch_name)?;
         Ok(())
     }
 }

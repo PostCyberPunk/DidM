@@ -14,12 +14,13 @@ use super::{BackupRoot, BackupState, error::BackupError};
 //this can also fix encoding problem by replace encoding with index
 //TODO: we also need a summary ,so we can restore backup
 
+//FIX: bad structure 5*24 + 1
 pub struct BackupManager {
-    is_dryrun: bool,
     normal_path: PathBuf,
     empty_path: PathBuf,
     null_path: PathBuf,
     extra_path: PathBuf,
+    is_dryrun: bool,
 }
 
 //TODO: not an ideal name, but i dont like backuper
