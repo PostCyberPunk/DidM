@@ -1,7 +1,7 @@
 mod manager;
 pub use manager::EntriesManager;
-pub use manager::Entry;
 
+mod bakcup;
 mod walk;
 use walk::DirWalker;
 
