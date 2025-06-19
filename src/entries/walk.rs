@@ -6,13 +6,13 @@ use ignore::overrides::OverrideBuilder;
 use std::path::{Path, PathBuf};
 
 pub struct WalkerContext<'a> {
-    pub base_path: &'a Path,
-    pub unit: &'a Unit,
-    pub mode: &'a Mode,
-    pub ignore: &'a Vec<String>,
-    pub respect_gitignore: &'a bool,
-    pub ignore_hidden: &'a bool,
-    pub logger: &'a Logger,
+    base_path: &'a Path,
+    unit: &'a Unit,
+    mode: &'a Mode,
+    ignore: &'a Vec<String>,
+    respect_gitignore: &'a bool,
+    ignore_hidden: &'a bool,
+    logger: &'a Logger,
     walker: Option<WalkBuilder>,
 }
 impl<'a> WalkerContext<'a> {
@@ -84,7 +84,6 @@ impl<'a> WalkerContext<'a> {
         if *self.unit == Unit::Dir && *self.mode == Mode::Symlink {
             entries.remove(0);
         }
-
         Ok(entries)
     }
 }

@@ -5,9 +5,9 @@ use crate::log::Logger;
 use super::CommandsContext;
 
 pub struct CommandsRunner<'a> {
-    pub context: Vec<CommandsContext<'a>>,
-    pub logger: &'a Logger,
-    pub is_dryrun: bool,
+    context: Vec<CommandsContext<'a>>,
+    logger: &'a Logger,
+    is_dryrun: bool,
 }
 
 impl<'a> CommandsRunner<'a> {

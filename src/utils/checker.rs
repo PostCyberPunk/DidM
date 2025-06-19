@@ -34,8 +34,9 @@ impl Checker {
             Err(CheckError::NotGitRepo.into())
         }
     }
-    pub fn target_exisit_or_create(path: &Path) -> Result<()> {
-        if path.exists()
+    pub fn target_exisit_or_create(path: &Path) -> Result<bool> {
+        let exist = path.exists();
+        if exist
             || confirm(&format!(
                 "Target Path not exists: \n\
             {}\n\
@@ -43,7 +44,7 @@ impl Checker {
                 path.display()
             ))
         {
-            Ok(())
+            Ok(exist)
         } else {
             Err(CheckError::TargetPathNotExists.into())
         }

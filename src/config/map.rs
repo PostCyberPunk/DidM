@@ -12,10 +12,10 @@ use thiserror::Error;
 //everything should be private
 #[derive(Debug)]
 pub struct ConfigMap<'a> {
-    pub path_map: Vec<ResolvedPath>,
-    pub main_config: MainConfig,
-    pub sketch_map: HashMap<&'a str, (usize, &'a Sketch)>,
-    pub comp_map: HashMap<&'a str, &'a Composition>,
+    path_map: Vec<ResolvedPath>,
+    main_config: MainConfig,
+    sketch_map: HashMap<&'a str, (usize, &'a Sketch)>,
+    comp_map: HashMap<&'a str, &'a Composition>,
 }
 impl<'a> ConfigMap<'a> {
     pub fn new(base_path: ResolvedPath, config_sets: &'a [ConfigSet]) -> Result<Self> {
