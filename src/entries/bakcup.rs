@@ -11,6 +11,14 @@ use crate::{log::Logger, utils::PathExtension};
 
 //FIX: the ctx should be borrow from composition, not from sketch
 //initialize in sketch then it can be imutable
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+// TODO: this is not apply to entry
+pub enum BackupState {
+    Ok,
+    Skip,
+    Symlink,
+    Backuped,
+}
 pub struct BackupRoot {
     base_dir: PathBuf,
     is_dryrun: bool,

@@ -1,11 +1,5 @@
+use super::super::BackupState;
 use std::path::PathBuf;
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-// TODO: this is not apply to entry
-pub enum BackupState {
-    Ok,
-    Skip,
-    Backuped,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Entry {
