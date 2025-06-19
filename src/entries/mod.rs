@@ -12,7 +12,7 @@ mod error;
 use crate::log::Logger;
 
 //TODO: we need a better name for this
-pub struct AllEntries<'a> {
+pub struct EntriesManager<'a> {
     // backuper:Backuper,
     copy_list: Vec<Entry>,
     link_list: Vec<Entry>,

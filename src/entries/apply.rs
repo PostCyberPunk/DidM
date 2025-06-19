@@ -2,10 +2,10 @@ use std::{fs, io, path::Path};
 
 use crate::{model::sketch::Mode, utils::PathExtension};
 
-use super::{AllEntries, error::EntryApplyError};
+use super::{EntriesManager, error::EntryApplyError};
 use anyhow::Result;
 
-impl<'a> AllEntries<'a> {
+impl<'a> EntriesManager<'a> {
     pub fn copy_and_link(&self) -> Result<()> {
         self.apply_list(Mode::Symlink);
         self.apply_list(Mode::Copy);

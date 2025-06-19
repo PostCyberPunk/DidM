@@ -1,4 +1,4 @@
-use super::{AllEntries, Entry};
+use super::{EntriesManager, Entry};
 use crate::{
     entries::WalkerContext,
     log::Logger,
@@ -8,7 +8,7 @@ use crate::{
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
-impl<'a> AllEntries<'a> {
+impl<'a> EntriesManager<'a> {
     pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
         Self {
             copy_list: Vec::new(),
