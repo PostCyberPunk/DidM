@@ -3,9 +3,9 @@ use crate::config::ConfigMap;
 use crate::log::LogLevel;
 use crate::utils;
 use crate::{
+    composition::{AppArgs, CompContext},
     config,
     log::{Logger, StdoutLogTarget},
-    plan::{PlanArgs, PlanContext},
 };
 use anyhow::{Context, Ok};
 use clap::Parser;
@@ -24,7 +24,7 @@ pub fn process() -> anyhow::Result<()> {
             verbose,
         }) => {
             //Porcess arg first,we may use in loader
-            let plan_args = PlanArgs {
+            let plan_args = AppArgs {
                 is_dryrun: *dry_run,
                 is_verbose: *verbose,
             };
@@ -45,7 +45,7 @@ pub fn process() -> anyhow::Result<()> {
             let config_map = ConfigMap::new(base_path, &config_sets)?;
 
             //TODO: seprate steps, prepare , backup , apply
-            PlanContext::new(plan_name, &config_map, &plan_args, &logger)
+            CompContext::new(plan_name, &config_map, &plan_args, &logger)
                 .context(format!("Plan init failed:{}", plan_name))?
                 .deploy()
                 .context(format!("Plan deploy failed:{}", plan_name))?;
