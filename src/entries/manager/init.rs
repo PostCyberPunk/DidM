@@ -1,6 +1,6 @@
 use super::{EntriesManager, Entry};
 use crate::{
-    entries::WalkerContext,
+    entries::DirWalker,
     log::Logger,
     model::{Behaviour, Sketch, sketch::Mode},
     utils::{Checker, PathResolver, ResolvedPath},
@@ -40,7 +40,7 @@ impl<'a> EntriesManager<'a> {
         target_root: &ResolvedPath,
         overwrite_existed: bool,
     ) -> Result<()> {
-        let source_paths = WalkerContext::new(sketch, source_root.get(), self.logger)
+        let source_paths = DirWalker::new(sketch, source_root.get(), self.logger)
             .get_walker()?
             .run()?;
         for source_path in source_paths {
