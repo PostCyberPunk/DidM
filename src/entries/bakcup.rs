@@ -9,6 +9,8 @@ use thiserror::Error;
 use crate::utils::ResolvedPath;
 use crate::{log::Logger, utils::PathExtension};
 
+use super::SouceType;
+
 //FIX: the ctx should be borrow from composition, not from sketch
 //initialize in sketch then it can be imutable
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -42,73 +44,88 @@ impl BackupRoot {
             is_dryrun,
         })
     }
-}
-pub struct Backuper {
-    dirs: Option<BackupDirs>,
-    base_dir: PathBuf,
-    is_dryrun: bool,
-}
-pub struct BackupDirs {
-    normal_path: PathBuf,
-    extra_path: PathBuf,
-    empty_path: PathBuf,
-    null_path: PathBuf,
-}
-
-impl Backuper {
-    pub fn init(base_path: &ResolvedPath, comp_name: String, is_dryrun: bool) -> Result<Self> {
-        base_path
-            .get()
-            .check_dir()
-            .and_then(|_| base_path.get().check_permission())
-            .with_context(|| BackupError::InitializeFailed)?;
-
-        let now = Local::now().format("%Y_%m_%d_%H_%M_%S").to_string();
-        let base_dir = base_path
-            .get()
-            .join(".didm_backup")
-            .join(format!("composition_{}-{}", comp_name, now));
-
-        Ok(Self {
-            dirs: None,
-            base_dir,
-            is_dryrun,
-        })
-    }
-    pub fn set_dir(&mut self, prefix: String) {
-        let base_dir = &self.base_dir.join(prefix);
-        let normal_path = base_dir.join("normal");
-        let extra_path = base_dir.join("extra");
-        let empty_path = base_dir.join("empty");
-        let null_path = base_dir.join("null");
-        self.dirs = Some(BackupDirs {
-            normal_path,
-            extra_path,
-            empty_path,
-            null_path,
-        });
-    }
-
-    pub fn finish(self, logger: &Logger) {
+    pub fn has_bakcup(self, logger: &Logger) {
         if self.base_dir.exists() {
             logger.warn(&format!("Backup created at :{}", self.base_dir.display()));
         }
     }
-    // fn get_ctx(&self) -> Result<&BackuperContext> {
-    //     match &self.ctx {
-    //         Some(ctx) => Ok(ctx),
-    //         None => Err(BackupError::BackupContextIsNotSet.into()),
-    //     }
-    // }
+}
+
+pub struct Backuper {
+    is_dryrun: bool,
+    normal_path: PathBuf,
+    empty_path: PathBuf,
+    null_path: PathBuf,
+    extra_path: PathBuf,
+}
+
+impl Backuper {
+    pub fn init(root_info: &BackupRoot, dir_name: String) -> Result<Self> {
+        let base_dir = &root_info.base_dir.join(dir_name);
+        let is_dryrun = root_info.is_dryrun;
+        let normal_path = base_dir.join("normal");
+        let extra_path = base_dir.join("extra");
+        let empty_path = base_dir.join("empty");
+        let null_path = base_dir.join("null");
+        Ok(Self {
+            is_dryrun,
+            normal_path,
+            extra_path,
+            empty_path,
+            null_path,
+        })
+    }
+
+    pub fn backup_normal(
+        &self,
+        src: &Path,
+        relative: &Path,
+        logger: &Logger,
+    ) -> Result<BackupState> {
+        if Self::check_symlink(src, logger)? {
+            return Ok(BackupState::Symlink);
+        }
+
+        let dest_path = self.normal_path.join(relative);
+
+        self.do_backup(src, &dest_path, logger)?;
+        Ok(BackupState::Backuped)
+    }
+
+    pub fn backup_other(
+        &self,
+        src: &Path,
+        logger: &Logger,
+        src_type: SouceType,
+    ) -> Result<BackupState> {
+        if Self::check_symlink(src, logger)? {
+            return Ok(BackupState::Symlink);
+        }
+        let _dir = match src_type {
+            SouceType::Normal => {
+                return Err(BackupError::BugWrongType.into());
+            }
+            SouceType::Null => &self.null_path,
+            SouceType::Empty => &self.empty_path,
+            SouceType::Extra => &self.extra_path,
+        };
+        let encoded_path = urlencoding::encode(&src.to_string_lossy()).into_owned();
+        let backup_path = _dir.join(encoded_path);
+
+        self.do_backup(src, &backup_path, logger)?;
+        Ok(BackupState::Backuped)
+    }
+
     fn do_backup(&self, src: &Path, dest: &Path, logger: &Logger) -> Result<()> {
         if dest.exists() {
             return Err(BackupError::BackupExsisted(dest.display().to_string()).into());
         }
         if !self.is_dryrun {
-            dest.ensure_parent_exists()?;
-            fs::rename(src, dest)?;
-            //FIX: if src.exists() still there
+            dest.ensure_parent_exists()
+                .context("Failed to create parent directory")?;
+            fs::rename(src, dest).context("Failed to move target")?;
         }
+
         logger.warn(&format!(
             "Backup {} to\n        {}",
             src.display(),
@@ -116,17 +133,8 @@ impl Backuper {
         ));
         Ok(())
     }
-    pub fn backup<F>(&self, src: &Path, relative: &Path, logger: &Logger, pred: F) -> Result<()>
-    where
-        F: Fn() -> bool,
-    {
-        let ctx = match &self.dirs {
-            Some(ctx) => ctx,
-            None => return Ok(()),
-        };
-        if !pred() {
-            return Ok(());
-        }
+
+    fn check_symlink(src: &Path, logger: &Logger) -> Result<bool> {
         if src.is_symlink() {
             logger.warn(&format!(
                 "Symlink will be removed at:{}\n        Target:{}",
@@ -136,13 +144,9 @@ impl Backuper {
                     |p| p.display().to_string()
                 )
             ));
-            return Ok(());
+            return Ok(true);
         }
-        let backup_path = ctx.normal_path.join(relative);
-
-        self.do_backup(src, &backup_path, logger)
-            .with_context(|| BackupError::Failed(src.display().to_string()))?;
-        Ok(())
+        Ok(false)
     }
 }
 
@@ -154,7 +158,7 @@ pub enum BackupError {
     BackupExsisted(String),
     #[error("Failed to backup :{0}")]
     Failed(String),
-    //
-    // #[error("Failed to strip prefix from path: {0}")]
-    // StripPrefixError(String),
+    //TODO:! this could be avoid with right abstraction model
+    #[error("BUG:Calling normal entry on backup_other")]
+    BugWrongType,
 }
