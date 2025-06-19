@@ -1,5 +1,6 @@
 use super::args::AppArgs;
 use crate::{
+    bakcup::BackupRoot,
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
     entries::EntriesManager,
@@ -49,6 +50,8 @@ impl<'a> CompContext<'a> {
         );
         commands_runner.add_context(comp_cmd_ctx);
 
+        //prepare backup root
+        let backup_root = BackupRoot::new(base_path, comp_name, args.is_dryrun)?;
         //apply sketchs
         let sketchs = config_map.get_sketches(&comp.sketch)?;
         for tuple in sketchs {
@@ -62,9 +65,10 @@ impl<'a> CompContext<'a> {
             )
             .context(format!("Sketch: {}", tuple.2))?;
         }
+        //is backup created?
+        backup_root.has_bakcup(logger);
 
         Ok(CompContext {
-            // sketch_ctxs,
             commands_runner,
             entries_manager: all_entries,
         })
