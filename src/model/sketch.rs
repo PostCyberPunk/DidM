@@ -62,7 +62,7 @@ pub struct ExtraEntry {
     pub mode: Option<Mode>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, JsonSchema)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 #[derive(Default)]
 pub enum Mode {
