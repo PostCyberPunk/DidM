@@ -12,6 +12,7 @@ pub struct WalkerContext<'a> {
     ignore: &'a Vec<String>,
     respect_gitignore: &'a bool,
     ignore_hidden: &'a bool,
+    only_ignore: bool,
     logger: &'a Logger,
     walker: Option<WalkBuilder>,
 }
@@ -24,6 +25,7 @@ impl<'a> WalkerContext<'a> {
             ignore: &sketch.ignore,
             respect_gitignore: &sketch.respect_gitignore,
             ignore_hidden: &sketch.ignore_hidden,
+            only_ignore: sketch.only_ignore,
             logger,
             walker: None,
         }
@@ -43,9 +45,11 @@ impl<'a> WalkerContext<'a> {
         overrides.add("!didmignore")?;
         overrides.add("!.didm_backup")?;
 
+        let _prefix = if self.only_ignore { "" } else { "!" };
+
         for ignore_item in self.ignore {
             overrides
-                .add(&format!("!{}", ignore_item))
+                .add(&format!("{}{}", _prefix, ignore_item))
                 .context(format!("Failed to add ignore item:{}", ignore_item))?;
         }
         if *self.unit == Unit::Dir && *self.mode == Mode::Symlink {
