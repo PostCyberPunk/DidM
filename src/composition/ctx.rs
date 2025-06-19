@@ -1,5 +1,6 @@
 use super::args::AppArgs;
 use crate::{
+    bakcup::BackupRoot,
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
     entries::EntriesManager,
@@ -23,12 +24,13 @@ impl<'a> CompContext<'a> {
     ) -> Result<Self> {
         //NOTE: order should be: error with less calculation ; then error with lager calulation
         logger.info(&format!("Deploying Composition : {} ...", comp_name));
-
+        //FIX:!!!!!!!!!this name is unclear
+        //we should rename it to something like main_path
         let base_path = config_map.get_main_base_path()?;
         let comp = config_map.get_comp(comp_name)?;
 
         let mut commands_runner = CommandsRunner::new(logger, args.is_dryrun);
-        let mut all_entries = EntriesManager::new(logger, args.is_dryrun);
+        let mut entries_manager = EntriesManager::new(logger, args.is_dryrun);
 
         //Get Bhaviour
         let behaviour = config_map
@@ -49,6 +51,8 @@ impl<'a> CompContext<'a> {
         );
         commands_runner.add_context(comp_cmd_ctx);
 
+        //prepare backup root
+        let backup_root = BackupRoot::new(base_path, comp_name, args.is_dryrun)?;
         //apply sketchs
         let sketchs = config_map.get_sketches(&comp.sketch)?;
         for tuple in sketchs {
@@ -56,17 +60,18 @@ impl<'a> CompContext<'a> {
             Self::collect_sketch(
                 config_map,
                 &mut commands_runner,
-                &mut all_entries,
+                &mut entries_manager,
                 behaviour,
                 tuple,
             )
             .context(format!("Sketch: {}", tuple.2))?;
         }
+        //is backup created?
+        backup_root.has_bakcup(logger);
 
         Ok(CompContext {
-            // sketch_ctxs,
             commands_runner,
-            entries_manager: all_entries,
+            entries_manager,
         })
     }
     pub fn deploy(self) -> Result<()> {

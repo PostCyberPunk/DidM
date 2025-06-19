@@ -1,3 +1,4 @@
+mod bakcup;
 mod cli;
 mod commands;
 mod composition;

@@ -1,11 +1,6 @@
 use std::path::PathBuf;
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-// TODO: this is not apply to entry
-pub enum BackupState {
-    Ok,
-    Skip,
-    Backuped,
-}
+
+use crate::bakcup::BackupState;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Entry {
@@ -24,4 +19,10 @@ impl Entry {
             bakcup_state: BackupState::Ok,
         }
     }
+}
+pub enum SouceType {
+    Normal,
+    Null,
+    Empty,
+    Extra,
 }
