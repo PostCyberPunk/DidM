@@ -1,6 +1,7 @@
 use super::parser::{Cli, Commands};
 use crate::config::ConfigMap;
 use crate::log::LogLevel;
+use crate::utils;
 use crate::{
     config,
     log::{Logger, StdoutLogTarget},
@@ -48,6 +49,15 @@ pub fn process() -> anyhow::Result<()> {
                 .context(format!("Plan init failed:{}", plan_name))?
                 .deploy()
                 .context(format!("Plan deploy failed:{}", plan_name))?;
+        }
+        Some(Commands::Schema) => {
+            let path = std::env::current_dir().unwrap().join("didm.schema.json");
+            if path.exists() && !crate::utils::prompt::confirm("File exists,overwrite?") {
+                return Err(anyhow::anyhow!("User cancelled"));
+            }
+            let schema = schemars::schema_for!(crate::model::DidmConfig);
+            std::fs::write(path.clone(), serde_json::to_string_pretty(&schema).unwrap())?;
+            println!("schema generated:{}", path.display());
         }
         None => {
             // let configs = config::load_configs(args.path.as_deref())?;

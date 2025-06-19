@@ -29,4 +29,5 @@ pub enum Commands {
         verbose: bool,
         //TODO: a preview tree will be nice
     },
+    Schema,
 }
