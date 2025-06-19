@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
-pub struct Profile {
+pub struct Sketch {
     pub source_path: String,
     pub target_path: String,
     #[serde(default, skip_serializing_if = "Mode::is_default")]
@@ -41,9 +41,9 @@ pub struct Profile {
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub environment: HashMap<String, String>,
 }
-impl Profile {
+impl Sketch {
     pub fn new() -> Self {
-        Profile {
+        Sketch {
             source_path: String::from("."),
             target_path: String::from("$XDG_CONFIG_HOME"),
             respect_gitignore: true,

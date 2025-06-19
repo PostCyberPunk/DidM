@@ -4,7 +4,7 @@ use crate::{
     config::ConfigMap,
     entries::AllEntries,
     log::Logger,
-    model::Profile,
+    model::Sketch,
     utils::PathResolver,
 };
 use anyhow::{Context, Result};
@@ -84,7 +84,7 @@ impl<'a> PlanContext<'a> {
         commands_runner: &mut CommandsRunner<'a>,
         all_entries: &mut AllEntries<'a>,
         behaviour: crate::model::Behaviour,
-        tuple: (&'a Profile, usize, &str),
+        tuple: (&'a Sketch, usize, &str),
     ) -> Result<(), anyhow::Error> {
         let (profile, idx, profile_name) = tuple;
         let base_path = config_map.get_base_path(idx)?;

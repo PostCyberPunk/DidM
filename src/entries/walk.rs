@@ -1,5 +1,5 @@
 use crate::log::Logger;
-use crate::model::profile::{Mode, Profile, Unit};
+use crate::model::sketch::{Mode, Sketch, Unit};
 use anyhow::{Context, Result};
 use ignore::WalkBuilder;
 use ignore::overrides::OverrideBuilder;
@@ -16,7 +16,7 @@ pub struct WalkerContext<'a> {
     walker: Option<WalkBuilder>,
 }
 impl<'a> WalkerContext<'a> {
-    pub fn new(profile: &'a Profile, base_path: &'a Path, logger: &'a Logger) -> Self {
+    pub fn new(profile: &'a Sketch, base_path: &'a Path, logger: &'a Logger) -> Self {
         Self {
             base_path,
             unit: &profile.unit,

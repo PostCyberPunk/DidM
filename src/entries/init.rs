@@ -2,7 +2,7 @@ use super::{AllEntries, Entry};
 use crate::{
     entries::WalkerContext,
     log::Logger,
-    model::{Behaviour, Profile, profile::Mode},
+    model::{Behaviour, Sketch, sketch::Mode},
     utils::{Checker, PathResolver, ResolvedPath},
 };
 use anyhow::{Context, Result};
@@ -35,7 +35,7 @@ impl<'a> AllEntries<'a> {
 
     fn get_normal_entries(
         &mut self,
-        profile: &Profile,
+        profile: &Sketch,
         source_root: &ResolvedPath,
         target_root: &ResolvedPath,
         overwrite_existed: bool,
@@ -93,7 +93,7 @@ impl<'a> AllEntries<'a> {
 
     fn get_extra_entris(
         &mut self,
-        profile: &Profile,
+        profile: &Sketch,
         source_root: &ResolvedPath,
         target_root: &ResolvedPath,
         overwrite_existed: bool,
@@ -123,7 +123,7 @@ impl<'a> AllEntries<'a> {
     //TODO: we need add logs
     pub fn add_profile(
         &mut self,
-        profile: &Profile,
+        profile: &Sketch,
         base_path: &ResolvedPath,
         behaviour: &Behaviour,
         profile_name: &str,

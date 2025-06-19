@@ -1,6 +1,6 @@
 use super::{CHCECK_CONFIG, ConfigSet, MainConfig};
 use crate::{
-    model::{Behaviour, Composition, Profile},
+    model::{Behaviour, Composition, Sketch},
     utils::{Checker, ResolvedPath},
 };
 use anyhow::Result;
@@ -14,7 +14,7 @@ use thiserror::Error;
 pub struct ConfigMap<'a> {
     pub path_map: Vec<ResolvedPath>,
     pub main_config: MainConfig,
-    pub profile_map: HashMap<&'a str, (usize, &'a Profile)>,
+    pub profile_map: HashMap<&'a str, (usize, &'a Sketch)>,
     pub plan_map: HashMap<&'a str, &'a Composition>,
 }
 impl<'a> ConfigMap<'a> {
@@ -47,7 +47,7 @@ impl<'a> ConfigMap<'a> {
                 plan_map.insert(name.as_str(), plan);
             }
 
-            for (name, profile) in &config.profiles {
+            for (name, profile) in &config.sketch {
                 if profile_map.contains_key(name.as_str()) {
                     return Err(ConfigError::DuplicatedProfile(name.to_string()).into());
                 }
@@ -76,7 +76,7 @@ impl<'a> ConfigMap<'a> {
             None => Err(ConfigError::PlanNotFound(plan_name.to_string()).into()),
         }
     }
-    pub fn get_profile(&self, profile_name: &'a str) -> Result<(&Profile, usize, &'a str)> {
+    pub fn get_profile(&self, profile_name: &'a str) -> Result<(&Sketch, usize, &'a str)> {
         match self.profile_map.get(profile_name) {
             Some((idx, profile)) => Ok((profile, *idx, profile_name)),
             None => Err(ConfigError::ProfileNotFound(profile_name.to_string()).into()),
@@ -85,7 +85,7 @@ impl<'a> ConfigMap<'a> {
     pub fn get_profiles(
         &'a self,
         profiles: &'a [String],
-    ) -> Result<Vec<(&'a Profile, usize, &'a str)>> {
+    ) -> Result<Vec<(&'a Sketch, usize, &'a str)>> {
         let mut result = Vec::new();
         for profile_name in profiles {
             let p = self.get_profile(profile_name)?;
