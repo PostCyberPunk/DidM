@@ -1,57 +1,16 @@
 use anyhow::{Context, Result};
-use chrono::Local;
 use std::{
     fs::{self},
     path::{Path, PathBuf},
 };
-use thiserror::Error;
 
-use crate::utils::ResolvedPath;
-use crate::{log::Logger, utils::PathExtension};
+use crate::{entries::SouceType, log::Logger, utils::PathExtension};
 
-use super::SouceType;
+use super::{BackupRoot, BackupState, error::BackupError};
 
 //FIX: the ctx should be borrow from composition, not from sketch
 //initialize in sketch then it can be imutable
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-// TODO: this is not apply to entry
-pub enum BackupState {
-    Ok,
-    Skip,
-    Symlink,
-    Backuped,
-}
-pub struct BackupRoot {
-    base_dir: PathBuf,
-    is_dryrun: bool,
-}
-impl BackupRoot {
-    pub fn new(base_path: &ResolvedPath, comp_name: String, is_dryrun: bool) -> Result<Self> {
-        //Make sure we can write at the base path
-        base_path
-            .get()
-            .check_dir()
-            .and_then(|_| base_path.get().check_permission())
-            .with_context(|| BackupError::InitializeFailed)?;
-        //TODO: we can get data by meta data,we can have a better name
-        let now = Local::now().format("%Y_%m_%d_%H_%M_%S").to_string();
-        let base_dir = base_path
-            .get()
-            .join(".didm_backup")
-            .join(format!("composition_{}-{}", comp_name, now));
-        Ok(Self {
-            base_dir,
-            is_dryrun,
-        })
-    }
-    pub fn has_bakcup(self, logger: &Logger) {
-        if self.base_dir.exists() {
-            logger.warn(&format!("Backup created at :{}", self.base_dir.display()));
-        }
-    }
-}
-
-pub struct Backuper {
+pub struct BackupManager {
     is_dryrun: bool,
     normal_path: PathBuf,
     empty_path: PathBuf,
@@ -59,7 +18,7 @@ pub struct Backuper {
     extra_path: PathBuf,
 }
 
-impl Backuper {
+impl BackupManager {
     pub fn init(root_info: &BackupRoot, dir_name: String) -> Result<Self> {
         let base_dir = &root_info.base_dir.join(dir_name);
         let is_dryrun = root_info.is_dryrun;
@@ -148,17 +107,4 @@ impl Backuper {
         }
         Ok(false)
     }
-}
-
-#[derive(Error, Debug)]
-pub enum BackupError {
-    #[error("Failed to initialize backuper")]
-    InitializeFailed,
-    #[error("An backup already exists: {0}")]
-    BackupExsisted(String),
-    #[error("Failed to backup :{0}")]
-    Failed(String),
-    //TODO:! this could be avoid with right abstraction model
-    #[error("BUG:Calling normal entry on backup_other")]
-    BugWrongType,
 }
