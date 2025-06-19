@@ -19,3 +19,9 @@ impl Entry {
         }
     }
 }
+pub enum SouceType {
+    Normal,
+    Null,
+    Empty,
+    Extra,
+}
