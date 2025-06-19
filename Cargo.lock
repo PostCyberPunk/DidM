@@ -18,6 +18,7 @@ dependencies = [
  "ratatui",
  "schemars",
  "serde",
+ "serde_json",
  "thiserror",
  "toml",
  "walkdir",
