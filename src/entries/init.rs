@@ -64,13 +64,13 @@ impl<'a> AllEntries<'a> {
     fn collect_same_source(
         &mut self,
         paths: &[String],
-        base_path: &ResolvedPath,
+        target_root: &ResolvedPath,
         source_path: &Path,
         overwrite_existed: bool,
         mode: Mode,
     ) -> Result<()> {
         for path in paths.iter() {
-            let rp = PathResolver::resolve_from(base_path, path, false);
+            let rp = PathResolver::resolve_from(target_root, path, false);
             let entry = match rp {
                 Err(err) => {
                     self.logger
@@ -136,7 +136,12 @@ impl<'a> AllEntries<'a> {
         //Reoslve Path
         let source_root = self.resolve_path(base_path, &sketch.source_path, "source", true)?;
         let target_root = self.resolve_path(base_path, &sketch.target_path, "target", false)?;
-        Checker::target_exisit_or_create(target_root.get())?;
+
+        //Check target exist
+        let exist = Checker::target_exisit_or_create(target_root.get())?;
+        if !exist && !self.is_dryrun {
+            std::fs::create_dir(target_root.get())?;
+        }
 
         //Get Normal Entries
         self.get_normal_entries(sketch, &source_root, &target_root, overwrite_existed)
@@ -146,17 +151,22 @@ impl<'a> AllEntries<'a> {
         let dev_null = PathBuf::from("/dev/null");
         self.collect_same_source(
             &sketch.null_files,
-            &source_root,
+            &target_root,
             &dev_null,
             overwrite_existed,
             Mode::Symlink,
         )
         .context("Failed to get null entries")?;
         //Get empty entries
+        //FIX: os .bad practice
+        let _empty_tmp = PathBuf::from("/tmp/didm_empty");
+        if !self.is_dryrun && !&sketch.empty_files.is_empty() {
+            std::fs::write(_empty_tmp.clone(), "")?;
+        }
         self.collect_same_source(
             &sketch.empty_files,
-            &source_root,
-            &dev_null,
+            &target_root,
+            &_empty_tmp,
             overwrite_existed,
             Mode::Copy,
         )

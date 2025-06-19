@@ -4,9 +4,9 @@ use anyhow::Result;
 use std::{collections::HashMap, path::PathBuf};
 
 pub struct CommandsContext<'a> {
-    pub environment: &'a HashMap<String, String>,
-    pub path: PathBuf,
-    pub stop_at_commands_error: bool,
+    environment: &'a HashMap<String, String>,
+    path: PathBuf,
+    stop_at_commands_error: bool,
     pub pre_commands: &'a Vec<String>,
     pub post_commands: &'a Vec<String>,
 }
@@ -42,11 +42,7 @@ impl<'a> CommandsContext<'a> {
                 continue;
             }
 
-            let executor = CommandExecutor {
-                environment,
-                path,
-                command: cmd,
-            };
+            let executor = CommandExecutor::new(environment, path, cmd);
 
             let output_result = executor.run();
             match output_result {
