@@ -1,32 +1,31 @@
-use super::args::PlanArgs;
+use super::args::AppArgs;
 use crate::{
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
     entries::AllEntries,
     log::Logger,
-    model::Profile,
+    model::Sketch,
     utils::PathResolver,
 };
 use anyhow::{Context, Result};
 
-pub struct PlanContext<'a> {
+pub struct CompContext<'a> {
     pub commands_runner: CommandsRunner<'a>,
     pub all_entries: AllEntries<'a>,
 }
 
-impl<'a> PlanContext<'a> {
+impl<'a> CompContext<'a> {
     pub fn new(
-        plan_name: &'a str,
+        comp_name: &'a str,
         config_map: &'a ConfigMap,
-        args: &'a PlanArgs,
+        args: &'a AppArgs,
         logger: &'a Logger,
     ) -> Result<Self> {
         //NOTE: order should be: error with less calculation ; then error with lager calulation
-        logger.info(&format!("Deploying plan : {} ...", plan_name));
+        logger.info(&format!("Deploying Composition : {} ...", comp_name));
 
         let base_path = config_map.get_main_base_path()?;
-        // (&plan.commands_path)?;
-        let plan = config_map.get_plan(plan_name)?;
+        let comp = config_map.get_comp(comp_name)?;
 
         let mut commands_runner = CommandsRunner::new(logger, args.is_dryrun);
         let mut all_entries = AllEntries::new(logger, args.is_dryrun);
@@ -34,38 +33,38 @@ impl<'a> PlanContext<'a> {
         //Get Bhaviour
         let behaviour = config_map
             .get_main_behaviour()
-            .override_by(&plan.override_behaviour);
+            .override_by(&comp.override_behaviour);
 
         //Prepare Command runner
-        let envrironment = &plan.environment;
+        let envrironment = &comp.environment;
         let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
         let commands_path =
-            PathResolver::resolve_from_or_base(base_path, &plan.commands_path)?.into_pathbuf();
-        let plan_cmd_ctx = CommandsContext::new(
+            PathResolver::resolve_from_or_base(base_path, &comp.commands_path)?.into_pathbuf();
+        let comp_cmd_ctx = CommandsContext::new(
             envrironment,
             commands_path,
             stop_at_commands_error,
-            &plan.pre_build_commands,
-            &plan.post_build_commands,
+            &comp.pre_build_commands,
+            &comp.post_build_commands,
         );
-        commands_runner.add_context(plan_cmd_ctx);
+        commands_runner.add_context(comp_cmd_ctx);
 
-        //apply profiles
-        let profiles = config_map.get_profiles(&plan.profiles)?;
-        for tuple in profiles {
-            logger.info(&format!("Preparing profile: {}", tuple.2));
-            Self::collect_profile(
+        //apply sketchs
+        let sketchs = config_map.get_sketches(&comp.sketch)?;
+        for tuple in sketchs {
+            logger.info(&format!("Preparing sketch: {}", tuple.2));
+            Self::collect_sketch(
                 config_map,
                 &mut commands_runner,
                 &mut all_entries,
                 behaviour,
                 tuple,
             )
-            .context(format!("Profile: {}", tuple.2))?;
+            .context(format!("Sketch: {}", tuple.2))?;
         }
 
-        Ok(PlanContext {
-            // profile_ctxs,
+        Ok(CompContext {
+            // sketch_ctxs,
             commands_runner,
             all_entries,
         })
@@ -79,28 +78,28 @@ impl<'a> PlanContext<'a> {
         self.commands_runner.run_post_commands()?;
         Ok(())
     }
-    fn collect_profile(
+    fn collect_sketch(
         config_map: &'a ConfigMap<'_>,
         commands_runner: &mut CommandsRunner<'a>,
         all_entries: &mut AllEntries<'a>,
         behaviour: crate::model::Behaviour,
-        tuple: (&'a Profile, usize, &str),
+        tuple: (&'a Sketch, usize, &str),
     ) -> Result<(), anyhow::Error> {
-        let (profile, idx, profile_name) = tuple;
+        let (sketch, idx, sketch_name) = tuple;
         let base_path = config_map.get_base_path(idx)?;
-        let behaviour = behaviour.override_by(&profile.override_behaviour);
+        let behaviour = behaviour.override_by(&sketch.override_behaviour);
         let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
-        let envrironment = &profile.environment;
+        let envrironment = &sketch.environment;
         let commands_path =
-            PathResolver::resolve_from_or_base(base_path, &profile.commands_path)?.into_pathbuf();
+            PathResolver::resolve_from_or_base(base_path, &sketch.commands_path)?.into_pathbuf();
         commands_runner.add_context(CommandsContext::new(
             envrironment,
             commands_path,
             stop_at_commands_error,
-            &profile.pre_build_commands,
-            &profile.post_build_commands,
+            &sketch.pre_build_commands,
+            &sketch.post_build_commands,
         ));
-        all_entries.add_profile(profile, base_path, &behaviour, profile_name)?;
+        all_entries.add_sketch(sketch, base_path, &behaviour, sketch_name)?;
         Ok(())
     }
 }

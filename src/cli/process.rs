@@ -3,9 +3,9 @@ use crate::config::ConfigMap;
 use crate::log::LogLevel;
 use crate::utils;
 use crate::{
+    composition::{AppArgs, CompContext},
     config,
     log::{Logger, StdoutLogTarget},
-    plan::{PlanArgs, PlanContext},
 };
 use anyhow::{Context, Ok};
 use clap::Parser;
@@ -18,13 +18,13 @@ pub fn process() -> anyhow::Result<()> {
             config::init_config(path.as_deref())?;
         }
         Some(Commands::Deploy {
-            plan_name,
+            comp_name,
             path,
             dry_run,
             verbose,
         }) => {
             //Porcess arg first,we may use in loader
-            let plan_args = PlanArgs {
+            let app_args = AppArgs {
                 is_dryrun: *dry_run,
                 is_verbose: *verbose,
             };
@@ -32,7 +32,7 @@ pub fn process() -> anyhow::Result<()> {
             //Prepare logger, we may use in loaer too
             //FIX: File logger need flush ,but error will cause it never flush
             let mut logger = Logger::new();
-            let std_log_level = match (plan_args.is_verbose, args.debug) {
+            let std_log_level = match (app_args.is_verbose, args.debug) {
                 (_, true) => LogLevel::Debug,
                 (true, false) => LogLevel::Info,
                 (false, false) => LogLevel::Warn,
@@ -45,10 +45,10 @@ pub fn process() -> anyhow::Result<()> {
             let config_map = ConfigMap::new(base_path, &config_sets)?;
 
             //TODO: seprate steps, prepare , backup , apply
-            PlanContext::new(plan_name, &config_map, &plan_args, &logger)
-                .context(format!("Plan init failed:{}", plan_name))?
+            CompContext::new(comp_name, &config_map, &app_args, &logger)
+                .context(format!("Composition init failed:{}", comp_name))?
                 .deploy()
-                .context(format!("Plan deploy failed:{}", plan_name))?;
+                .context(format!("Composition deploy failed:{}", comp_name))?;
         }
         Some(Commands::Schema) => {
             let path = std::env::current_dir().unwrap().join("didm.schema.json");

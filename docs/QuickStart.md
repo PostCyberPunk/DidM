@@ -22,12 +22,12 @@ myDotfiles
 With a minimal configuration like this:
 
 ```toml
-[profiles.all]
+[sketch.all]
 source_path = "~/myDotfiles"
 target_path = "$XDG_CONFIG_HOME"
 
-[plans.basic]
-profiles = ["all"]
+[composition.basic]
+sketches = ["all"]
 ```
 
 Running `didm deploy basic` inside the `myDotfiles` directory results in:
@@ -57,7 +57,7 @@ This makes it easy to manage dotfiles using Git.
 include = ["./themes/palettes.toml"]
 
 # Configuration priority order:
-# profile.override_behaviour > plan.override_behaviour > behaviour
+# sketch.override_behaviour > composition.override_behaviour > behaviour
 [behaviour]
 # Whether to overwrite an existing file or directory.
 # Default: false (do not overwrite)
@@ -71,7 +71,7 @@ backup_existed = true
 # Default: false (continue execution)
 stop_at_commands_error = false
 
-[profiles.basic]
+[sketch.basic]
 #***
 # Source directory path
 source_path = "./."
@@ -114,17 +114,17 @@ null_files = []
 # Default: []
 empty_files = []
 
-# Commands to run before applying the profile.
+# Commands to run before applying the sketch.
 # Default: []
 pre_build_commands = [
     'echo -e "Deploying dotfiles for $(whoami)@$(hostname) \nusing theme: $target_theme"',
 ]
 
-# Commands to run after applying the profile.
+# Commands to run after applying the sketch.
 # Default: []
 post_build_commands = ['reboot']
 
-# Overrides global behavior or plan behavior.
+# Overrides global behavior or composition behavior.
 # Default: {}
 override_behaviour = { overwrite_existed = true }
 
@@ -138,20 +138,20 @@ extra_entries = [
 # Default: {}
 # if you have multiple variables you can do this:
 # NOTICE:ALWAYS PUT THIS IN THE END OF A SECTION!
-# [profiles.basic.environment]
+# [sketches.basic.environment]
 # "icon_theme" = "Catppuccin-Mocha"
 # "foo" = "bar"
 environment = { "icon_theme" = "Catppuccin-Mocha" }
 
-[plans.basic]
+[composition.basic]
 #***
-# Profiles to execute
-profiles = ["basic", "defaultTheme"]
+# Sketches to execute
+sketches = ["basic", "defaultTheme"]
 
-# Commands to run before deploying the plan.
+# Commands to run before deploying the composition.
 pre_build_commands = []
 
-# Commands to run after deploying the plan.
+# Commands to run after deploying the composition.
 post_build_commands = []
 
 #Where will the commands be executed
@@ -162,13 +162,13 @@ commands_path = ""
 # Overrides global behavior.
 override_behaviour = {}
 
-# Environment variables for plan commands.
+# Environment variables for composition commands.
 environment = []
 ```
 
 ## Advice
 
-1. Use a main configuration file to define your primary profiles and plans. Separate detailed settings into separate included files for better organization.
+1. Use a main configuration file to define your primary sketches and compositions. Separate detailed settings into separate included files for better organization.
 2. Avoid nested included files, as this can cause issues. Instead, place configuration files outside your source directory and organize them into separate folders.
 
 ## Known Issues
@@ -184,14 +184,14 @@ Managing a unified color scheme across different programs can be difficult, but 
 First, define a color palette:
 
 ```toml
-[profiles.all]
+[sketch.all]
 source_path = "~/myDotfiles"
 target_path = "$XDG_CONFIG_HOME"
 
-[plans.basic]
-profiles = ["all"]
+[composition.basic]
+sketches = ["all"]
 
-[palettes.my_palette]
+[palette.my_palette]
 base01 = "#000000"
 # ...
 base0F = "#BE5046"
@@ -205,7 +205,7 @@ Then, mark colors in your configuration files:
 @define-color base   $<didm_color_base01_hex>;
 ```
 
-Running `didm deploy some_plan --colorpalette my_palette` will replace variables in a copy of the relevant files and then link them to the target location.
+Running `didm deploy some_composition --colorpalette my_palette` will replace variables in a copy of the relevant files and then link them to the target location.
 
 ```css
 /* ~/.config/waybar/style.css */
@@ -234,7 +234,7 @@ Organize files accordingly:
     └── hyprland.conf
 ```
 
-Running `didm deploy some_plan --switch laptop` will result in:
+Running `didm deploy some_composition --switch laptop` will result in:
 
 ```
 ~/.config

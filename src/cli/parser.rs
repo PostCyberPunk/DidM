@@ -22,7 +22,7 @@ pub enum Commands {
     Deploy {
         #[arg(short, long)]
         path: Option<String>,
-        plan_name: String,
+        comp_name: String,
         #[arg(short = 'n', long)]
         dry_run: bool,
         #[arg(short = 'v', long)]
