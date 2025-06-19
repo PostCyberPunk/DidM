@@ -64,13 +64,13 @@ impl<'a> AllEntries<'a> {
     fn collect_same_source(
         &mut self,
         paths: &[String],
-        base_path: &ResolvedPath,
+        target_root: &ResolvedPath,
         source_path: &Path,
         overwrite_existed: bool,
         mode: Mode,
     ) -> Result<()> {
         for path in paths.iter() {
-            let rp = PathResolver::resolve_from(base_path, path, false);
+            let rp = PathResolver::resolve_from(target_root, path, false);
             let entry = match rp {
                 Err(err) => {
                     self.logger
@@ -146,7 +146,7 @@ impl<'a> AllEntries<'a> {
         let dev_null = PathBuf::from("/dev/null");
         self.collect_same_source(
             &sketch.null_files,
-            &source_root,
+            &target_root,
             &dev_null,
             overwrite_existed,
             Mode::Symlink,
@@ -155,7 +155,7 @@ impl<'a> AllEntries<'a> {
         //Get empty entries
         self.collect_same_source(
             &sketch.empty_files,
-            &source_root,
+            &target_root,
             &dev_null,
             overwrite_existed,
             Mode::Copy,
