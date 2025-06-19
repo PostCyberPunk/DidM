@@ -9,7 +9,7 @@ use thiserror::Error;
 use crate::helpers::PathExtension;
 use crate::{helpers::ResolvedPath, log::Logger};
 
-//FIX: the ctx should be borrow from plan, not from profile
+//FIX: the ctx should be borrow from composition, not from profile
 //initialize in profile then it can be imutable
 pub struct Backuper {
     ctx: Option<BackuperContext>,
@@ -24,7 +24,7 @@ pub struct BackuperContext {
 }
 
 impl Backuper {
-    pub fn init(base_path: &ResolvedPath, plan_name: String, is_dryrun: bool) -> Result<Self> {
+    pub fn init(base_path: &ResolvedPath, comp_name: String, is_dryrun: bool) -> Result<Self> {
         base_path
             .get()
             .check_dir()
@@ -35,7 +35,7 @@ impl Backuper {
         let base_dir = base_path
             .get()
             .join(".didm_backup")
-            .join(format!("plan_{}-{}", plan_name, now));
+            .join(format!("composition_{}-{}", comp_name, now));
 
         Ok(Self {
             ctx: None,
