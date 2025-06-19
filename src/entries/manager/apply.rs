@@ -2,7 +2,7 @@ use std::{fs, io, path::Path};
 
 use crate::{model::sketch::Mode, utils::PathExtension};
 
-use super::{EntriesManager, error::EntryApplyError};
+use super::{super::error::EntryApplyError, EntriesManager};
 use anyhow::Result;
 
 impl<'a> EntriesManager<'a> {
