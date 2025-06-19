@@ -140,7 +140,7 @@ impl<'a> AllEntries<'a> {
         //Check target exist
         let exist = Checker::target_exisit_or_create(target_root.get())?;
         if !exist && !self.is_dryrun {
-            std::fs::create_dir(target_root.get())?;
+            std::fs::create_dir_all(target_root.get())?;
         }
 
         //Get Normal Entries
