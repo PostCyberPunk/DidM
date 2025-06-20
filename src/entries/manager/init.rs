@@ -1,4 +1,4 @@
-use super::{EntriesManager, Entry, list::EntriesList};
+use super::{super::Entry, EntriesManager, list::EntriesList};
 use crate::{
     entries::DirWalker,
     log::Logger,

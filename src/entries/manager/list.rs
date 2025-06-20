@@ -1,4 +1,4 @@
-use super::Entry;
+use super::super::Entry;
 use crate::model::sketch::Mode;
 #[derive(Debug, Clone, Default)]
 

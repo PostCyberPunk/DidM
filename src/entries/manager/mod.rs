@@ -4,9 +4,6 @@ mod init;
 mod list;
 use list::EntriesList;
 
-mod model;
-pub use model::*;
-
 use crate::log::Logger;
 
 pub struct EntriesManager<'a> {

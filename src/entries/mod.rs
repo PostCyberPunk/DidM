@@ -1,6 +1,9 @@
 mod manager;
 pub use manager::EntriesManager;
-pub use manager::SouceType;
+
+mod entry;
+pub use entry::*;
+
 
 mod walk;
 use walk::DirWalker;
