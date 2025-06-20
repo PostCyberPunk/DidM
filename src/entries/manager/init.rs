@@ -108,7 +108,7 @@ impl<'a> EntriesManager<'a> {
         Ok(())
     }
 
-    fn add_entry(&mut self, mode: Mode, entry: Entry) {
+    pub fn add_entry(&mut self, mode: Mode, entry: Entry) {
         self.entry_list.add_entry(mode, entry);
     }
     //TODO: we need add logs
