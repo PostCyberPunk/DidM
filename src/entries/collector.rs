@@ -1,5 +1,5 @@
 use crate::{
-    bakcup::BackupManager,
+    bakcup::{BackupManager, BackupState},
     entries::DirWalker,
     log::Logger,
     model::{Behaviour, Sketch, sketch::Mode},
@@ -8,7 +8,7 @@ use crate::{
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
-use super::{EntriesManager, Entry, SouceType};
+use super::{EntriesManager, Entry, SouceType, entry};
 
 pub struct EntryCollector<'a, 'b>
 where
@@ -71,16 +71,26 @@ where
         //Get null entries
         //FIX:that looks like pretty fucked up
         let dev_null = PathBuf::from("/dev/null");
-        self.collect_same_source(&self.sketch.null_files, &dev_null, Mode::Symlink)
-            .context("Failed to get null entries")?;
+        self.collect_same_source(
+            &self.sketch.null_files,
+            &dev_null,
+            Mode::Symlink,
+            SouceType::Null,
+        )
+        .context("Failed to get null entries")?;
         //Get empty entries
         //FIX: os .bad practice
         let _empty_tmp = PathBuf::from("/tmp/didm_empty");
         if !self.is_dryrun && !&self.sketch.empty_files.is_empty() {
             std::fs::write(_empty_tmp.clone(), "")?;
         }
-        self.collect_same_source(&self.sketch.empty_files, &_empty_tmp, Mode::Copy)
-            .context("Failed to get empty entries")?;
+        self.collect_same_source(
+            &self.sketch.empty_files,
+            &_empty_tmp,
+            Mode::Copy,
+            SouceType::Empty,
+        )
+        .context("Failed to get empty entries")?;
         //Get extra entries
         self.get_extra_entris(self.sketch)
             .context("Failed to get extra entries")?;
@@ -88,7 +98,18 @@ where
         Ok(())
     }
 
-    fn add_entry(&mut self, entry: Entry, mode: Mode, s_type: SouceType) {
+    fn add_entry(&mut self, mut entry: Entry, mode: Mode, s_type: SouceType) {
+        if s_type != SouceType::Normal {
+            entry.bakcup_state = match &self.backup_manager {
+                None => BackupState::Ok,
+                Some(bakcuper) => {
+                    match bakcuper.backup_other(&entry.target_path, self.logger, s_type) {
+                        Ok(s) => s,
+                        _ => BackupState::Skip,
+                    }
+                }
+            };
+        }
         self.entries_manager.add_entry(mode, entry);
     }
     fn resolve_path(
@@ -117,10 +138,19 @@ where
                 }
             };
             let target_path = self.target_root.get().join(relative_path);
-            self.add_entry(
-                self.sketch.mode,
-                Entry::new(source_path, target_path, self.overwrite_existed),
-            );
+            // BAKCUP
+            let bakcup_state = match &self.backup_manager {
+                None => BackupState::Ok,
+                Some(bakcuper) => {
+                    match bakcuper.backup_normal(&target_path, relative_path, self.logger) {
+                        Ok(s) => s,
+                        _ => BackupState::Skip,
+                    }
+                }
+            };
+            let mut entry = Entry::new(source_path, target_path, self.overwrite_existed);
+            entry.bakcup_state = bakcup_state;
+            self.add_entry(entry, self.sketch.mode, SouceType::Normal);
         }
         Ok(())
     }
@@ -129,6 +159,7 @@ where
         paths: &[String],
         source_path: &Path,
         mode: Mode,
+        s_type: SouceType,
     ) -> Result<()> {
         for path in paths.iter() {
             let rp = PathResolver::resolve_from(&self.target_root, path, false);
@@ -144,7 +175,7 @@ where
                     self.overwrite_existed,
                 ),
             };
-            self.add_entry(mode, entry);
+            self.add_entry(entry, mode, s_type);
         }
         Ok(())
     }
@@ -170,8 +201,8 @@ where
                 self.overwrite_existed,
             );
             match extra.mode {
-                Some(mode) => self.add_entry(mode, e),
-                None => self.add_entry(sketch.mode, e),
+                Some(mode) => self.add_entry(e, mode, SouceType::Extra),
+                None => self.add_entry(e, sketch.mode, SouceType::Extra),
             }
         }
         Ok(())

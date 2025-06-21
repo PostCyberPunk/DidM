@@ -33,7 +33,7 @@ impl BackupRoot {
         let now = Local::now().format("%Y_%m_%d_%H_%M_%S").to_string();
         let base_dir = base_path
             .get()
-            .join(".didm_backup")
+            .join("didm_backup")
             .join(format!("composition_{}-{}", comp_name, now));
         Ok(Self {
             base_dir,
