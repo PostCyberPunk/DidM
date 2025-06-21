@@ -1,7 +1,7 @@
 ///?
 use super::args::AppArgs;
 use crate::{
-    bakcup::BackupRoot,
+    bakcup::{BackupManager, BackupRoot},
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
     entries::{EntriesManager, EntryCollector},
@@ -62,6 +62,7 @@ impl<'a> CompContext<'a> {
                 config_map,
                 &mut commands_runner,
                 &mut entries_manager,
+                &backup_root,
                 behaviour,
                 tuple,
             )
@@ -88,6 +89,7 @@ impl<'a> CompContext<'a> {
         config_map: &'a ConfigMap<'_>,
         commands_runner: &mut CommandsRunner<'a>,
         entries_manager: &mut EntriesManager<'a>,
+        backup_root: &BackupRoot,
         behaviour: crate::model::Behaviour,
         tuple: (&'a Sketch, usize, &str),
     ) -> Result<(), anyhow::Error> {
@@ -99,13 +101,20 @@ impl<'a> CompContext<'a> {
         let stop_at_commands_error = behaviour.stop_at_commands_error.unwrap();
         commands_runner.add_sketch_context(sketch, base_path, stop_at_commands_error)?;
 
+        let bakcuper = match behaviour.should_backup() {
+            false => None,
+            true => Some(BackupManager::init(
+                backup_root,
+                format!("sketch_{}", sketch_name),
+            )?),
+        };
         EntryCollector::new(
             entries_manager,
             sketch,
             base_path,
             sketch_name,
             &behaviour,
-            None,
+            bakcuper,
         )?
         .collect()?;
 
