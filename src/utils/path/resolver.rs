@@ -61,7 +61,7 @@ impl PathResolver {
     // -----------Public ----------------
     pub fn resolve(path: &str, should_check_exist: bool) -> Result<ResolvedPath> {
         let resolve = Self::expand_tilde(path.to_string())
-            .and_then(|p| Self::expand_env_vars(p))
+            .and_then(Self::expand_env_vars)
             .and_then(|p| Self::check_symlink_then_absolute(&p))
             .with_context(|| PathError::ResolveFailed(path.to_string()))?;
         match (should_check_exist, resolve.exists()) {
