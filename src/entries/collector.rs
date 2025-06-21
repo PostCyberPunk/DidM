@@ -8,7 +8,7 @@ use crate::{
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
-use super::{EntriesManager, Entry, SouceType, entry};
+use super::{EntriesManager, Entry, SouceType};
 
 pub struct EntryCollector<'a, 'b>
 where
@@ -169,11 +169,14 @@ where
                         .warn(&format!("Skipping entry:{}\nCasuse:{}", path, err));
                     continue;
                 }
-                Ok(target_path) => Entry::new(
-                    source_path.to_path_buf(),
-                    target_path.into_pathbuf(),
-                    self.overwrite_existed,
-                ),
+                Ok(target_path) => {
+                    if target_path.get().exists() {
+                        self.logger
+                            .info(&format!("(null/empty) Skipping existed target:{}", path));
+                        continue;
+                    }
+                    Entry::new(source_path.to_path_buf(), target_path.into_pathbuf(), false)
+                }
             };
             self.add_entry(entry, mode, s_type);
         }

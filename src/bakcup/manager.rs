@@ -17,9 +17,9 @@ use super::{BackupRoot, BackupState, error::BackupError};
 //FIX: bad structure 5*24 + 1
 pub struct BackupManager {
     normal_path: PathBuf,
-    empty_path: PathBuf,
-    null_path: PathBuf,
     extra_path: PathBuf,
+    // empty_path: PathBuf,
+    // null_path: PathBuf,
     is_dryrun: bool,
 }
 
@@ -30,14 +30,14 @@ impl BackupManager {
         let is_dryrun = root_info.is_dryrun;
         let normal_path = base_dir.join("normal");
         let extra_path = base_dir.join("extra");
-        let empty_path = base_dir.join("empty");
-        let null_path = base_dir.join("null");
+        // let empty_path = base_dir.join("empty");
+        // let null_path = base_dir.join("null");
         Ok(Self {
             is_dryrun,
             normal_path,
             extra_path,
-            empty_path,
-            null_path,
+            // empty_path,
+            // null_path,
         })
     }
 
@@ -73,12 +73,15 @@ impl BackupManager {
             return Ok(BackupState::Symlink);
         }
         let _dir = match src_type {
-            SouceType::Normal => {
+            // SouceType::Normal => {
+            //     return Err(BackupError::BugWrongType.into());
+            // }
+            // SouceType::Null => &self.null_path,
+            // SouceType::Empty => &self.empty_path,
+            SouceType::Extra => &self.extra_path,
+            _ => {
                 return Err(BackupError::BugWrongType.into());
             }
-            SouceType::Null => &self.null_path,
-            SouceType::Empty => &self.empty_path,
-            SouceType::Extra => &self.extra_path,
         };
         let parent_path = src.parent().unwrap();
         let filename = src.file_name().unwrap();

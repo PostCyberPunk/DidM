@@ -11,7 +11,10 @@ pub struct Entry {
 }
 
 impl Entry {
-    pub fn new(source_path: PathBuf, target_path: PathBuf, overwrite_existed: bool) -> Self {
+    pub fn new(source_path: PathBuf, mut target_path: PathBuf, overwrite_existed: bool) -> Self {
+        if target_path.to_str().unwrap().contains("dot-") {
+            target_path = PathBuf::from(target_path.to_str().unwrap().replace("dot-", "."));
+        };
         Entry {
             source_path,
             target_path,
