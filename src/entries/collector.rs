@@ -8,12 +8,15 @@ use crate::{
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
-use super::{EntriesManager, Entry};
+use super::{EntriesManager, Entry, SouceType};
 
-pub struct EntryCollector<'a> {
+pub struct EntryCollector<'a, 'b>
+where
+    'b: 'a,
+{
     source_root: ResolvedPath,
     target_root: ResolvedPath,
-    entries_manager: &'a mut EntriesManager<'a>,
+    entries_manager: &'a mut EntriesManager<'b>,
     sketch: &'a Sketch,
     logger: &'a Logger,
     backup_manager: Option<BackupManager>,
@@ -21,9 +24,12 @@ pub struct EntryCollector<'a> {
     is_dryrun: bool,
 }
 //TODO: we need add logs
-impl<'a> EntryCollector<'a> {
+impl<'a, 'b> EntryCollector<'a, 'b>
+where
+    'b: 'a,
+{
     pub fn new(
-        entries_manager: &'a mut EntriesManager<'a>,
+        entries_manager: &'a mut EntriesManager<'b>,
         sketch: &'a Sketch,
         base_path: &ResolvedPath,
         sketch_name: &str,
@@ -82,7 +88,7 @@ impl<'a> EntryCollector<'a> {
         Ok(())
     }
 
-    fn add_entry(&mut self, mode: Mode, entry: Entry) {
+    fn add_entry(&mut self, entry: Entry, mode: Mode, s_type: SouceType) {
         self.entries_manager.add_entry(mode, entry);
     }
     fn resolve_path(
