@@ -47,7 +47,10 @@ impl BackupManager {
         relative: &Path,
         logger: &Logger,
     ) -> Result<BackupState> {
-        if Self::check_symlink(src, logger)? {
+        if !src.exists() {
+            return Ok(BackupState::Ok);
+        }
+        if Self::check_symlink(src, logger) {
             return Ok(BackupState::Symlink);
         }
 
@@ -63,7 +66,10 @@ impl BackupManager {
         logger: &Logger,
         src_type: SouceType,
     ) -> Result<BackupState> {
-        if Self::check_symlink(src, logger)? {
+        if !src.exists() {
+            return Ok(BackupState::Ok);
+        }
+        if Self::check_symlink(src, logger) {
             return Ok(BackupState::Symlink);
         }
         let _dir = match src_type {
@@ -74,9 +80,11 @@ impl BackupManager {
             SouceType::Empty => &self.empty_path,
             SouceType::Extra => &self.extra_path,
         };
+        let parent_path = src.parent().unwrap();
+        let filename = src.file_name().unwrap();
 
-        let encoded_path = urlencoding::encode(&src.to_string_lossy()).into_owned();
-        let backup_path = _dir.join(encoded_path);
+        let encoded_path = urlencoding::encode(&parent_path.to_string_lossy()).into_owned();
+        let backup_path = _dir.join(encoded_path).join(filename);
 
         self.do_backup(src, &backup_path, logger)?;
         Ok(BackupState::Backuped)
@@ -100,7 +108,7 @@ impl BackupManager {
         Ok(())
     }
 
-    fn check_symlink(src: &Path, logger: &Logger) -> Result<bool> {
+    fn check_symlink(src: &Path, logger: &Logger) -> bool {
         if src.is_symlink() {
             logger.warn(&format!(
                 "Symlink will be removed at:{}\n        Target:{}",
@@ -110,8 +118,8 @@ impl BackupManager {
                     |p| p.display().to_string()
                 )
             ));
-            return Ok(true);
+            return true;
         }
-        Ok(false)
+        false
     }
 }
