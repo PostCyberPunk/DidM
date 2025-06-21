@@ -47,6 +47,9 @@ impl BackupManager {
         relative: &Path,
         logger: &Logger,
     ) -> Result<BackupState> {
+        if !src.exists() {
+            return Ok(BackupState::Ok);
+        }
         if Self::check_symlink(src, logger) {
             return Ok(BackupState::Symlink);
         }
@@ -63,6 +66,9 @@ impl BackupManager {
         logger: &Logger,
         src_type: SouceType,
     ) -> Result<BackupState> {
+        if !src.exists() {
+            return Ok(BackupState::Ok);
+        }
         if Self::check_symlink(src, logger) {
             return Ok(BackupState::Symlink);
         }
