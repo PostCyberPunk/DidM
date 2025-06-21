@@ -80,9 +80,11 @@ impl BackupManager {
             SouceType::Empty => &self.empty_path,
             SouceType::Extra => &self.extra_path,
         };
+        let parent_path = src.parent().unwrap();
+        let filename = src.file_name().unwrap();
 
-        let encoded_path = urlencoding::encode(&src.to_string_lossy()).into_owned();
-        let backup_path = _dir.join(encoded_path);
+        let encoded_path = urlencoding::encode(&parent_path.to_string_lossy()).into_owned();
+        let backup_path = _dir.join(encoded_path).join(filename);
 
         self.do_backup(src, &backup_path, logger)?;
         Ok(BackupState::Backuped)
