@@ -46,7 +46,7 @@ impl<'a> DirWalker<'a> {
         overrides.add("!didm.toml")?;
         overrides.add("!.gitignore")?;
         overrides.add("!didmignore")?;
-        overrides.add("!.didm_backup")?;
+        overrides.add("!didm_backup")?;
 
         let _prefix = if self.only_ignore { "" } else { "!" };
 
