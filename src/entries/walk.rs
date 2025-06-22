@@ -50,6 +50,11 @@ impl<'a> DirWalker<'a> {
 
         let _prefix = if self.only_ignore { "" } else { "!" };
 
+        if self.only_ignore && self.ignore.is_empty() {
+            overrides
+                .add("!")
+                .context(format!("Failed to make `only_ignore` happen"))?;
+        }
         for ignore_item in self.ignore {
             overrides
                 .add(&format!("{}{}", _prefix, ignore_item))
@@ -59,9 +64,9 @@ impl<'a> DirWalker<'a> {
             walker.max_depth(Some(1));
         };
         walker
-            .overrides(overrides.build()?)
             .hidden(self.ignore_hidden)
-            .git_ignore(self.respect_gitignore);
+            .git_ignore(self.respect_gitignore)
+            .overrides(overrides.build()?);
 
         self.walker = Some(walker);
         Ok(self)
