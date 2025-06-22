@@ -43,7 +43,7 @@ impl Behaviour {
                     .stop_at_commands_error
                     .or(self.stop_at_commands_error),
             },
-            None => self.clone(),
+            None => *self,
         }
     }
 }

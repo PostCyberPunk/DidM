@@ -51,7 +51,7 @@ impl<'a> DirWalker<'a> {
         if self.only_ignore && self.ignore.is_empty() {
             overrides
                 .add("!")
-                .context(format!("Failed to make `only_ignore` happen"))?;
+                .context("Failed to make `only_ignore` happen")?;
         }
         for ignore_item in self.ignore {
             overrides

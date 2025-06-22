@@ -12,18 +12,16 @@ pub enum PathError {
     #[error("Failed to create parent directory: {0}")]
     CreateDirFailed(String),
 
-    #[error("File {0} already existed in {1}")]
-    FileExists(String, PathBuf),
-
+    // #[error("File {0} already existed in {1}")]
+    // FileExists(String, PathBuf),
     #[error("Permission denied: {0}")]
     NoPermission(String),
 
     #[error("Path is not a directory: {0}")]
     NotDir(String),
 
-    #[error("Path is not a file: {0}")]
-    NotFile(PathBuf),
-
+    // #[error("Path is not a file: {0}")]
+    // NotFile(PathBuf),
     #[error("Failed to resolve path:{0}")]
     ResolveFailed(String),
 
