@@ -4,12 +4,12 @@ use crate::{
     composition::{AppArgs, CompContext},
     config,
 };
-use anyhow::{Context, Ok};
+use anyhow::{Context, Ok, Result};
 use clap::Parser;
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
-pub fn process() -> anyhow::Result<()> {
+pub fn process() -> Result<()> {
     let args = Cli::parse();
 
     match &args.command {
@@ -35,12 +35,8 @@ pub fn process() -> anyhow::Result<()> {
             let (base_path, config_sets) = config::load_configs(path.as_deref())?;
             let config_map = ConfigMap::new(base_path, &config_sets)?;
 
-            let comp = config_map.get_comp(comp_name)?;
-            info!("Deploying Composition : {} ...", comp_name);
-            CompContext::new(comp_name, comp, &config_map, &app_args)
-                .context(format!("Composition init failed:{}", comp_name))?
-                .deploy()
-                .context(format!("Composition deploy failed:{}", comp_name))?;
+            //TODO: seprate steps, prepare , backup , apply
+            deploy_comp(comp_name, app_args, config_map)?;
         }
         Some(Commands::Draw {
             sketch_names,
@@ -75,6 +71,17 @@ pub fn process() -> anyhow::Result<()> {
             // let configs = config::load_configs(args.path.as_deref())?;
         }
     }
+    Ok(())
+}
+
+fn deploy_comp(comp_name: &String, app_args: AppArgs, config_map: ConfigMap<'_>) -> Result<()> {
+    let comp = config_map.get_comp(comp_name)?;
+    info!("Deploying Composition : {} ...", comp_name);
+
+    CompContext::new(comp_name, comp, &config_map, &app_args)
+        .context(format!("Composition init failed:{}", comp_name))?
+        .deploy()
+        .context(format!("Composition deploy failed:{}", comp_name))?;
     Ok(())
 }
 
