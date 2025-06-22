@@ -1,5 +1,5 @@
-mod model;
-pub use model::ActionSource;
+mod types;
+pub use types::ActionSource;
 
 use anyhow::{Context, Result};
 use tracing::info;
