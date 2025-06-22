@@ -18,3 +18,11 @@ pub struct Composition {
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub environment: HashMap<String, String>,
 }
+impl Composition {
+    pub fn new(sketches: Vec<String>) -> Self {
+        Self {
+            sketch: sketches,
+            ..Default::default()
+        }
+    }
+}

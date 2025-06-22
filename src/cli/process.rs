@@ -1,5 +1,6 @@
 use super::parser::{Cli, Commands};
 use crate::config::ConfigMap;
+use crate::model::Composition;
 use crate::{
     composition::{AppArgs, CompContext},
     config,
@@ -36,7 +37,8 @@ pub fn process() -> Result<()> {
             let config_map = ConfigMap::new(base_path, &config_sets)?;
 
             //TODO: seprate steps, prepare , backup , apply
-            deploy_comp(comp_name, app_args, config_map)?;
+            let comp = config_map.get_comp(comp_name)?;
+            deploy_comp(comp_name, comp, app_args, &config_map)?;
         }
         Some(Commands::Draw {
             sketch_names,
@@ -57,6 +59,8 @@ pub fn process() -> Result<()> {
             let config_map = ConfigMap::new(base_path, &config_sets)?;
 
             //TODO: seprate steps, prepare , backup , apply
+            let comp = Composition::new(sketch_names.clone());
+            deploy_comp("draw_sketches", &comp, app_args, &config_map)?;
         }
         Some(Commands::Schema) => {
             let path = std::env::current_dir().unwrap().join("didm.schema.json");
@@ -74,11 +78,14 @@ pub fn process() -> Result<()> {
     Ok(())
 }
 
-fn deploy_comp(comp_name: &String, app_args: AppArgs, config_map: ConfigMap<'_>) -> Result<()> {
-    let comp = config_map.get_comp(comp_name)?;
+fn deploy_comp(
+    comp_name: &str,
+    comp: &Composition,
+    app_args: AppArgs,
+    config_map: &ConfigMap<'_>,
+) -> Result<()> {
     info!("Deploying Composition : {} ...", comp_name);
-
-    CompContext::new(comp_name, comp, &config_map, &app_args)
+    CompContext::new(comp_name, comp, config_map, &app_args)
         .context(format!("Composition init failed:{}", comp_name))?
         .deploy()
         .context(format!("Composition deploy failed:{}", comp_name))?;
