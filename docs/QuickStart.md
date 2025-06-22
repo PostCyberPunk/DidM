@@ -30,7 +30,7 @@ target_path = "$XDG_CONFIG_HOME"
 sketches = ["all"]
 ```
 
-Running `didm deploy basic` inside the `myDotfiles` directory results in:
+Running `DidM deploy basic` inside the `myDotfiles` directory results in:
 
 ```
 ~/.config
@@ -55,6 +55,17 @@ This makes it easy to manage dotfiles using Git.
 # Any relative paths inside an included file are resolved based on that file’s location.
 # Default: []
 include = ["./themes/palettes.toml"]
+
+[skip_check]
+#whether to skip check if the current directory is a git repository
+#Default: false
+is_git_workspace = false
+#whether to skip check if the current directory is a symlink
+#Default: false
+is_working_dir_symlink = false
+#whether to skip check if the path contains unresolved environment variables
+#Default: false
+unresolved_env = false
 
 # Configuration priority order:
 # sketch.override_behaviour > composition.override_behaviour > behaviour
@@ -96,6 +107,10 @@ unit = "file"
 # Default: []
 ignore = ["README.md"]
 
+#only deal with files in ignore
+#default:false
+only_ignore=false
+
 # Whether to respect `.gitignore` rules.
 # Default: true (respect `.gitignore`)
 respect_gitignore = true
@@ -106,11 +121,13 @@ ignore_hidden = false
 
 # Files that will be linked to `/dev/null`.
 # Relative path from `target_path`.
+# !This will never overwrite existed files
 # Default: []
 null_files = []
 
 # Files that should be created as empty files.
 # Relative path resolved from `target_path`.
+# !This will never overwrite existed files
 # Default: []
 empty_files = []
 
@@ -173,9 +190,38 @@ environment = []
 
 ## Known Issues
 
-1. `didm` will ignore any `symlinks` from source directory.
+1. `DidM` will ignore any `symlinks` from source directory.
 
 ## Upcoming Features
+
+### Variants
+
+If you have configuration files with multiple variants—for instance, differing hardware settings between a laptop and desktop—you can use the switcher:
+
+```hyprlang
+# ~/myDotfiles/hypr/hyprland.conf
+source=$XDG_CONFIG_HOME/hypr/hardware.conf
+```
+
+Organize files accordingly:
+
+```
+~/myDotfiles
+└── hypr
+    ├── didm_va_hardware.conf
+    │   ├── desktop.conf
+    │   └── laptop.conf
+    └── hyprland.conf
+```
+
+Running `DidM deploy some_composition --variants laptop` will result in:
+
+```
+~/.config
+└── hypr
+    ├─ hardware.conf -> ~/myDotfiles/hypr/didm_va_hardware/laptop.conf
+    └─ hyprland.conf -> ~/myDotfiles/hypr/hyprland.conf
+```
 
 ### Color Palettes
 
@@ -202,45 +248,16 @@ Then, mark colors in your configuration files:
 
 ```css
 /* ~/myDotfiles/waybar/style.css */
-@define-color base   $<didm_color_base01_hex>;
+@define-color base   $<didm_palette_base01_hex>;
 ```
 
-Running `didm deploy some_composition --colorpalette my_palette` will replace variables in a copy of the relevant files and then link them to the target location.
+Running `DidM deploy some_composition --colorpalette my_palette` will replace variables in a copy of the relevant files and then link them to the target location.
 
 ```css
 /* ~/.config/waybar/style.css */
-/* link to ~/myDotfiles/didm_palelete_output/waybar/style.css */
+/* link to ~/myDotfiles/didm_palelte_output/waybar/style.css */
 @define-color base   #000000;
 /* ... */
-```
-
-### Switcher
-
-If you have configuration files with multiple variants—for instance, differing hardware settings between a laptop and desktop—you can use the switcher:
-
-```hyprlang
-# ~/myDotfiles/hypr/hyprland.conf
-source=$XDG_CONFIG_HOME/hypr/hardware.conf
-```
-
-Organize files accordingly:
-
-```
-~/myDotfiles
-└── hypr
-    ├── _didsw_hardware.conf
-    │   ├── desktop.conf
-    │   └── laptop.conf
-    └── hyprland.conf
-```
-
-Running `didm deploy some_composition --switch laptop` will result in:
-
-```
-~/.config
-└── hypr
-    ├─ hardware.conf -> ~/myDotfiles/hypr/_didsw_hardware/laptop.conf
-    └─ hyprland.conf -> ~/myDotfiles/hypr/hyprland.conf
 ```
 
 ### Merger
