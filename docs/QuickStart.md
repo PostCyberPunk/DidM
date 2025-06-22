@@ -30,7 +30,7 @@ target_path = "$XDG_CONFIG_HOME"
 sketches = ["all"]
 ```
 
-Running `DidM deploy basic` inside the `myDotfiles` directory results in:
+Running `DidM render basic` inside the `myDotfiles` directory results in:
 
 ```
 ~/.config
@@ -214,7 +214,7 @@ Organize files accordingly:
     └── hyprland.conf
 ```
 
-Running `DidM deploy some_composition --variants laptop` will result in:
+Running `DidM render some_composition --variants laptop` will result in:
 
 ```
 ~/.config
@@ -251,7 +251,7 @@ Then, mark colors in your configuration files:
 @define-color base   $<didm_palette_base01_hex>;
 ```
 
-Running `DidM deploy some_composition --colorpalette my_palette` will replace variables in a copy of the relevant files and then link them to the target location.
+Running `DidM render some_composition --colorpalette my_palette` will replace variables in a copy of the relevant files and then link them to the target location.
 
 ```css
 /* ~/.config/waybar/style.css */
