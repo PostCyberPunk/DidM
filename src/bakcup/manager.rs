@@ -3,8 +3,9 @@ use std::{
     fs::{self},
     path::{Path, PathBuf},
 };
+use tracing::warn;
 
-use crate::{entries::SouceType, log::Logger, utils::PathExtension};
+use crate::{entries::SouceType, utils::PathExtension};
 
 use super::{BackupRoot, BackupState, error::BackupError};
 
@@ -41,35 +42,25 @@ impl BackupManager {
         })
     }
 
-    pub fn backup_normal(
-        &self,
-        src: &Path,
-        relative: &Path,
-        logger: &Logger,
-    ) -> Result<BackupState> {
+    pub fn backup_normal(&self, src: &Path, relative: &Path) -> Result<BackupState> {
         if !src.exists() {
             return Ok(BackupState::Ok);
         }
-        if Self::check_symlink(src, logger) {
+        if Self::check_symlink(src) {
             return Ok(BackupState::Symlink);
         }
 
         let dest_path = self.normal_path.join(relative);
 
-        self.do_backup(src, &dest_path, logger)?;
+        self.do_backup(src, &dest_path)?;
         Ok(BackupState::Backuped)
     }
 
-    pub fn backup_other(
-        &self,
-        src: &Path,
-        logger: &Logger,
-        src_type: SouceType,
-    ) -> Result<BackupState> {
+    pub fn backup_other(&self, src: &Path, src_type: SouceType) -> Result<BackupState> {
         if !src.exists() {
             return Ok(BackupState::Ok);
         }
-        if Self::check_symlink(src, logger) {
+        if Self::check_symlink(src) {
             return Ok(BackupState::Symlink);
         }
         let _dir = match src_type {
@@ -89,11 +80,11 @@ impl BackupManager {
         let encoded_path = urlencoding::encode(&parent_path.to_string_lossy()).into_owned();
         let backup_path = _dir.join(encoded_path).join(filename);
 
-        self.do_backup(src, &backup_path, logger)?;
+        self.do_backup(src, &backup_path)?;
         Ok(BackupState::Backuped)
     }
 
-    fn do_backup(&self, src: &Path, dest: &Path, logger: &Logger) -> Result<()> {
+    fn do_backup(&self, src: &Path, dest: &Path) -> Result<()> {
         if dest.exists() {
             return Err(BackupError::BackupExsisted(dest.display().to_string()).into());
         }
@@ -103,24 +94,20 @@ impl BackupManager {
             fs::rename(src, dest).context("Failed to move target")?;
         }
 
-        logger.warn(&format!(
-            "Backup {} to\n        {}",
-            src.display(),
-            dest.display()
-        ));
+        warn!("Backup {} to\n        {}", src.display(), dest.display());
         Ok(())
     }
 
-    fn check_symlink(src: &Path, logger: &Logger) -> bool {
+    fn check_symlink(src: &Path) -> bool {
         if src.is_symlink() {
-            logger.warn(&format!(
+            warn!(
                 "Symlink will be removed at:{}\n        Target:{}",
                 src.display(),
                 src.read_link().map_or_else(
                     |_| String::from("Invalid symlink target"),
                     |p| p.display().to_string()
                 )
-            ));
+            );
             return true;
         }
         false

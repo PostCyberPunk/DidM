@@ -1,7 +1,7 @@
 use super::executor::CommandExecutor;
-use crate::log::Logger;
 use anyhow::Result;
 use std::{collections::HashMap, path::PathBuf};
+use tracing::{debug, error, info, warn};
 
 pub struct CommandsContext<'a> {
     environment: &'a HashMap<String, String>,
@@ -27,18 +27,19 @@ impl<'a> CommandsContext<'a> {
             post_commands,
         }
     }
-    pub fn run(&self, cmds: &[String], logger: &'a Logger, is_dryrun: bool) -> Result<()> {
+    pub fn run(&self, cmds: &[String], is_dryrun: bool) -> Result<()> {
         if cmds.is_empty() {
             return Ok(());
         }
         let environment = self.environment;
         let path = &self.path;
-        logger.debug(&format!("command path {}", path.display()));
+        debug!("command path {}", path.display());
+
         for cmd in cmds {
-            logger.info(&format!("Executing: {}", cmd));
+            info!("Executing: {}", cmd);
 
             if is_dryrun {
-                logger.info(&format!("(dry-run): {}", cmd));
+                info!("(dry-run): {}", cmd);
                 continue;
             }
 
@@ -50,26 +51,26 @@ impl<'a> CommandsContext<'a> {
                     let stdout = String::from_utf8_lossy(&output.stdout);
                     let stderr = String::from_utf8_lossy(&output.stderr);
                     if !stdout.is_empty() {
-                        logger.info(&format!("stdout:\n{}", stdout));
+                        info!("stdout:\n{}", stdout);
                     }
                     if !stderr.is_empty() {
-                        logger.warn(&format!("stderr:\n{}", stderr));
+                        warn!("stderr:\n{}", stderr);
                     }
                     if !output.status.success() {
-                        logger.error(&format!(
+                        error!(
                             "Command execution failed{} exit code:{}",
                             cmd,
                             output.status.code().unwrap_or(-1)
-                        ));
+                        );
                         if self.stop_at_commands_error {
                             return Err(anyhow::anyhow!("Command execution failed:{}", cmd));
                         }
                     } else {
-                        logger.info("Command execution success");
+                        info!("Command execution success");
                     }
                 }
                 Err(e) => {
-                    logger.error(&format!("Command {} with error: {}", cmd, e));
+                    error!("Command {} with error: {}", cmd, e);
                     if self.stop_at_commands_error {
                         return Err(anyhow::anyhow!("Command execution failed:{}", cmd));
                     }
