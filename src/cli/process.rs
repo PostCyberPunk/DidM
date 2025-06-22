@@ -27,6 +27,7 @@ pub fn process() -> Result<()> {
             let app_args = AppArgs {
                 is_dryrun: *dry_run,
                 is_verbose: *verbose,
+                is_debug: args.debug,
             };
 
             init_logger(app_args.is_verbose, args.debug);
@@ -49,6 +50,7 @@ pub fn process() -> Result<()> {
             let app_args = AppArgs {
                 is_dryrun: *dry_run,
                 is_verbose: *verbose,
+                is_debug: args.debug,
             };
 
             init_logger(app_args.is_verbose, args.debug);
