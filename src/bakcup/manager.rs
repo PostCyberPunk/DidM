@@ -41,47 +41,45 @@ impl BackupManager {
             // null_path,
         })
     }
-
-    pub fn backup_normal(&self, src: &Path, relative: &Path) -> Result<BackupState> {
+    pub async fn bakcup_async(
+        &self,
+        src: &Path,
+        relative: Option<PathBuf>,
+        src_type: SouceType,
+    ) -> Result<BackupState> {
         if !src.exists() {
             return Ok(BackupState::Ok);
         }
         if Self::check_symlink(src) {
             return Ok(BackupState::Symlink);
         }
-
-        let dest_path = self.normal_path.join(relative);
+        let dest_path = match src_type {
+            SouceType::Normal => self.normal_path.join(relative.context("No relative path")?),
+            SouceType::Extra => self.get_extra_path(src)?,
+            _ => {
+                return Ok(BackupState::Skip);
+            }
+        };
 
         self.do_backup(src, &dest_path)?;
+
         Ok(BackupState::Backuped)
     }
 
-    pub fn backup_other(&self, src: &Path, src_type: SouceType) -> Result<BackupState> {
-        if !src.exists() {
-            return Ok(BackupState::Ok);
-        }
-        if Self::check_symlink(src) {
-            return Ok(BackupState::Symlink);
-        }
-        let _dir = match src_type {
-            // SouceType::Normal => {
-            //     return Err(BackupError::BugWrongType.into());
-            // }
-            // SouceType::Null => &self.null_path,
-            // SouceType::Empty => &self.empty_path,
-            SouceType::Extra => &self.extra_path,
-            _ => {
-                return Err(BackupError::BugWrongType.into());
-            }
-        };
-        let parent_path = src.parent().unwrap();
-        let filename = src.file_name().unwrap();
+    fn get_extra_path(&self, src: &Path) -> Result<PathBuf> {
+        let _dir = &self.extra_path;
+
+        let parent_path = src
+            .parent()
+            .with_context(|| format!("Failed to get parent directory:{:?}", src))?;
+
+        let filename = src
+            .file_name()
+            .with_context(|| format!("Failed to get file_name:{:?}", src))?;
 
         let encoded_path = urlencoding::encode(&parent_path.to_string_lossy()).into_owned();
-        let backup_path = _dir.join(encoded_path).join(filename);
-
-        self.do_backup(src, &backup_path)?;
-        Ok(BackupState::Backuped)
+        let dest_path = _dir.join(encoded_path).join(filename);
+        Ok(dest_path)
     }
 
     fn do_backup(&self, src: &Path, dest: &Path) -> Result<()> {
