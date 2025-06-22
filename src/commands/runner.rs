@@ -2,7 +2,6 @@ use anyhow::Result;
 use tracing::info;
 
 use crate::{
-    log::Logger,
     model::Sketch,
     utils::{PathResolver, ResolvedPath},
 };
@@ -11,15 +10,13 @@ use super::CommandsContext;
 
 pub struct CommandsRunner<'a> {
     context: Vec<CommandsContext<'a>>,
-    logger: &'a Logger,
     is_dryrun: bool,
 }
 
 impl<'a> CommandsRunner<'a> {
-    pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
+    pub fn new(is_dryrun: bool) -> Self {
         Self {
             context: Vec::new(),
-            logger,
             is_dryrun,
         }
     }
@@ -64,7 +61,7 @@ impl<'a> CommandsRunner<'a> {
         info!("Running {} commands", label);
 
         for ctx in &self.context {
-            ctx.run(commands_selector(ctx), self.logger, self.is_dryrun)?;
+            ctx.run(commands_selector(ctx), self.is_dryrun)?;
         }
 
         Ok(())

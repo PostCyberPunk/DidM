@@ -1,7 +1,6 @@
 use super::{super::Entry, EntriesManager, list::EntriesList};
 use crate::{
     entries::DirWalker,
-    log::Logger,
     model::{Behaviour, Sketch, sketch::Mode},
     utils::{Checker, PathResolver, ResolvedPath},
 };
@@ -10,9 +9,8 @@ use std::path::{Path, PathBuf};
 use tracing::{info, warn};
 
 impl<'a> EntriesManager<'a> {
-    pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
+    pub fn new(is_dryrun: bool) -> Self {
         Self {
-            logger,
             is_dryrun,
             entry_list: EntriesList::default(),
         }
@@ -27,8 +25,8 @@ impl<'a> EntriesManager<'a> {
     ) -> Result<ResolvedPath> {
         let result = PathResolver::resolve_from(base_path, path, should_check_exist)
             .with_context(|| format!("Invalid {} path: {}", ctx, path))?;
-        self.logger
-            .info(&format!("{} path: {}", ctx, result.di_string()));
+
+        info!("{} path: {}", ctx, result.di_string());
         Ok(result)
     }
 
@@ -39,7 +37,7 @@ impl<'a> EntriesManager<'a> {
         target_root: &ResolvedPath,
         overwrite_existed: bool,
     ) -> Result<()> {
-        let source_paths = DirWalker::new(sketch, source_root.get(), self.logger)
+        let source_paths = DirWalker::new(sketch, source_root.get())
             .get_walker()?
             .run()?;
         for source_path in source_paths {

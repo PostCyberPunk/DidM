@@ -1,4 +1,3 @@
-use crate::log::Logger;
 use crate::model::sketch::{Mode, Sketch, Unit};
 use anyhow::{Context, Result};
 use ignore::WalkBuilder;
@@ -11,7 +10,6 @@ use tracing::error;
 pub struct DirWalker<'a> {
     walker: Option<WalkBuilder>,
     base_path: &'a Path,
-    logger: &'a Logger,
     ignore: &'a Vec<String>,
     respect_gitignore: bool,
     ignore_hidden: bool,
@@ -21,10 +19,9 @@ pub struct DirWalker<'a> {
 }
 
 impl<'a> DirWalker<'a> {
-    pub fn new(sketch: &'a Sketch, base_path: &'a Path, logger: &'a Logger) -> Self {
+    pub fn new(sketch: &'a Sketch, base_path: &'a Path) -> Self {
         Self {
             walker: None,
-            logger,
             base_path,
             ignore: &sketch.ignore,
             respect_gitignore: sketch.respect_gitignore,
@@ -73,7 +70,6 @@ impl<'a> DirWalker<'a> {
         Ok(self)
     }
     pub fn run(&self) -> Result<Vec<PathBuf>> {
-        let logger = self.logger;
         let walker = self.walker.as_ref().ok_or_else(|| {
             error!("Worker not initialized");
             anyhow::anyhow!("Failed to get walker, issue this with log and your configuration")

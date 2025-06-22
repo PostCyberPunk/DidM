@@ -13,7 +13,6 @@ impl<'a> EntriesManager<'a> {
         Ok(())
     }
     fn apply_list(&self, mode: Mode) {
-        let logger = self.logger;
         let list = match mode {
             Mode::Copy => &self.entry_list.copy_list,
             Mode::Symlink => &self.entry_list.link_list,

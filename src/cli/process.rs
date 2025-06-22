@@ -1,7 +1,6 @@
 use super::parser::{Cli, Commands};
 use crate::config::ConfigMap;
 use crate::log::LogLevel;
-use crate::utils;
 use crate::{
     composition::{AppArgs, CompContext},
     config,
@@ -61,7 +60,7 @@ pub fn process() -> anyhow::Result<()> {
             let config_map = ConfigMap::new(base_path, &config_sets)?;
 
             //TODO: seprate steps, prepare , backup , apply
-            CompContext::new(comp_name, &config_map, &app_args, &logger)
+            CompContext::new(comp_name, &config_map, &app_args)
                 .context(format!("Composition init failed:{}", comp_name))?
                 .deploy()
                 .context(format!("Composition deploy failed:{}", comp_name))?;

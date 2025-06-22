@@ -1,5 +1,4 @@
 use super::executor::CommandExecutor;
-use crate::log::Logger;
 use anyhow::Result;
 use std::{collections::HashMap, path::PathBuf};
 use tracing::{debug, error, info, warn};
@@ -28,7 +27,7 @@ impl<'a> CommandsContext<'a> {
             post_commands,
         }
     }
-    pub fn run(&self, cmds: &[String], logger: &'a Logger, is_dryrun: bool) -> Result<()> {
+    pub fn run(&self, cmds: &[String], is_dryrun: bool) -> Result<()> {
         if cmds.is_empty() {
             return Ok(());
         }

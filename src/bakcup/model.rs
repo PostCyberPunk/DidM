@@ -4,10 +4,7 @@ use anyhow::{Context, Result};
 use chrono::Local;
 use tracing::warn;
 
-use crate::{
-    log::Logger,
-    utils::{PathExtension, ResolvedPath},
-};
+use crate::utils::{PathExtension, ResolvedPath};
 
 use super::error;
 

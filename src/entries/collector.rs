@@ -1,7 +1,6 @@
 use crate::{
     bakcup::{BackupManager, BackupState},
     entries::DirWalker,
-    log::Logger,
     model::{Behaviour, Sketch, sketch::Mode},
     utils::{Checker, PathResolver, ResolvedPath},
 };
@@ -19,7 +18,6 @@ where
     target_root: ResolvedPath,
     entries_manager: &'a mut EntriesManager<'b>,
     sketch: &'a Sketch,
-    logger: &'a Logger,
     backup_manager: Option<BackupManager>,
     overwrite_existed: bool,
     is_dryrun: bool,
@@ -37,17 +35,14 @@ where
         behaviour: &Behaviour,
         backup_manager: Option<BackupManager>,
     ) -> Result<Self> {
-        let logger = entries_manager.logger;
         info!("Generating entries for `{}` ...", sketch_name);
 
         let is_dryrun = entries_manager.is_dryrun;
         let overwrite_existed = behaviour.overwrite_existed.unwrap();
 
         //Reoslve Path
-        let source_root =
-            Self::resolve_path(logger, base_path, &sketch.source_path, "source", true)?;
-        let target_root =
-            Self::resolve_path(logger, base_path, &sketch.target_path, "target", false)?;
+        let source_root = Self::resolve_path(base_path, &sketch.source_path, "source", true)?;
+        let target_root = Self::resolve_path(base_path, &sketch.target_path, "target", false)?;
 
         //Check target exist
         let exist = Checker::target_exisit_or_create(target_root.get())?;
@@ -59,7 +54,6 @@ where
             source_root,
             target_root,
             sketch,
-            logger,
             backup_manager,
             overwrite_existed,
             is_dryrun,
@@ -103,18 +97,15 @@ where
         if s_type != SouceType::Normal {
             entry.bakcup_state = match &self.backup_manager {
                 None => BackupState::Ok,
-                Some(bakcuper) => {
-                    match bakcuper.backup_other(&entry.target_path, self.logger, s_type) {
-                        Ok(s) => s,
-                        _ => BackupState::Skip,
-                    }
-                }
+                Some(bakcuper) => match bakcuper.backup_other(&entry.target_path, s_type) {
+                    Ok(s) => s,
+                    _ => BackupState::Skip,
+                },
             };
         }
         self.entries_manager.add_entry(mode, entry);
     }
     fn resolve_path(
-        logger: &Logger,
         base_path: &ResolvedPath,
         path: &str,
         ctx: &str,
@@ -127,7 +118,7 @@ where
     }
 
     fn get_normal_entries(&mut self) -> Result<()> {
-        let source_paths = DirWalker::new(self.sketch, self.source_root.get(), self.logger)
+        let source_paths = DirWalker::new(self.sketch, self.source_root.get())
             .get_walker()?
             .run()?;
         for source_path in source_paths {
@@ -142,12 +133,10 @@ where
             // BAKCUP
             let bakcup_state = match &self.backup_manager {
                 None => BackupState::Ok,
-                Some(bakcuper) => {
-                    match bakcuper.backup_normal(&target_path, relative_path, self.logger) {
-                        Ok(s) => s,
-                        _ => BackupState::Skip,
-                    }
-                }
+                Some(bakcuper) => match bakcuper.backup_normal(&target_path, relative_path) {
+                    Ok(s) => s,
+                    _ => BackupState::Skip,
+                },
             };
             let mut entry = Entry::new(source_path, target_path, self.overwrite_existed);
             entry.bakcup_state = bakcup_state;
@@ -166,14 +155,12 @@ where
             let rp = PathResolver::resolve_from(&self.target_root, path, false);
             let entry = match rp {
                 Err(err) => {
-                    self.logger
-                        .warn(&format!("Skipping entry:{}\nCasuse:{}", path, err));
+                    warn!("Skipping entry:{}\nCasuse:{}", path, err);
                     continue;
                 }
                 Ok(target_path) => {
                     if target_path.get().exists() {
-                        self.logger
-                            .info(&format!("(null/empty) Skipping existed target:{}", path));
+                        info!("(null/empty) Skipping existed target:{}", path);
                         continue;
                     }
                     Entry::new(source_path.to_path_buf(), target_path.into_pathbuf(), false)
@@ -186,16 +173,9 @@ where
     fn get_extra_entris(&mut self, sketch: &Sketch) -> Result<()> {
         for extra in sketch.extra_entries.iter() {
             let e = Entry::new(
+                Self::resolve_path(&self.source_root, &extra.source_path, "extra entry", true)?
+                    .into_pathbuf(),
                 Self::resolve_path(
-                    self.logger,
-                    &self.source_root,
-                    &extra.source_path,
-                    "extra entry",
-                    true,
-                )?
-                .into_pathbuf(),
-                Self::resolve_path(
-                    self.logger,
                     &self.target_root,
                     &extra.target_path,
                     "extra entry target",
