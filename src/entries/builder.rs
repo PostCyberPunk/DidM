@@ -15,6 +15,7 @@ pub struct EntryBuilder<'a> {
     relative_path: Option<PathBuf>,
     ctx: EntryBuilderCtx<'a>,
     source_type: SouceType,
+    overwrite: Option<bool>,
 }
 
 impl<'a> EntryBuilder<'a> {
@@ -26,9 +27,10 @@ impl<'a> EntryBuilder<'a> {
         Self {
             source: source.into(),
             target: target.into(),
-            source_type: SouceType::Normal,
             relative_path: None,
             ctx: config,
+            source_type: SouceType::Normal,
+            overwrite: None,
         }
     }
 
@@ -39,6 +41,10 @@ impl<'a> EntryBuilder<'a> {
 
     pub fn relative_path(mut self, path: PathBuf) -> Self {
         self.relative_path = Some(path);
+        self
+    }
+    pub fn overwrite(mut self, overwrite: bool) -> Self {
+        self.overwrite = Some(overwrite);
         self
     }
 
@@ -54,7 +60,11 @@ impl<'a> EntryBuilder<'a> {
             target_path = PathBuf::from(target_path.to_str().unwrap().replace("dot-", "."));
         };
 
-        let mut entry = Entry::new(self.source, target_path, self.ctx.overwrite);
+        let mut entry = Entry::new(
+            self.source,
+            target_path,
+            self.overwrite.unwrap_or(self.ctx.overwrite),
+        );
 
         //Bakcuper
         if let Some(bm) = self.ctx.backup_manager {
