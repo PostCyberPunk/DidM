@@ -7,6 +7,9 @@ pub use manager::EntriesManager;
 mod entry;
 pub use entry::Entry;
 
+mod builder;
+pub use builder::EntryBuilder;
+
 mod strategy;
 
 mod list;
