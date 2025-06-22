@@ -7,7 +7,7 @@ use super::{Entry, SouceType};
 use anyhow::Result;
 use std::path::PathBuf;
 
-pub struct EntryCtx<'a> {
+pub struct EntryBuilderCtx<'a> {
     pub mode: Mode,
     pub overwrite: bool,
     pub backup_manager: Option<&'a BackupManager>,
@@ -18,14 +18,14 @@ pub struct EntryBuilder<'a> {
     target: PathBuf,
     source_type: SouceType,
     relative_path: Option<PathBuf>,
-    ctx: EntryCtx<'a>,
+    ctx: EntryBuilderCtx<'a>,
 }
 
 impl<'a> EntryBuilder<'a> {
     pub fn new(
         source: impl Into<PathBuf>,
         target: impl Into<PathBuf>,
-        config: EntryCtx<'a>,
+        config: EntryBuilderCtx<'a>,
     ) -> Self {
         Self {
             source: source.into(),
@@ -46,19 +46,23 @@ impl<'a> EntryBuilder<'a> {
         self
     }
 
-    pub async fn build(mut self) -> Result<Entry> {
-        if let Some(path) = self.relative_path {
-            self.target = self.target.join(path);
+    pub async fn build(self) -> Result<Entry> {
+        let mut target_path = self.target;
+        if let Some(path) = &self.relative_path {
+            target_path = target_path.join(path);
         }
 
-        let mut entry = Entry::new(self.source, self.target, self.ctx.overwrite);
+        let mut entry = Entry::new(self.source, target_path, self.ctx.overwrite);
 
+        //Bakcuper
         if let Some(bm) = self.ctx.backup_manager {
-            entry.bakcup_state = match self.source_type {
-                SouceType::Normal => bm.backup_normal(&entry.target_path, &entry.source_path),
-                SouceType::Extra => bm.backup_other(&entry.target_path, self.source_type),
-                _ => Ok(BackupState::Skip),
-            }?;
+            entry.bakcup_state = match bm
+                .bakcup_async(&entry.target_path, self.relative_path, self.source_type)
+                .await
+            {
+                Ok(s) => s,
+                Err(_) => BackupState::Skip,
+            };
         }
 
         Ok(entry)
