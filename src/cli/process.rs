@@ -38,7 +38,7 @@ pub fn process() -> Result<()> {
 
             //TODO: seprate steps, prepare , backup , apply
             let comp = config_map.get_comp(comp_name)?;
-            deploy_comp(comp_name, comp, app_args, &config_map)?;
+            deploy_comp(comp_name, comp, &config_map, app_args)?;
         }
         Some(Commands::Draw {
             sketch_names,
@@ -60,7 +60,7 @@ pub fn process() -> Result<()> {
 
             //TODO: seprate steps, prepare , backup , apply
             let comp = Composition::new(sketch_names.clone());
-            deploy_comp("draw_sketches", &comp, app_args, &config_map)?;
+            deploy_comp("draw_sketches", &comp, &config_map, app_args)?;
         }
         Some(Commands::Schema) => {
             let path = std::env::current_dir().unwrap().join("didm.schema.json");
@@ -81,8 +81,8 @@ pub fn process() -> Result<()> {
 fn deploy_comp(
     comp_name: &str,
     comp: &Composition,
-    app_args: AppArgs,
     config_map: &ConfigMap<'_>,
+    app_args: AppArgs,
 ) -> Result<()> {
     info!("Deploying Composition : {} ...", comp_name);
     CompContext::new(comp_name, comp, config_map, &app_args)
