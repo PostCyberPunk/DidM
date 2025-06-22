@@ -5,7 +5,7 @@ use crate::{
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
     entries::{EntriesManager, EntryCollector},
-    model::Sketch,
+    model::{Composition, Sketch},
     utils::PathResolver,
 };
 use anyhow::{Context, Result};
@@ -17,13 +17,16 @@ pub struct CompContext<'a> {
 }
 
 impl<'a> CompContext<'a> {
-    pub fn new(comp_name: &'a str, config_map: &'a ConfigMap, args: &'a AppArgs) -> Result<Self> {
+    pub fn new(
+        comp_name: &'a str,
+        comp: &'a Composition,
+        config_map: &'a ConfigMap,
+        args: &'a AppArgs,
+    ) -> Result<Self> {
         //NOTE: order should be: error with less calculation ; then error with lager calulation
-        info!("Deploying Composition : {} ...", comp_name);
         //FIX:!!!!!!!!!this name is unclear
         //we should rename it to something like main_path
         let base_path = config_map.get_main_base_path()?;
-        let comp = config_map.get_comp(comp_name)?;
 
         let mut commands_runner = CommandsRunner::new(args.is_dryrun);
         let mut entries_manager = EntriesManager::new(args.is_dryrun);
