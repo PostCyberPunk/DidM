@@ -1,24 +1,20 @@
-use crate::{
-    bakcup::{BackupManager, BackupState},
-    model::sketch::Mode,
-};
+use crate::bakcup::{BackupManager, BackupState};
 
 use super::{Entry, SouceType};
 use anyhow::Result;
 use std::path::PathBuf;
 
 pub struct EntryBuilderCtx<'a> {
-    pub mode: Mode,
-    pub overwrite: bool,
     pub backup_manager: Option<&'a BackupManager>,
+    pub overwrite: bool,
 }
 
 pub struct EntryBuilder<'a> {
     source: PathBuf,
     target: PathBuf,
-    source_type: SouceType,
     relative_path: Option<PathBuf>,
     ctx: EntryBuilderCtx<'a>,
+    source_type: SouceType,
 }
 
 impl<'a> EntryBuilder<'a> {
