@@ -10,6 +10,8 @@ use clap::Parser;
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
+//TODO: 1. Don't use draw, use render directly,turn draw to --sketch flag
+//2.create an action builder
 pub fn process() -> Result<()> {
     let args = Cli::parse();
 
