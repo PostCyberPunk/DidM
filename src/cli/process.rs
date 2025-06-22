@@ -29,6 +29,11 @@ pub fn process() -> anyhow::Result<()> {
 
             //Prepare logger
             //tracing init
+            let std_log_level = match (app_args.is_verbose, args.debug) {
+                (_, true) => tracing::Level::DEBUG,
+                (true, false) => tracing::Level::INFO,
+                (false, false) => tracing::Level::WARN,
+            };
             let subscriber = FmtSubscriber::builder()
                 .pretty()
                 .without_time()
@@ -37,7 +42,7 @@ pub fn process() -> anyhow::Result<()> {
                 .with_file(false)
                 .with_target(false)
                 .compact()
-                .with_max_level(tracing::Level::TRACE)
+                .with_max_level(std_log_level)
                 .finish();
 
             tracing::subscriber::set_global_default(subscriber)
