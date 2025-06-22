@@ -1,21 +1,15 @@
 use super::parser::{Cli, Commands};
-use crate::config::ConfigMap;
-use crate::model::Composition;
-use crate::{
-    composition::{AppArgs, CompContext},
-    config,
-};
-use anyhow::{Context, Ok, Result};
+use crate::action;
+use crate::{composition::AppArgs, config};
+use anyhow::{Ok, Result};
 use clap::Parser;
-use tracing::info;
-use tracing_subscriber::FmtSubscriber;
 
 //TODO: 1. Don't use draw, use render directly,turn draw to --sketch flag
 //2.create an action builder
 pub fn process() -> Result<()> {
     let args = Cli::parse();
 
-    match &args.command {
+    match args.command {
         Some(Commands::Init { path, .. }) => {
             config::init_config(path.as_deref())?;
         }
@@ -27,21 +21,11 @@ pub fn process() -> Result<()> {
         }) => {
             //Porcess arg first,we may use in loader
             let app_args = AppArgs {
-                is_dryrun: *dry_run,
-                is_verbose: *verbose,
+                is_dryrun: dry_run,
+                is_verbose: verbose,
                 is_debug: args.debug,
             };
-
-            init_logger(app_args.is_verbose, args.debug);
-
-            //loader
-            //TODO: load to config_map directly
-            let (base_path, config_sets) = config::load_configs(path.as_deref())?;
-            let config_map = ConfigMap::new(base_path, &config_sets)?;
-
-            //TODO: seprate steps, prepare , backup , apply
-            let comp = config_map.get_comp(comp_name)?;
-            deploy_comp(comp_name, comp, &config_map, app_args)?;
+            action::deploy(path, comp_name, app_args, action::ActionSource::Render)?;
         }
         Some(Commands::Draw {
             sketch_names,
@@ -50,21 +34,11 @@ pub fn process() -> Result<()> {
             verbose,
         }) => {
             let app_args = AppArgs {
-                is_dryrun: *dry_run,
-                is_verbose: *verbose,
+                is_dryrun: dry_run,
+                is_verbose: verbose,
                 is_debug: args.debug,
             };
-
-            init_logger(app_args.is_verbose, args.debug);
-
-            //loader
-            //TODO: load to config_map directly
-            let (base_path, config_sets) = config::load_configs(path.as_deref())?;
-            let config_map = ConfigMap::new(base_path, &config_sets)?;
-
-            //TODO: seprate steps, prepare , backup , apply
-            let comp = Composition::new(sketch_names.clone());
-            deploy_comp("draw_sketches", &comp, &config_map, app_args)?;
+            action::deploy(path, sketch_names, app_args, action::ActionSource::Draw)?;
         }
         Some(Commands::Schema) => {
             let path = std::env::current_dir().unwrap().join("didm.schema.json");
@@ -80,40 +54,4 @@ pub fn process() -> Result<()> {
         }
     }
     Ok(())
-}
-
-fn deploy_comp(
-    comp_name: &str,
-    comp: &Composition,
-    config_map: &ConfigMap<'_>,
-    app_args: AppArgs,
-) -> Result<()> {
-    info!("Deploying Composition : {} ...", comp_name);
-    CompContext::new(comp_name, comp, config_map, &app_args)
-        .context(format!("Composition init failed:{}", comp_name))?
-        .deploy()
-        .context(format!("Composition deploy failed:{}", comp_name))?;
-    Ok(())
-}
-
-fn init_logger(is_verbose: bool, is_debug: bool) {
-    //Prepare logger
-    //tracing init
-    let std_log_level = match (is_verbose, is_debug) {
-        (_, true) => tracing::Level::DEBUG,
-        (true, false) => tracing::Level::INFO,
-        (false, false) => tracing::Level::WARN,
-    };
-    let subscriber = FmtSubscriber::builder()
-        .pretty()
-        .without_time()
-        .with_ansi(true)
-        .with_line_number(false)
-        .with_file(false)
-        .with_target(false)
-        .compact()
-        .with_max_level(std_log_level)
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 }

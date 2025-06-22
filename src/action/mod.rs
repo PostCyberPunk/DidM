@@ -11,7 +11,7 @@ use crate::{
     model::Composition,
 };
 
-pub fn Deploy(
+pub fn deploy(
     path: Option<String>,
     arg: Vec<String>,
     app_args: AppArgs,

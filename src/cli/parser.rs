@@ -20,7 +20,8 @@ pub enum Commands {
     },
     #[command(arg_required_else_help = true)]
     Render {
-        comp_name: String,
+        #[arg(value_delimiter = ',')]
+        comp_name: Vec<String>,
         #[arg(short, long)]
         path: Option<String>,
         #[arg(short = 'n', long)]
