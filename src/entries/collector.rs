@@ -132,6 +132,7 @@ impl<'a> EntryCollector<'a> {
                     _ => BackupState::Skip,
                 },
             };
+            //FIX: this won't backup target
             let mut entry = Entry::new(source_path, target_path, self.overwrite_existed);
             entry.bakcup_state = bakcup_state;
             self.add_entry(entry, self.sketch.mode, SouceType::Normal);

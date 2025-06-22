@@ -78,7 +78,7 @@ impl<'a> CompContext<'a> {
         // let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
         self.commands_runner.run_pre_commands()?;
 
-        self.entries_manager.copy_and_link()?;
+        self.entries_manager.apply_all();
 
         self.commands_runner.run_post_commands()?;
         Ok(())
