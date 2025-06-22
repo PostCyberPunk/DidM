@@ -1,6 +1,7 @@
 use crate::model::DidmConfig;
 use crate::utils::{PathResolver, ResolvedPath};
 use anyhow::{Context, Result};
+use tracing::info;
 
 use super::ConfigSet;
 use super::map::ConfigError;
@@ -12,8 +13,10 @@ const DEFAULT_CONFIG_PATH: &str = "./didm.toml";
 
 //TODO: add detailed error handling for load config
 pub fn load_config(config_path: ResolvedPath) -> Result<ConfigSet> {
-    let content = fs::read_to_string(config_path.get())?;
+    let path = config_path.get();
+    let content = fs::read_to_string(path)?;
     let config: DidmConfig = toml::from_str(&content)?;
+    info!("loading from config:{path:#?}");
     Ok(ConfigSet(config_path, config))
 }
 pub fn load_configs(path: Option<&str>) -> Result<(ResolvedPath, Vec<ConfigSet>)> {
@@ -24,6 +27,7 @@ pub fn load_configs(path: Option<&str>) -> Result<(ResolvedPath, Vec<ConfigSet>)
             "Config file not found by current path,consider use `didm init` or specify path with `--path`".to_string()
         })?;
 
+    info!("Loading configs from:{path}");
     let base_path = resolved_config_path.to_parent().unwrap();
     let base_configset = load_config(resolved_config_path)?;
 
