@@ -97,7 +97,7 @@ impl<'a> EntryCollector<'a> {
                 },
             };
         }
-        self.entries_manager.add_entry(mode, entry);
+        // self.entries_manager.add_entry(mode, entry);
     }
     fn resolve_path(
         base_path: &ResolvedPath,
