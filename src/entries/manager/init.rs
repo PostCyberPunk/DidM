@@ -7,6 +7,7 @@ use crate::{
 };
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
+use tracing::{info, warn};
 
 impl<'a> EntriesManager<'a> {
     pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
@@ -45,7 +46,7 @@ impl<'a> EntriesManager<'a> {
             let relative_path = match source_path.strip_prefix(source_root.get()) {
                 Ok(p) => p,
                 Err(e) => {
-                    self.logger.warn(&format!("Invalid entry path: {}", e));
+                    warn!("Invalid entry path: {}", e);
                     continue;
                 }
             };
@@ -123,7 +124,7 @@ impl<'a> EntriesManager<'a> {
         let should_backup = behaviour.should_backup();
         let overwrite_existed = behaviour.overwrite_existed.unwrap();
 
-        logger.info(&format!("Generating entries for `{}` ...", sketch_name));
+        info!("Generating entries for `{}` ...", sketch_name);
         //Reoslve Path
         let source_root = self.resolve_path(base_path, &sketch.source_path, "source", true)?;
         let target_root = self.resolve_path(base_path, &sketch.target_path, "target", false)?;

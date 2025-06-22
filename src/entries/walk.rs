@@ -4,6 +4,7 @@ use anyhow::{Context, Result};
 use ignore::WalkBuilder;
 use ignore::overrides::OverrideBuilder;
 use std::path::{Path, PathBuf};
+use tracing::error;
 
 //TODO: can't kill self,
 //this should be oneshot,so init and run then dead
@@ -74,7 +75,7 @@ impl<'a> DirWalker<'a> {
     pub fn run(&self) -> Result<Vec<PathBuf>> {
         let logger = self.logger;
         let walker = self.walker.as_ref().ok_or_else(|| {
-            logger.error("Worker not initialized");
+            error!("Worker not initialized");
             anyhow::anyhow!("Failed to get walker, issue this with log and your configuration")
         })?;
 

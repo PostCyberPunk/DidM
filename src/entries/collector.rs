@@ -7,6 +7,7 @@ use crate::{
 };
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
+use tracing::{info, warn};
 
 use super::{EntriesManager, Entry, SouceType};
 
@@ -37,7 +38,7 @@ where
         backup_manager: Option<BackupManager>,
     ) -> Result<Self> {
         let logger = entries_manager.logger;
-        logger.info(&format!("Generating entries for `{}` ...", sketch_name));
+        info!("Generating entries for `{}` ...", sketch_name);
 
         let is_dryrun = entries_manager.is_dryrun;
         let overwrite_existed = behaviour.overwrite_existed.unwrap();
@@ -121,7 +122,7 @@ where
     ) -> Result<ResolvedPath> {
         let result = PathResolver::resolve_from(base_path, path, should_check_exist)
             .with_context(|| format!("Invalid {} path: {}", ctx, path))?;
-        logger.info(&format!("{} path: {}", ctx, result.di_string()));
+        info!("{} path: {}", ctx, result.di_string());
         Ok(result)
     }
 
@@ -133,7 +134,7 @@ where
             let relative_path = match source_path.strip_prefix(self.source_root.get()) {
                 Ok(p) => p,
                 Err(e) => {
-                    self.logger.warn(&format!("Invalid entry path: {}", e));
+                    warn!("Invalid entry path: {}", e);
                     continue;
                 }
             };

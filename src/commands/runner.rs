@@ -1,4 +1,5 @@
 use anyhow::Result;
+use tracing::info;
 
 use crate::{
     log::Logger,
@@ -60,7 +61,7 @@ impl<'a> CommandsRunner<'a> {
             return Ok(());
         }
 
-        self.logger.info(&format!("Running {} commands", label));
+        info!("Running {} commands", label);
 
         for ctx in &self.context {
             ctx.run(commands_selector(ctx), self.logger, self.is_dryrun)?;

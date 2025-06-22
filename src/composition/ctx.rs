@@ -10,6 +10,7 @@ use crate::{
     utils::PathResolver,
 };
 use anyhow::{Context, Result};
+use tracing::info;
 
 pub struct CompContext<'a> {
     pub commands_runner: CommandsRunner<'a>,
@@ -24,7 +25,7 @@ impl<'a> CompContext<'a> {
         logger: &'a Logger,
     ) -> Result<Self> {
         //NOTE: order should be: error with less calculation ; then error with lager calulation
-        logger.info(&format!("Deploying Composition : {} ...", comp_name));
+        info!("Deploying Composition : {} ...", comp_name);
         //FIX:!!!!!!!!!this name is unclear
         //we should rename it to something like main_path
         let base_path = config_map.get_main_base_path()?;
@@ -57,7 +58,7 @@ impl<'a> CompContext<'a> {
         //apply sketchs
         let sketchs = config_map.get_sketches(&comp.sketch)?;
         for tuple in sketchs {
-            logger.info(&format!("Preparing sketch: {}", tuple.2));
+            info!("Preparing sketch: {}", tuple.2);
             Self::collect_sketch(
                 config_map,
                 &mut commands_runner,
@@ -69,7 +70,7 @@ impl<'a> CompContext<'a> {
             .context(format!("Sketch: {}", tuple.2))?;
         }
         //is backup created?
-        backup_root.has_bakcup(logger);
+        backup_root.has_bakcup();
 
         Ok(CompContext {
             commands_runner,

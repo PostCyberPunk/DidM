@@ -3,6 +3,7 @@ use std::{
     fs::{self},
     path::{Path, PathBuf},
 };
+use tracing::warn;
 
 use crate::{entries::SouceType, log::Logger, utils::PathExtension};
 
@@ -103,24 +104,20 @@ impl BackupManager {
             fs::rename(src, dest).context("Failed to move target")?;
         }
 
-        logger.warn(&format!(
-            "Backup {} to\n        {}",
-            src.display(),
-            dest.display()
-        ));
+        warn!("Backup {} to\n        {}", src.display(), dest.display());
         Ok(())
     }
 
     fn check_symlink(src: &Path, logger: &Logger) -> bool {
         if src.is_symlink() {
-            logger.warn(&format!(
+            warn!(
                 "Symlink will be removed at:{}\n        Target:{}",
                 src.display(),
                 src.read_link().map_or_else(
                     |_| String::from("Invalid symlink target"),
                     |p| p.display().to_string()
                 )
-            ));
+            );
             return true;
         }
         false
