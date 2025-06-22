@@ -1,10 +1,8 @@
 use super::parser::{Cli, Commands};
 use crate::config::ConfigMap;
-use crate::log::LogLevel;
 use crate::{
     composition::{AppArgs, CompContext},
     config,
-    log::{Logger, StdoutLogTarget},
 };
 use anyhow::{Context, Ok};
 use clap::Parser;
@@ -29,6 +27,7 @@ pub fn process() -> anyhow::Result<()> {
                 is_verbose: *verbose,
             };
 
+            //Prepare logger
             //tracing init
             let subscriber = FmtSubscriber::builder()
                 .pretty()
@@ -43,16 +42,6 @@ pub fn process() -> anyhow::Result<()> {
 
             tracing::subscriber::set_global_default(subscriber)
                 .expect("setting default subscriber failed");
-            //TODO:File logger
-            //Prepare logger, we may use in loaer too
-            //FIX: File logger need flush ,but error will cause it never flush
-            let mut logger = Logger::new();
-            let std_log_level = match (app_args.is_verbose, args.debug) {
-                (_, true) => LogLevel::Debug,
-                (true, false) => LogLevel::Info,
-                (false, false) => LogLevel::Warn,
-            };
-            logger.add_target(StdoutLogTarget::new(std_log_level));
 
             //loader
             //TODO: load to config_map directly
