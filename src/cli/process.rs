@@ -6,6 +6,7 @@ use crate::{
 };
 use anyhow::{Context, Ok};
 use clap::Parser;
+use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
 pub fn process() -> anyhow::Result<()> {
@@ -34,11 +35,32 @@ pub fn process() -> anyhow::Result<()> {
             let (base_path, config_sets) = config::load_configs(path.as_deref())?;
             let config_map = ConfigMap::new(base_path, &config_sets)?;
 
-            //TODO: seprate steps, prepare , backup , apply
-            CompContext::new(comp_name, &config_map, &app_args)
+            let comp = config_map.get_comp(comp_name)?;
+            info!("Deploying Composition : {} ...", comp_name);
+            CompContext::new(comp_name, comp, &config_map, &app_args)
                 .context(format!("Composition init failed:{}", comp_name))?
                 .deploy()
                 .context(format!("Composition deploy failed:{}", comp_name))?;
+        }
+        Some(Commands::Draw {
+            sketch_names,
+            path,
+            dry_run,
+            verbose,
+        }) => {
+            let app_args = AppArgs {
+                is_dryrun: *dry_run,
+                is_verbose: *verbose,
+            };
+
+            init_logger(app_args.is_verbose, args.debug);
+
+            //loader
+            //TODO: load to config_map directly
+            let (base_path, config_sets) = config::load_configs(path.as_deref())?;
+            let config_map = ConfigMap::new(base_path, &config_sets)?;
+
+            //TODO: seprate steps, prepare , backup , apply
         }
         Some(Commands::Schema) => {
             let path = std::env::current_dir().unwrap().join("didm.schema.json");
