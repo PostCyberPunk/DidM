@@ -23,10 +23,3 @@ impl Entry {
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SouceType {
-    Normal,
-    Null,
-    Empty,
-    Extra,
-}

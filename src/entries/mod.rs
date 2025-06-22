@@ -1,8 +1,11 @@
+mod types;
+pub use types::SouceType;
+
 mod manager;
 pub use manager::EntriesManager;
 
 mod entry;
-pub use entry::{Entry, SouceType};
+pub use entry::Entry;
 
 mod strategy;
 
