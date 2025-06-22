@@ -15,7 +15,7 @@ pub fn process() -> anyhow::Result<()> {
         Some(Commands::Init { path, .. }) => {
             config::init_config(path.as_deref())?;
         }
-        Some(Commands::Deploy {
+        Some(Commands::Render {
             comp_name,
             path,
             dry_run,
@@ -27,26 +27,7 @@ pub fn process() -> anyhow::Result<()> {
                 is_verbose: *verbose,
             };
 
-            //Prepare logger
-            //tracing init
-            let std_log_level = match (app_args.is_verbose, args.debug) {
-                (_, true) => tracing::Level::DEBUG,
-                (true, false) => tracing::Level::INFO,
-                (false, false) => tracing::Level::WARN,
-            };
-            let subscriber = FmtSubscriber::builder()
-                .pretty()
-                .without_time()
-                .with_ansi(true)
-                .with_line_number(false)
-                .with_file(false)
-                .with_target(false)
-                .compact()
-                .with_max_level(std_log_level)
-                .finish();
-
-            tracing::subscriber::set_global_default(subscriber)
-                .expect("setting default subscriber failed");
+            init_logger(app_args.is_verbose, args.debug);
 
             //loader
             //TODO: load to config_map directly
@@ -73,4 +54,26 @@ pub fn process() -> anyhow::Result<()> {
         }
     }
     Ok(())
+}
+
+fn init_logger(is_verbose: bool, is_debug: bool) {
+    //Prepare logger
+    //tracing init
+    let std_log_level = match (is_verbose, is_debug) {
+        (_, true) => tracing::Level::DEBUG,
+        (true, false) => tracing::Level::INFO,
+        (false, false) => tracing::Level::WARN,
+    };
+    let subscriber = FmtSubscriber::builder()
+        .pretty()
+        .without_time()
+        .with_ansi(true)
+        .with_line_number(false)
+        .with_file(false)
+        .with_target(false)
+        .compact()
+        .with_max_level(std_log_level)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 }

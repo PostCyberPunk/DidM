@@ -19,7 +19,7 @@ pub enum Commands {
         path: Option<String>,
     },
     #[command(arg_required_else_help = true)]
-    Deploy {
+    Render {
         #[arg(short, long)]
         path: Option<String>,
         comp_name: String,
