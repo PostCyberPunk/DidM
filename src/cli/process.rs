@@ -9,6 +9,7 @@ use crate::{
 };
 use anyhow::{Context, Ok};
 use clap::Parser;
+use tracing_subscriber::FmtSubscriber;
 
 pub fn process() -> anyhow::Result<()> {
     let args = Cli::parse();
@@ -28,6 +29,21 @@ pub fn process() -> anyhow::Result<()> {
                 is_dryrun: *dry_run,
                 is_verbose: *verbose,
             };
+
+            //tracing init
+            let subscriber = FmtSubscriber::builder()
+                .pretty()
+                .without_time()
+                .with_ansi(true)
+                .with_line_number(false)
+                .with_file(false)
+                .with_target(false)
+                .compact()
+                .with_max_level(tracing::Level::TRACE)
+                .finish();
+
+            tracing::subscriber::set_global_default(subscriber)
+                .expect("setting default subscriber failed");
             //TODO:File logger
             //Prepare logger, we may use in loaer too
             //FIX: File logger need flush ,but error will cause it never flush
