@@ -10,25 +10,19 @@ use tracing::{info, warn};
 
 use super::{EntriesManager, Entry, SouceType};
 
-pub struct EntryCollector<'a, 'b>
-where
-    'b: 'a,
-{
+pub struct EntryCollector<'a> {
     source_root: ResolvedPath,
     target_root: ResolvedPath,
-    entries_manager: &'a mut EntriesManager<'b>,
+    entries_manager: &'a mut EntriesManager,
     sketch: &'a Sketch,
     backup_manager: Option<BackupManager>,
     overwrite_existed: bool,
     is_dryrun: bool,
 }
 //TODO: we need add logs
-impl<'a, 'b> EntryCollector<'a, 'b>
-where
-    'b: 'a,
-{
+impl<'a> EntryCollector<'a> {
     pub fn new(
-        entries_manager: &'a mut EntriesManager<'b>,
+        entries_manager: &'a mut EntriesManager,
         sketch: &'a Sketch,
         base_path: &ResolvedPath,
         sketch_name: &str,

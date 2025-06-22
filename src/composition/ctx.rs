@@ -13,7 +13,7 @@ use tracing::info;
 
 pub struct CompContext<'a> {
     pub commands_runner: CommandsRunner<'a>,
-    pub entries_manager: EntriesManager<'a>,
+    pub entries_manager: EntriesManager,
 }
 
 impl<'a> CompContext<'a> {
@@ -83,7 +83,7 @@ impl<'a> CompContext<'a> {
     fn collect_sketch(
         config_map: &'a ConfigMap<'_>,
         commands_runner: &mut CommandsRunner<'a>,
-        entries_manager: &mut EntriesManager<'a>,
+        entries_manager: &mut EntriesManager,
         backup_root: &BackupRoot,
         behaviour: crate::model::Behaviour,
         tuple: (&'a Sketch, usize, &str),

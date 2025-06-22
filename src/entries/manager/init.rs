@@ -8,7 +8,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
 
-impl<'a> EntriesManager<'a> {
+impl EntriesManager {
     pub fn new(is_dryrun: bool) -> Self {
         Self {
             is_dryrun,
@@ -69,8 +69,7 @@ impl<'a> EntriesManager<'a> {
             let rp = PathResolver::resolve_from(target_root, path, false);
             let entry = match rp {
                 Err(err) => {
-                    self.logger
-                        .warn(&format!("Skipping entry:{}\nCasuse:{}", path, err));
+                    warn!("Skipping entry:{}\nCasuse:{}", path, err);
                     continue;
                 }
                 Ok(target_path) => Entry::new(
@@ -118,8 +117,6 @@ impl<'a> EntriesManager<'a> {
         behaviour: &Behaviour,
         sketch_name: &str,
     ) -> Result<()> {
-        let logger = self.logger;
-        let should_backup = behaviour.should_backup();
         let overwrite_existed = behaviour.overwrite_existed.unwrap();
 
         info!("Generating entries for `{}` ...", sketch_name);

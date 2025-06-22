@@ -6,7 +6,7 @@ use super::{super::error::EntryApplyError, EntriesManager};
 use anyhow::Result;
 use tracing::{error, info, warn};
 
-impl<'a> EntriesManager<'a> {
+impl EntriesManager {
     pub fn copy_and_link(&self) -> Result<()> {
         self.apply_list(Mode::Symlink);
         self.apply_list(Mode::Copy);
