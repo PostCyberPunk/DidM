@@ -4,15 +4,15 @@ use crate::{model::sketch::Mode, utils::PathExtension};
 
 use super::{super::error::EntryApplyError, EntriesManager};
 use anyhow::Result;
+use tracing::{error, info, warn};
 
-impl<'a> EntriesManager<'a> {
+impl EntriesManager {
     pub fn copy_and_link(&self) -> Result<()> {
         self.apply_list(Mode::Symlink);
         self.apply_list(Mode::Copy);
         Ok(())
     }
     fn apply_list(&self, mode: Mode) {
-        let logger = self.logger;
         let list = match mode {
             Mode::Copy => &self.entry_list.copy_list,
             Mode::Symlink => &self.entry_list.link_list,
@@ -26,44 +26,43 @@ impl<'a> EntriesManager<'a> {
             let source = &entry.source_path;
 
             if self.is_dryrun {
-                logger.info(&format!(
+                info!(
                     "Dry-run: {}: from {}\n to {}",
                     mode_hint,
                     source.display(),
                     target.display()
-                ));
+                );
                 continue;
             }
 
             if target.exists() {
                 if entry.overwrite_existed {
                     if let Err(e) = remove_target(target) {
-                        logger.error(&format!(
+                        error!(
                             "Skipped {} \n Failed to remove target, \n reason: {}",
                             target.display(),
                             e
-                        ));
+                        );
                         continue;
                     }
                     if target.exists() {
-                        logger.error(&format!(
+                        error!(
                             "Skipped {} \n Failed to remove target, \n reason: Unknown,Please Remove it mannually",
                             target.display(),
-                        ));
+                        );
                         continue;
                     }
                 } else {
-                    logger.warn(&format!("Skipped existed file: {}", target.display()));
+                    warn!("Skipped existed file: {:?}", target);
                     continue;
                 }
             }
 
             if let Err(e) = target.ensure_parent_exists() {
-                logger.error(&format!(
-                    "Skippied {} \n Failed to create parent folder,\n reason: {}",
-                    target.display(),
-                    e
-                ));
+                error!(
+                    "Skippied {:?} \n Failed to create parent folder,\n reason: {}",
+                    target, e
+                );
                 continue;
             }
 
@@ -71,22 +70,14 @@ impl<'a> EntriesManager<'a> {
                 Mode::Copy => copy_entry(target, source),
                 Mode::Symlink => link_entry(target, source),
             } {
-                logger.error(&format!(
-                    "Failed to create {}:from {} \n to {}, reason: {}",
-                    mode_hint,
-                    source.display(),
-                    target.display(),
-                    e
-                ));
+                error!(
+                    "Failed to create {}:from {:?} \n to {:?}, reason: {}",
+                    mode_hint, source, target, e
+                );
                 continue;
             }
 
-            logger.info(&format!(
-                "{}:from {}\n to {}",
-                mode_hint,
-                source.display(),
-                target.display()
-            ));
+            info!("{}:from {:?}\n to {:?}", mode_hint, source, target);
         }
     }
 }
@@ -136,7 +127,7 @@ fn copy_entry(target: &Path, source: &Path) -> Result<()> {
         false => {
             fs::copy(source, target)?;
             // FIX:
-            // logger.info(&format!(
+            // info!(&format!(
             //     "Copied {} ->\n        {}",
             //     target.display(),
             //     source.display()

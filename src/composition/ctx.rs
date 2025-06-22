@@ -5,33 +5,28 @@ use crate::{
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
     entries::{EntriesManager, EntryCollector},
-    log::Logger,
     model::Sketch,
     utils::PathResolver,
 };
 use anyhow::{Context, Result};
+use tracing::info;
 
 pub struct CompContext<'a> {
     pub commands_runner: CommandsRunner<'a>,
-    pub entries_manager: EntriesManager<'a>,
+    pub entries_manager: EntriesManager,
 }
 
 impl<'a> CompContext<'a> {
-    pub fn new(
-        comp_name: &'a str,
-        config_map: &'a ConfigMap,
-        args: &'a AppArgs,
-        logger: &'a Logger,
-    ) -> Result<Self> {
+    pub fn new(comp_name: &'a str, config_map: &'a ConfigMap, args: &'a AppArgs) -> Result<Self> {
         //NOTE: order should be: error with less calculation ; then error with lager calulation
-        logger.info(&format!("Deploying Composition : {} ...", comp_name));
+        info!("Deploying Composition : {} ...", comp_name);
         //FIX:!!!!!!!!!this name is unclear
         //we should rename it to something like main_path
         let base_path = config_map.get_main_base_path()?;
         let comp = config_map.get_comp(comp_name)?;
 
-        let mut commands_runner = CommandsRunner::new(logger, args.is_dryrun);
-        let mut entries_manager = EntriesManager::new(logger, args.is_dryrun);
+        let mut commands_runner = CommandsRunner::new(args.is_dryrun);
+        let mut entries_manager = EntriesManager::new(args.is_dryrun);
 
         //Get Bhaviour
         let behaviour = config_map
@@ -57,7 +52,7 @@ impl<'a> CompContext<'a> {
         //apply sketchs
         let sketchs = config_map.get_sketches(&comp.sketch)?;
         for tuple in sketchs {
-            logger.info(&format!("Preparing sketch: {}", tuple.2));
+            info!("Preparing sketch: {}", tuple.2);
             Self::collect_sketch(
                 config_map,
                 &mut commands_runner,
@@ -69,7 +64,7 @@ impl<'a> CompContext<'a> {
             .context(format!("Sketch: {}", tuple.2))?;
         }
         //is backup created?
-        backup_root.has_bakcup(logger);
+        backup_root.has_bakcup();
 
         Ok(CompContext {
             commands_runner,
@@ -88,7 +83,7 @@ impl<'a> CompContext<'a> {
     fn collect_sketch(
         config_map: &'a ConfigMap<'_>,
         commands_runner: &mut CommandsRunner<'a>,
-        entries_manager: &mut EntriesManager<'a>,
+        entries_manager: &mut EntriesManager,
         backup_root: &BackupRoot,
         behaviour: crate::model::Behaviour,
         tuple: (&'a Sketch, usize, &str),

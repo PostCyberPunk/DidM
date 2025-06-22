@@ -1,14 +1,12 @@
 use super::parser::{Cli, Commands};
 use crate::config::ConfigMap;
-use crate::log::LogLevel;
-use crate::utils;
 use crate::{
     composition::{AppArgs, CompContext},
     config,
-    log::{Logger, StdoutLogTarget},
 };
 use anyhow::{Context, Ok};
 use clap::Parser;
+use tracing_subscriber::FmtSubscriber;
 
 pub fn process() -> anyhow::Result<()> {
     let args = Cli::parse();
@@ -28,16 +26,27 @@ pub fn process() -> anyhow::Result<()> {
                 is_dryrun: *dry_run,
                 is_verbose: *verbose,
             };
-            //TODO:File logger
-            //Prepare logger, we may use in loaer too
-            //FIX: File logger need flush ,but error will cause it never flush
-            let mut logger = Logger::new();
+
+            //Prepare logger
+            //tracing init
             let std_log_level = match (app_args.is_verbose, args.debug) {
-                (_, true) => LogLevel::Debug,
-                (true, false) => LogLevel::Info,
-                (false, false) => LogLevel::Warn,
+                (_, true) => tracing::Level::DEBUG,
+                (true, false) => tracing::Level::INFO,
+                (false, false) => tracing::Level::WARN,
             };
-            logger.add_target(StdoutLogTarget::new(std_log_level));
+            let subscriber = FmtSubscriber::builder()
+                .pretty()
+                .without_time()
+                .with_ansi(true)
+                .with_line_number(false)
+                .with_file(false)
+                .with_target(false)
+                .compact()
+                .with_max_level(std_log_level)
+                .finish();
+
+            tracing::subscriber::set_global_default(subscriber)
+                .expect("setting default subscriber failed");
 
             //loader
             //TODO: load to config_map directly
@@ -45,7 +54,7 @@ pub fn process() -> anyhow::Result<()> {
             let config_map = ConfigMap::new(base_path, &config_sets)?;
 
             //TODO: seprate steps, prepare , backup , apply
-            CompContext::new(comp_name, &config_map, &app_args, &logger)
+            CompContext::new(comp_name, &config_map, &app_args)
                 .context(format!("Composition init failed:{}", comp_name))?
                 .deploy()
                 .context(format!("Composition deploy failed:{}", comp_name))?;

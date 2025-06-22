@@ -4,7 +4,6 @@ mod commands;
 mod composition;
 mod config;
 mod entries;
-mod log;
 mod model;
 mod utils;
 // mod validation;

@@ -1,17 +1,16 @@
 use super::{super::Entry, EntriesManager, list::EntriesList};
 use crate::{
     entries::DirWalker,
-    log::Logger,
     model::{Behaviour, Sketch, sketch::Mode},
     utils::{Checker, PathResolver, ResolvedPath},
 };
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
+use tracing::{info, warn};
 
-impl<'a> EntriesManager<'a> {
-    pub fn new(logger: &'a Logger, is_dryrun: bool) -> Self {
+impl EntriesManager {
+    pub fn new(is_dryrun: bool) -> Self {
         Self {
-            logger,
             is_dryrun,
             entry_list: EntriesList::default(),
         }
@@ -26,8 +25,8 @@ impl<'a> EntriesManager<'a> {
     ) -> Result<ResolvedPath> {
         let result = PathResolver::resolve_from(base_path, path, should_check_exist)
             .with_context(|| format!("Invalid {} path: {}", ctx, path))?;
-        self.logger
-            .info(&format!("{} path: {}", ctx, result.di_string()));
+
+        info!("{} path: {}", ctx, result.di_string());
         Ok(result)
     }
 
@@ -38,14 +37,14 @@ impl<'a> EntriesManager<'a> {
         target_root: &ResolvedPath,
         overwrite_existed: bool,
     ) -> Result<()> {
-        let source_paths = DirWalker::new(sketch, source_root.get(), self.logger)
+        let source_paths = DirWalker::new(sketch, source_root.get())
             .get_walker()?
             .run()?;
         for source_path in source_paths {
             let relative_path = match source_path.strip_prefix(source_root.get()) {
                 Ok(p) => p,
                 Err(e) => {
-                    self.logger.warn(&format!("Invalid entry path: {}", e));
+                    warn!("Invalid entry path: {}", e);
                     continue;
                 }
             };
@@ -70,8 +69,7 @@ impl<'a> EntriesManager<'a> {
             let rp = PathResolver::resolve_from(target_root, path, false);
             let entry = match rp {
                 Err(err) => {
-                    self.logger
-                        .warn(&format!("Skipping entry:{}\nCasuse:{}", path, err));
+                    warn!("Skipping entry:{}\nCasuse:{}", path, err);
                     continue;
                 }
                 Ok(target_path) => Entry::new(
@@ -119,11 +117,9 @@ impl<'a> EntriesManager<'a> {
         behaviour: &Behaviour,
         sketch_name: &str,
     ) -> Result<()> {
-        let logger = self.logger;
-        let should_backup = behaviour.should_backup();
         let overwrite_existed = behaviour.overwrite_existed.unwrap();
 
-        logger.info(&format!("Generating entries for `{}` ...", sketch_name));
+        info!("Generating entries for `{}` ...", sketch_name);
         //Reoslve Path
         let source_root = self.resolve_path(base_path, &sketch.source_path, "source", true)?;
         let target_root = self.resolve_path(base_path, &sketch.target_path, "target", false)?;

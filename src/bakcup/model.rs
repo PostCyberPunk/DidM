@@ -2,11 +2,9 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use chrono::Local;
+use tracing::warn;
 
-use crate::{
-    log::Logger,
-    utils::{PathExtension, ResolvedPath},
-};
+use crate::utils::{PathExtension, ResolvedPath};
 
 use super::error;
 
@@ -40,9 +38,9 @@ impl BackupRoot {
             is_dryrun,
         })
     }
-    pub fn has_bakcup(self, logger: &Logger) {
+    pub fn has_bakcup(self) {
         if self.base_dir.exists() {
-            logger.warn(&format!("Backup created at :{}", self.base_dir.display()));
+            warn!("Backup created at :{}", self.base_dir.display());
         }
     }
 }
