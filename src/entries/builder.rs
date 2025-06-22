@@ -52,6 +52,12 @@ impl<'a> EntryBuilder<'a> {
             target_path = target_path.join(path);
         }
 
+        //Renamer
+        //TODO: does not feel good about this
+        if target_path.to_str().unwrap().contains("dot-") {
+            target_path = PathBuf::from(target_path.to_str().unwrap().replace("dot-", "."));
+        };
+
         let mut entry = Entry::new(self.source, target_path, self.ctx.overwrite);
 
         //Bakcuper
