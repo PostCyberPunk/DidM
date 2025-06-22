@@ -1,7 +1,7 @@
 mod error;
 
-mod model;
-pub use model::{BackupRoot, BackupState};
+mod types;
+pub use types::{BackupRoot, BackupState};
 
 mod manager;
 pub use manager::BackupManager;

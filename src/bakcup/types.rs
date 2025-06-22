@@ -8,7 +8,7 @@ use crate::utils::{PathExtension, ResolvedPath};
 
 use super::error;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BackupState {
     Ok,
     Skip,
