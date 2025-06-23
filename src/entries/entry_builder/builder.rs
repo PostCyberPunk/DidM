@@ -1,18 +1,9 @@
-use crate::{
-    bakcup::{BackupManager, BackupState},
-    utils::ResolvedPath,
-};
-
-use super::{Entry, SouceType};
+use crate::bakcup::BackupState;
+use crate::entries::{Entry, SouceType};
 use anyhow::Result;
 use std::path::PathBuf;
 
-pub struct EntryBuilderCtx<'a> {
-    pub backup_manager: Option<&'a BackupManager>,
-    pub source_root: ResolvedPath,
-    pub target_root: ResolvedPath,
-    pub overwrite: bool,
-}
+use super::EntryBuilderCtx;
 
 pub struct EntryBuilder<'a> {
     source: PathBuf,
