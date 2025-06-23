@@ -7,16 +7,21 @@ pub struct Entry {
     pub source_path: PathBuf,
     pub target_path: PathBuf,
     pub overwrite_existed: bool,
-    pub bakcup_state: BackupState,
+    pub backup_state: BackupState,
 }
 
 impl Entry {
-    pub fn new(source_path: PathBuf, mut target_path: PathBuf, overwrite_existed: bool) -> Self {
+    pub fn new(
+        source_path: PathBuf,
+        target_path: PathBuf,
+        overwrite_existed: bool,
+        backup_state: BackupState,
+    ) -> Self {
         Entry {
             source_path,
             target_path,
             overwrite_existed,
-            bakcup_state: BackupState::Ok,
+            backup_state,
         }
     }
 }
