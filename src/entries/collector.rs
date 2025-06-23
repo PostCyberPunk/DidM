@@ -1,5 +1,5 @@
 use crate::{
-    bakcup::{BackupManager, BackupState},
+    bakcup::BackupManager,
     entries::DirWalker,
     model::{Behaviour, Sketch, sketch::Mode},
     utils::{Checker, PathResolver, ResolvedPath},
@@ -8,15 +8,14 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
 
-use super::{EntriesManager, Entry, SouceType};
+use super::{EntriesManager, Entry, EntryBuilder, EntryBuilderCtx, SouceType};
 
 pub struct EntryCollector<'a> {
     source_root: ResolvedPath,
     target_root: ResolvedPath,
-    entries_manager: &'a mut EntriesManager,
     sketch: &'a Sketch,
-    backup_manager: Option<BackupManager>,
-    overwrite_existed: bool,
+    builder_ctx: EntryBuilderCtx<'a>,
+    entries_manager: &'a mut EntriesManager,
     is_dryrun: bool,
 }
 //TODO: we need add logs
@@ -27,7 +26,7 @@ impl<'a> EntryCollector<'a> {
         base_path: &ResolvedPath,
         sketch_name: &str,
         behaviour: &Behaviour,
-        backup_manager: Option<BackupManager>,
+        backup_manager: Option<&'a BackupManager>,
     ) -> Result<Self> {
         info!("Generating entries for `{}` ...", sketch_name);
 
@@ -43,19 +42,25 @@ impl<'a> EntryCollector<'a> {
         if !exist && !is_dryrun {
             std::fs::create_dir_all(target_root.get())?;
         }
+
+        //prepare entry builder context
+        let builder_ctx = EntryBuilderCtx {
+            backup_manager,
+            overwrite: overwrite_existed,
+        };
         Ok(Self {
             entries_manager,
             source_root,
             target_root,
+            builder_ctx,
             sketch,
-            backup_manager,
-            overwrite_existed,
             is_dryrun,
         })
     }
-    pub fn collect(mut self) -> Result<()> {
+    pub async fn collect(mut self) -> Result<()> {
         //Get Normal Entries
         self.get_normal_entries()
+            .await
             .context("Failed to get normal entries")?;
         //Get null entries
         //FIX:that looks like pretty fucked up
@@ -66,6 +71,7 @@ impl<'a> EntryCollector<'a> {
             Mode::Symlink,
             SouceType::Null,
         )
+        .await
         .context("Failed to get null entries")?;
         //Get empty entries
         //FIX: os .bad practice
@@ -79,26 +85,16 @@ impl<'a> EntryCollector<'a> {
             Mode::Copy,
             SouceType::Empty,
         )
+        .await
         .context("Failed to get empty entries")?;
         //Get extra entries
         self.get_extra_entris(self.sketch)
+            .await
             .context("Failed to get extra entries")?;
         //Done!
         Ok(())
     }
 
-    fn add_entry(&mut self, mut entry: Entry, mode: Mode, s_type: SouceType) {
-        if s_type != SouceType::Normal {
-            entry.bakcup_state = match &self.backup_manager {
-                None => BackupState::Ok,
-                Some(bakcuper) => match bakcuper.backup_other(&entry.target_path, s_type) {
-                    Ok(s) => s,
-                    _ => BackupState::Skip,
-                },
-            };
-        }
-        self.entries_manager.add_entry(mode, entry);
-    }
     fn resolve_path(
         base_path: &ResolvedPath,
         path: &str,
@@ -110,36 +106,40 @@ impl<'a> EntryCollector<'a> {
         info!("{} path: {}", ctx, result.di_string());
         Ok(result)
     }
+    fn add_entry(&mut self, entry: Entry, mode: Mode) {
+        match mode {
+            Mode::Copy => self.entries_manager.add_copy(entry),
+            Mode::Symlink => self.entries_manager.add_link(entry),
+        }
+    }
 
-    fn get_normal_entries(&mut self) -> Result<()> {
+    async fn get_normal_entries(&mut self) -> Result<()> {
         let source_paths = DirWalker::new(self.sketch, self.source_root.get())
             .get_walker()?
             .run()?;
         for source_path in source_paths {
+            //TODO: intead of relative path we should source_root and this logic
             let relative_path = match source_path.strip_prefix(self.source_root.get()) {
-                Ok(p) => p,
+                Ok(p) => p.to_path_buf(),
                 Err(e) => {
                     warn!("Invalid entry path: {}", e);
                     continue;
                 }
             };
-            let target_path = self.target_root.get().join(relative_path);
-            // BAKCUP
-            let bakcup_state = match &self.backup_manager {
-                None => BackupState::Ok,
-                Some(bakcuper) => match bakcuper.backup_normal(&target_path, relative_path) {
-                    Ok(s) => s,
-                    _ => BackupState::Skip,
-                },
-            };
-            //FIX: this won't backup target
-            let mut entry = Entry::new(source_path, target_path, self.overwrite_existed);
-            entry.bakcup_state = bakcup_state;
-            self.add_entry(entry, self.sketch.mode, SouceType::Normal);
+            let entry = EntryBuilder::new(
+                source_path,
+                self.target_root.clone().into_pathbuf(),
+                &self.builder_ctx,
+            )
+            .source_type(SouceType::Normal)
+            .relative_path(relative_path)
+            .build()
+            .await?;
+            self.add_entry(entry, self.sketch.mode);
         }
         Ok(())
     }
-    fn collect_same_source(
+    async fn collect_same_source(
         &mut self,
         paths: &[String],
         source_path: &Path,
@@ -158,30 +158,40 @@ impl<'a> EntryCollector<'a> {
                         info!("(null/empty) Skipping existed target:{}", path);
                         continue;
                     }
-                    Entry::new(source_path.to_path_buf(), target_path.into_pathbuf(), false)
+                    EntryBuilder::new(
+                        source_path.to_path_buf(),
+                        target_path.into_pathbuf(),
+                        &self.builder_ctx,
+                    )
+                    .source_type(s_type)
+                    .overwrite(false)
+                    .build()
+                    .await?
                 }
             };
-            self.add_entry(entry, mode, s_type);
+            self.add_entry(entry, mode);
         }
         Ok(())
     }
-    fn get_extra_entris(&mut self, sketch: &Sketch) -> Result<()> {
+    async fn get_extra_entris(&mut self, sketch: &Sketch) -> Result<()> {
         for extra in sketch.extra_entries.iter() {
-            let e = Entry::new(
+            let source_path =
                 Self::resolve_path(&self.source_root, &extra.source_path, "extra entry", true)?
-                    .into_pathbuf(),
-                Self::resolve_path(
-                    &self.target_root,
-                    &extra.target_path,
-                    "extra entry target",
-                    false,
-                )?
-                .into_pathbuf(),
-                self.overwrite_existed,
-            );
+                    .into_pathbuf();
+            let target_path = Self::resolve_path(
+                &self.target_root,
+                &extra.target_path,
+                "extra entry target",
+                false,
+            )?
+            .into_pathbuf();
+            let entry = EntryBuilder::new(source_path, target_path, &self.builder_ctx)
+                .source_type(SouceType::Extra)
+                .build()
+                .await?;
             match extra.mode {
-                Some(mode) => self.add_entry(e, mode, SouceType::Extra),
-                None => self.add_entry(e, sketch.mode, SouceType::Extra),
+                Some(mode) => self.add_entry(entry, mode),
+                None => self.add_entry(entry, sketch.mode),
             }
         }
         Ok(())

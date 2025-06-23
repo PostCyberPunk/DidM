@@ -7,9 +7,15 @@ use tracing::error;
 
 //TODO: can't kill self,
 //this should be oneshot,so init and run then dead
+//
+//NOTE:
+//since we are dealing dotfiles,dir-walking is very unlikely to be an expensive operation
+//so we don't need build parallel...
+//we should turn this into a builder.
 pub struct DirWalker<'a> {
     walker: Option<WalkBuilder>,
     base_path: &'a Path,
+    //TODO: we should have a wraper fo ignore_config
     ignore: &'a Vec<String>,
     respect_gitignore: bool,
     ignore_hidden: bool,
@@ -34,48 +40,62 @@ impl<'a> DirWalker<'a> {
 
     pub fn get_walker(&mut self) -> Result<&Self> {
         let base_path = self.base_path;
-
+        //FIX: move to new
+        //Init walker
         let mut walker = WalkBuilder::new(base_path);
-
         walker.add_custom_ignore_filename("didmignore");
 
+        //Init overrides
         let mut overrides = OverrideBuilder::new(base_path);
 
+        //add default internal ignores
+        //NOTE: bacause of this,the overrides will never be empty
         overrides.add("!didm.toml")?;
         overrides.add("!.gitignore")?;
         overrides.add("!didmignore")?;
         overrides.add("!didm_backup")?;
 
-        let _prefix = if self.only_ignore { "" } else { "!" };
+        //Unit dir
+        if self.unit == Unit::Dir && self.mode == Mode::Symlink {
+            walker.max_depth(Some(1));
+        };
 
-        if self.only_ignore && self.ignore.is_empty() {
-            overrides
-                .add("!")
-                .context("Failed to make `only_ignore` happen")?;
-        }
+        //build ignore items
+        let _prefix = if self.only_ignore { "" } else { "!" };
         for ignore_item in self.ignore {
             overrides
                 .add(&format!("{}{}", _prefix, ignore_item))
                 .context(format!("Failed to add ignore item:{}", ignore_item))?;
         }
-        if self.unit == Unit::Dir && self.mode == Mode::Symlink {
-            walker.max_depth(Some(1));
-        };
+        // deal with only ignore
+        if self.only_ignore && self.ignore.is_empty() {
+            overrides
+                .add("!")
+                .context("Failed to make `only_ignore` happen")?;
+        }
+        //Done overrides
+        walker.overrides(overrides.build()?);
+
+        //other ignore configs
         walker
             .hidden(self.ignore_hidden)
-            .git_ignore(self.respect_gitignore)
-            .overrides(overrides.build()?);
+            .git_ignore(self.respect_gitignore);
+
+        //TODO:filter variants here.
 
         self.walker = Some(walker);
         Ok(self)
     }
     pub fn run(&self) -> Result<Vec<PathBuf>> {
+        //FIX: use walker instead of Option<walker>
         let walker = self.walker.as_ref().ok_or_else(|| {
             error!("Worker not initialized");
             anyhow::anyhow!("Failed to get walker, issue this with log and your configuration")
         })?;
 
+        //Maybe move this to field?
         let mut entries = Vec::new();
+
         for result in walker.build() {
             let entry = result.context("Failed to get entry")?;
             let entry_type = entry.file_type().unwrap();

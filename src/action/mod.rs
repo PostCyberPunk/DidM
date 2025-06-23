@@ -1,5 +1,5 @@
-mod model;
-pub use model::ActionSource;
+mod types;
+pub use types::ActionSource;
 
 use anyhow::{Context, Result};
 use tracing::info;
@@ -45,10 +45,16 @@ fn deploy_comp(
     config_map: &ConfigMap<'_>,
     app_args: AppArgs,
 ) -> Result<()> {
+    //FIX:We need to move out this ,but where?
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(12)
+        .enable_all()
+        .build()?;
     info!("Rendering Composition : {} ...", comp_name);
-    CompContext::new(comp_name, comp, config_map, &app_args)
-        .context(format!("Composition init failed:{}", comp_name))?
-        .deploy()
+    let c = CompContext::new(comp_name, comp, config_map, &runtime, &app_args)
+        .context(format!("Composition init failed:{}", comp_name))?;
+
+    c.deploy()
         .context(format!("Composition deploy failed:{}", comp_name))?;
     Ok(())
 }
