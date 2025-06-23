@@ -1,35 +1,23 @@
 use crate::bakcup::BackupState;
 use crate::entries::{Entry, SouceType};
 use anyhow::Result;
+use std::marker::PhantomData;
 use std::path::PathBuf;
 
 use super::EntryBuilderCtx;
+use super::types::BuildStrategy;
 
-pub struct EntryBuilder<'a> {
-    source: PathBuf,
-    target: PathBuf,
-    relative_path: Option<PathBuf>,
-    ctx: &'a EntryBuilderCtx<'a>,
-    source_type: SouceType,
-    overwrite: Option<bool>,
+pub struct EntryBuilder<'a, S: BuildStrategy> {
+    pub source: PathBuf,
+    pub target: PathBuf,
+    pub relative_path: Option<PathBuf>,
+    pub ctx: &'a EntryBuilderCtx<'a>,
+    pub source_type: SouceType,
+    pub overwrite: Option<bool>,
+    pub _marker: PhantomData<S>,
 }
 
-impl<'a> EntryBuilder<'a> {
-    pub fn new(
-        source: impl Into<PathBuf>,
-        target: impl Into<PathBuf>,
-        config: &'a EntryBuilderCtx<'a>,
-    ) -> Self {
-        Self {
-            source: source.into(),
-            target: target.into(),
-            relative_path: None,
-            ctx: config,
-            source_type: SouceType::Normal,
-            overwrite: None,
-        }
-    }
-
+impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
     pub async fn build(mut self) -> Result<Entry> {
         self.do_join_relative().do_rename();
 
