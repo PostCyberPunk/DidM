@@ -45,13 +45,8 @@ fn deploy_comp(
     config_map: &ConfigMap<'_>,
     app_args: AppArgs,
 ) -> Result<()> {
-    //FIX:We need to move out this ,but where?
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(12)
-        .enable_all()
-        .build()?;
     info!("Rendering Composition : {} ...", comp_name);
-    let c = CompContext::new(comp_name, comp, config_map, &runtime, &app_args)
+    let c = CompContext::new(comp_name, comp, config_map, &app_args)
         .context(format!("Composition init failed:{}", comp_name))?;
 
     c.deploy()
