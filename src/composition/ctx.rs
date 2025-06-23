@@ -9,18 +9,21 @@ use crate::{
     utils::PathResolver,
 };
 use anyhow::{Context, Result};
+use tokio::runtime::Runtime;
 use tracing::info;
 
 pub struct CompContext<'a> {
-    pub commands_runner: CommandsRunner<'a>,
-    pub entries_manager: EntriesManager,
+    commands_runner: CommandsRunner<'a>,
+    entries_manager: EntriesManager,
+    // runtime: &'a Runtime,
 }
 
 impl<'a> CompContext<'a> {
     pub fn new(
         comp_name: &'a str,
         comp: &'a Composition,
-        config_map: &'a ConfigMap,
+        config_map: &'a ConfigMap<'_>,
+        runtime: &'a Runtime,
         args: &'a AppArgs,
     ) -> Result<Self> {
         //NOTE: order should be: error with less calculation ; then error with lager calulation
@@ -54,24 +57,31 @@ impl<'a> CompContext<'a> {
         let backup_root = BackupRoot::new(base_path, comp_name, args.is_dryrun)?;
         //apply sketchs
         let sketchs = config_map.get_sketches(&comp.sketch)?;
-        for tuple in sketchs {
-            info!("Preparing sketch: {}", tuple.2);
-            Self::collect_sketch(
-                config_map,
-                &mut commands_runner,
-                &mut entries_manager,
-                &backup_root,
-                behaviour,
-                tuple,
-            )
-            .context(format!("Sketch: {}", tuple.2))?;
-        }
+
+        runtime.block_on(async {
+            for tuple in sketchs {
+                let result = Self::collect_sketch(
+                    config_map,
+                    &mut commands_runner,
+                    &mut entries_manager,
+                    &backup_root,
+                    behaviour,
+                    tuple,
+                )
+                .await;
+                if let Err(e) = result {
+                    return Err(anyhow::anyhow!("Sketch {} failed: {}", tuple.2, e));
+                }
+            }
+            Ok(())
+        })?;
         //is backup created?
         backup_root.has_bakcup();
 
         Ok(CompContext {
             commands_runner,
             entries_manager,
+            // runtime,
         })
     }
     pub fn deploy(self) -> Result<()> {
@@ -83,7 +93,7 @@ impl<'a> CompContext<'a> {
         self.commands_runner.run_post_commands()?;
         Ok(())
     }
-    fn collect_sketch(
+    async fn collect_sketch(
         config_map: &'a ConfigMap<'_>,
         commands_runner: &mut CommandsRunner<'a>,
         entries_manager: &mut EntriesManager,
@@ -112,9 +122,10 @@ impl<'a> CompContext<'a> {
             base_path,
             sketch_name,
             &behaviour,
-            bakcuper,
+            bakcuper.as_ref(),
         )?
-        .collect()?;
+        .collect()
+        .await?;
 
         // entries_manager.add_sketch(sketch, base_path, &behaviour, sketch_name)?;
         Ok(())
