@@ -1,6 +1,6 @@
 use super::error::PathError;
 use anyhow::{Context, Result};
-use std::{fs, path::Path};
+use std::{fs, os::unix::fs::MetadataExt, path::Path};
 //REFT: should be in util
 pub trait PathExtension: AsRef<Path> {
     fn to_string(&self) -> String {
@@ -12,12 +12,13 @@ pub trait PathExtension: AsRef<Path> {
         }
         Ok(())
     }
-    //NOTE: since we are dealing with resolved path, do we really need this?
-    //FIX: ok this is not working ...
+
     fn check_permission(&self) -> Result<()> {
         match fs::metadata(self) {
             Ok(metadata) => {
-                if metadata.permissions().readonly() {
+                if metadata.permissions().readonly()
+                    || (std::env::var("USER").unwrap() != "root" && metadata.uid() != 1000)
+                {
                     return Err(PathError::NoPermission(self.to_string()).into());
                 }
             }
