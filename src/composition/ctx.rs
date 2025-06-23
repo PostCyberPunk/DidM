@@ -8,10 +8,14 @@ use crate::{
     model::{Composition, Sketch},
     utils::PathResolver,
 };
-use anyhow::{Context, Result};
+use anyhow::Result;
 use tokio::runtime::Runtime;
-use tracing::info;
 
+//NOTE:
+//1.this name is not accurate .
+//2.we can use this to create preview, but we don't need commands_runner,so we need more
+//  abstraction here,but they do share a few things in comp(base_path,behaviour)
+//3.since collect commands is not that expansive...we can keep this for now
 pub struct CompContext<'a> {
     commands_runner: CommandsRunner<'a>,
     entries_manager: EntriesManager,
@@ -26,7 +30,8 @@ impl<'a> CompContext<'a> {
         runtime: &'a Runtime,
         args: &'a AppArgs,
     ) -> Result<Self> {
-        //NOTE: order should be: error with less calculation ; then error with lager calulation
+        //NOTE: order should be: error with less calculation ; then error with more calulation
+        //
         //FIX:!!!!!!!!!this name is unclear
         //we should rename it to something like main_path
         let base_path = config_map.get_main_base_path()?;
@@ -58,6 +63,7 @@ impl<'a> CompContext<'a> {
         //apply sketchs
         let sketchs = config_map.get_sketches(&comp.sketch)?;
 
+        //TODO:we need some kind of summary of result here
         runtime.block_on(async {
             for tuple in sketchs {
                 let result = Self::collect_sketch(
@@ -88,6 +94,7 @@ impl<'a> CompContext<'a> {
         // let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
         self.commands_runner.run_pre_commands()?;
 
+        //TODO:async this could be async
         self.entries_manager.apply_all();
 
         self.commands_runner.run_post_commands()?;
@@ -100,7 +107,7 @@ impl<'a> CompContext<'a> {
         backup_root: &BackupRoot,
         behaviour: crate::model::Behaviour,
         tuple: (&'a Sketch, usize, &str),
-    ) -> Result<(), anyhow::Error> {
+    ) -> Result<()> {
         let (sketch, idx, sketch_name) = tuple;
 
         let base_path = config_map.get_base_path(idx)?;
