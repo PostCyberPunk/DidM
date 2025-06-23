@@ -1,7 +1,7 @@
 use crate::entries::{
     Entry,
+    apply_strategy::{ActionCopy, ActionLink},
     list::EntryList,
-    strategy::{ActionCopy, ActionLink},
 };
 
 pub struct EntriesManager {

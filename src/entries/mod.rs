@@ -10,7 +10,7 @@ pub use entry::Entry;
 mod entry_builder;
 pub use entry_builder::{EntryBuilder, EntryBuilderCtx};
 
-mod strategy;
+mod apply_strategy;
 
 mod list;
 

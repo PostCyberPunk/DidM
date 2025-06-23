@@ -1,5 +1,5 @@
 use crate::{
-    entries::{Entry, strategy::ApplyStrategy},
+    entries::{Entry, apply_strategy::ApplyStrategy},
     utils::PathExtension,
 };
 use anyhow::Result;
