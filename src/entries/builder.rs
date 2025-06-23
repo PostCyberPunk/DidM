@@ -13,7 +13,7 @@ pub struct EntryBuilder<'a> {
     source: PathBuf,
     target: PathBuf,
     relative_path: Option<PathBuf>,
-    ctx: EntryBuilderCtx<'a>,
+    ctx: &'a EntryBuilderCtx<'a>,
     source_type: SouceType,
     overwrite: Option<bool>,
 }
@@ -22,7 +22,7 @@ impl<'a> EntryBuilder<'a> {
     pub fn new(
         source: impl Into<PathBuf>,
         target: impl Into<PathBuf>,
-        config: EntryBuilderCtx<'a>,
+        config: &'a EntryBuilderCtx<'a>,
     ) -> Self {
         Self {
             source: source.into(),
