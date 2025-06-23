@@ -38,9 +38,9 @@ impl<'a> EntryCollector<'a> {
         let target_root = Self::resolve_path(base_path, &sketch.target_path, "target", false)?;
 
         //Check target exist
-        let exist = Checker::target_exisit_or_create(target_root.get())?;
+        let exist = Checker::target_exisit_or_create(target_root.as_path())?;
         if !exist && !is_dryrun {
-            std::fs::create_dir_all(target_root.get())?;
+            std::fs::create_dir_all(target_root.as_path())?;
         }
 
         //prepare entry builder context
@@ -114,12 +114,12 @@ impl<'a> EntryCollector<'a> {
     }
 
     async fn get_normal_entries(&mut self) -> Result<()> {
-        let source_paths = DirWalker::new(self.sketch, self.source_root.get())
+        let source_paths = DirWalker::new(self.sketch, self.source_root.as_path())
             .get_walker()?
             .run()?;
         for source_path in source_paths {
             //TODO: intead of relative path we should source_root and this logic
-            let relative_path = match source_path.strip_prefix(self.source_root.get()) {
+            let relative_path = match source_path.strip_prefix(self.source_root.as_path()) {
                 Ok(p) => p.to_path_buf(),
                 Err(e) => {
                     warn!("Invalid entry path: {}", e);
@@ -154,7 +154,7 @@ impl<'a> EntryCollector<'a> {
                     continue;
                 }
                 Ok(target_path) => {
-                    if target_path.get().exists() {
+                    if target_path.as_path().exists() {
                         info!("(null/empty) Skipping existed target:{}", path);
                         continue;
                     }
