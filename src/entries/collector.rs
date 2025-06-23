@@ -128,16 +128,16 @@ impl<'a> EntryCollector<'a> {
                     continue;
                 }
             };
-            let entry = EntryBuilder::new(
-                source_path,
-                self.target_root.clone().into_pathbuf(),
-                &self.builder_ctx,
-            )
-            .source_type(SouceType::Normal)
-            .relative_path(relative_path)
-            .build()
-            .await?;
-            self.add_entry(entry, self.sketch.mode);
+            // let entry = EntryBuilder::new(
+            //     source_path,
+            //     self.target_root.clone().into_pathbuf(),
+            //     &self.builder_ctx,
+            // )
+            // .source_type(SouceType::Normal)
+            // .relative_path(relative_path)
+            // .build()
+            // .await?;
+            // self.add_entry(entry, self.sketch.mode);
         }
         Ok(())
     }
@@ -160,18 +160,18 @@ impl<'a> EntryCollector<'a> {
                         info!("(null/empty) Skipping existed target:{}", path);
                         continue;
                     }
-                    EntryBuilder::new(
-                        source_path.to_path_buf(),
-                        target_path.into_pathbuf(),
-                        &self.builder_ctx,
-                    )
-                    .source_type(s_type)
-                    .overwrite(false)
-                    .build()
-                    .await?
+                    // EntryBuilder::new(
+                    //     source_path.to_path_buf(),
+                    //     target_path.into_pathbuf(),
+                    //     &self.builder_ctx,
+                    // )
+                    // .source_type(s_type)
+                    // .overwrite(false)
+                    // .build()
+                    // .await?
                 }
             };
-            self.add_entry(entry, mode);
+            // self.add_entry(entry, mode);
         }
         Ok(())
     }
@@ -187,14 +187,14 @@ impl<'a> EntryCollector<'a> {
                 false,
             )?
             .into_pathbuf();
-            let entry = EntryBuilder::new(source_path, target_path, &self.builder_ctx)
-                .source_type(SouceType::Extra)
-                .build()
-                .await?;
-            match extra.mode {
-                Some(mode) => self.add_entry(entry, mode),
-                None => self.add_entry(entry, sketch.mode),
-            }
+            // let entry = EntryBuilder::new(source_path, target_path, &self.builder_ctx)
+            //     .source_type(SouceType::Extra)
+            //     .build()
+            //     .await?;
+            // match extra.mode {
+            //     Some(mode) => self.add_entry(entry, mode),
+            //     None => self.add_entry(entry, sketch.mode),
+            // }
         }
         Ok(())
     }
