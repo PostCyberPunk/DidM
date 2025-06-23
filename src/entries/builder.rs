@@ -1,4 +1,7 @@
-use crate::bakcup::{BackupManager, BackupState};
+use crate::{
+    bakcup::{BackupManager, BackupState},
+    utils::ResolvedPath,
+};
 
 use super::{Entry, SouceType};
 use anyhow::Result;
@@ -6,6 +9,8 @@ use std::path::PathBuf;
 
 pub struct EntryBuilderCtx<'a> {
     pub backup_manager: Option<&'a BackupManager>,
+    pub source_root: ResolvedPath,
+    pub target_root: ResolvedPath,
     pub overwrite: bool,
 }
 
@@ -34,11 +39,20 @@ impl<'a> EntryBuilder<'a> {
         }
     }
 
+    pub async fn build(mut self) -> Result<Entry> {
+        self.do_join_relative().do_rename();
+
+        let bakcup_state = self.do_backup().await;
+        let overwrite = self.get_overwrite();
+
+        let entry = Entry::new(self.source, self.target, overwrite, bakcup_state);
+        Ok(entry)
+    }
+
     pub fn source_type(mut self, s: SouceType) -> Self {
         self.source_type = s;
         self
     }
-
     pub fn relative_path(mut self, path: PathBuf) -> Self {
         self.relative_path = Some(path);
         self
@@ -48,35 +62,37 @@ impl<'a> EntryBuilder<'a> {
         self
     }
 
-    pub async fn build(self) -> Result<Entry> {
-        let mut target_path = self.target;
+    fn get_overwrite(&self) -> bool {
+        self.overwrite.unwrap_or(self.ctx.overwrite)
+    }
+    fn do_join_relative(&mut self) -> &mut Self {
         if let Some(path) = &self.relative_path {
-            target_path = target_path.join(path);
+            self.target = self.ctx.target_root.as_path().join(path);
         }
-
-        //Renamer
-        //TODO: does not feel good about this
-        if target_path.to_str().unwrap().contains("dot-") {
-            target_path = PathBuf::from(target_path.to_str().unwrap().replace("dot-", "."));
+        self
+    }
+    fn do_rename(&mut self) -> &mut Self {
+        let target = self.target.to_str().unwrap();
+        if target.contains("dot-") {
+            self.target = PathBuf::from(target.replace("dot-", "."));
         };
-
-        let mut entry = Entry::new(
-            self.source,
-            target_path,
-            self.overwrite.unwrap_or(self.ctx.overwrite),
-        );
-
-        //Bakcuper
+        self
+    }
+    async fn do_backup(&self) -> BackupState {
         if let Some(bm) = self.ctx.backup_manager {
-            entry.bakcup_state = match bm
-                .bakcup_async(&entry.target_path, self.relative_path, self.source_type)
+            match bm
+                .bakcup_async(
+                    &self.target,
+                    self.relative_path.as_deref(),
+                    self.source_type,
+                )
                 .await
             {
                 Ok(s) => s,
                 Err(_) => BackupState::Skip,
-            };
+            }
+        } else {
+            BackupState::Ok
         }
-
-        Ok(entry)
     }
 }

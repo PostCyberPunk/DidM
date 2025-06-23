@@ -45,6 +45,8 @@ impl<'a> EntryCollector<'a> {
 
         //prepare entry builder context
         let builder_ctx = EntryBuilderCtx {
+            source_root: source_root.clone(),
+            target_root: target_root.clone(),
             backup_manager,
             overwrite: overwrite_existed,
         };

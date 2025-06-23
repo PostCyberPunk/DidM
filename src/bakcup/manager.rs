@@ -44,7 +44,7 @@ impl BackupManager {
     pub async fn bakcup_async(
         &self,
         src: &Path,
-        relative: Option<PathBuf>,
+        relative: Option<&Path>,
         src_type: SouceType,
     ) -> Result<BackupState> {
         if !src.exists() {
