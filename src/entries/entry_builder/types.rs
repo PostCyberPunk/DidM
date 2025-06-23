@@ -45,7 +45,6 @@ impl NormalBuilder {
             source,
             target: ctx.target_root.as_path().join(relative_path.clone()),
             ctx,
-            source_type: crate::entries::SouceType::Normal,
             relative_path: Some(relative_path),
             _marker: PhantomData,
             overwrite: Some(false),

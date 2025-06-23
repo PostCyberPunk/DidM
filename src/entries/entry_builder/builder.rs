@@ -12,7 +12,6 @@ pub struct EntryBuilder<'a, S: BuildStrategy> {
     pub target: PathBuf,
     pub relative_path: Option<PathBuf>,
     pub ctx: &'a EntryBuilderCtx<'a>,
-    pub source_type: SouceType,
     pub overwrite: Option<bool>,
     pub _marker: PhantomData<S>,
 }
@@ -28,10 +27,10 @@ impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
         Ok(entry)
     }
 
-    pub fn source_type(mut self, s: SouceType) -> Self {
-        self.source_type = s;
-        self
-    }
+    // pub fn source_type(mut self, s: SouceType) -> Self {
+    //     self.source_type = s;
+    //     self
+    // }
     pub fn relative_path(mut self, path: PathBuf) -> Self {
         self.relative_path = Some(path);
         self
@@ -60,11 +59,7 @@ impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
     async fn do_backup(&self) -> BackupState {
         if let Some(bm) = self.ctx.backup_manager {
             match bm
-                .bakcup_async(
-                    &self.target,
-                    self.relative_path.as_deref(),
-                    self.source_type,
-                )
+                .bakcup_async(&self.target, self.relative_path.as_deref())
                 .await
             {
                 Ok(s) => s,
