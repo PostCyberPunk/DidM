@@ -16,7 +16,7 @@ pub struct EntryBuilder<'a, S: BuildStrategy> {
 }
 
 impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
-    pub async fn build(mut self) -> Result<Entry> {
+    pub fn build(mut self) -> Result<Entry> {
         self.do_join_relative().do_rename();
         let entry = Entry::new(self.source, self.target);
         Ok(entry)
@@ -35,12 +35,9 @@ impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
         };
         self
     }
-    async fn do_backup(&self) -> BackupState {
+    fn do_backup(&self) -> BackupState {
         if let Some(bm) = self.ctx.backup_manager {
-            match bm
-                .bakcup_async(&self.target, self.relative_path.as_deref())
-                .await
-            {
+            match bm.bakcup(&self.target, self.relative_path.as_deref()) {
                 Ok(s) => s,
                 Err(e) => BackupState::Skip,
             }

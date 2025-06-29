@@ -41,7 +41,7 @@ impl BackupManager {
             // null_path,
         })
     }
-    pub async fn bakcup_async(&self, src: &Path, relative: Option<&Path>) -> Result<BackupState> {
+    pub fn bakcup(&self, src: &Path, relative: Option<&Path>) -> Result<BackupState> {
         if !src.exists() {
             return Ok(BackupState::Ok);
         }

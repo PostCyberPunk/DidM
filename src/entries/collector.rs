@@ -61,10 +61,9 @@ impl<'a> EntryCollector<'a> {
             is_dryrun,
         })
     }
-    pub async fn collect(mut self) -> Result<()> {
+    pub fn collect(mut self) -> Result<()> {
         //Get Normal Entries
         self.get_normal_entries()
-            .await
             .context("Failed to get normal entries")?;
         //Get null entries
         //FIX:that looks like pretty fucked up
@@ -75,7 +74,6 @@ impl<'a> EntryCollector<'a> {
             Mode::Symlink,
             SouceType::Null,
         )
-        .await
         .context("Failed to get null entries")?;
         //Get empty entries
         //FIX: os .bad practice
@@ -89,11 +87,9 @@ impl<'a> EntryCollector<'a> {
             Mode::Copy,
             SouceType::Empty,
         )
-        .await
         .context("Failed to get empty entries")?;
         //Get extra entries
         self.get_extra_entris(self.sketch)
-            .await
             .context("Failed to get extra entries")?;
         //Done!
         Ok(())
@@ -106,7 +102,7 @@ impl<'a> EntryCollector<'a> {
         }
     }
 
-    async fn get_normal_entries(&mut self) -> Result<()> {
+    fn get_normal_entries(&mut self) -> Result<()> {
         let source_paths = DirWalker::new(self.sketch, self.source_root.as_path())
             .get_walker()?
             .run()?;
@@ -132,7 +128,7 @@ impl<'a> EntryCollector<'a> {
         }
         Ok(())
     }
-    async fn collect_same_source(
+    fn collect_same_source(
         &mut self,
         paths: &[String],
         source_path: &Path,
@@ -166,7 +162,7 @@ impl<'a> EntryCollector<'a> {
         }
         Ok(())
     }
-    async fn get_extra_entris(&mut self, sketch: &Sketch) -> Result<()> {
+    fn get_extra_entris(&mut self, sketch: &Sketch) -> Result<()> {
         for extra in sketch.extra_entries.iter() {
             let source_path = PathResolver::resolve_from_with_ctx(
                 &self.source_root,
