@@ -34,8 +34,10 @@ impl<'a> EntryCollector<'a> {
         let overwrite_existed = behaviour.overwrite_existed.unwrap();
 
         //Reoslve Path
-        let source_root = Self::resolve_path(base_path, &sketch.source_path, "source", true)?;
-        let target_root = Self::resolve_path(base_path, &sketch.target_path, "target", false)?;
+        let source_root =
+            PathResolver::resolve_from_with_ctx(base_path, &sketch.source_path, "source", true)?;
+        let target_root =
+            PathResolver::resolve_from_with_ctx(base_path, &sketch.target_path, "target", false)?;
 
         //Check target exist
         let exist = Checker::target_exisit_or_create(target_root.as_path())?;
@@ -97,17 +99,6 @@ impl<'a> EntryCollector<'a> {
         Ok(())
     }
 
-    fn resolve_path(
-        base_path: &ResolvedPath,
-        path: &str,
-        ctx: &str,
-        should_check_exist: bool,
-    ) -> Result<ResolvedPath> {
-        let result = PathResolver::resolve_from(base_path, path, should_check_exist)
-            .with_context(|| format!("Invalid {} path: {}", ctx, path))?;
-        info!("{} path: {}", ctx, result.di_string());
-        Ok(result)
-    }
     fn add_entry(&mut self, entry: Entry, mode: Mode) {
         match mode {
             Mode::Copy => self.entries_manager.add_copy(entry),
@@ -121,13 +112,13 @@ impl<'a> EntryCollector<'a> {
             .run()?;
         for source_path in source_paths {
             //TODO: intead of relative path we should source_root and this logic
-            let relative_path = match source_path.strip_prefix(self.source_root.as_path()) {
-                Ok(p) => p.to_path_buf(),
-                Err(e) => {
-                    warn!("Invalid entry path: {}", e);
-                    continue;
-                }
-            };
+            // let relative_path = match source_path.strip_prefix(self.source_root.as_path()) {
+            //     Ok(p) => p.to_path_buf(),
+            //     Err(e) => {
+            //         warn!("Invalid entry path: {}", e);
+            //         continue;
+            //     }
+            // };
             // let entry = EntryBuilder::new(
             //     source_path,
             //     self.target_root.clone().into_pathbuf(),
@@ -177,10 +168,14 @@ impl<'a> EntryCollector<'a> {
     }
     async fn get_extra_entris(&mut self, sketch: &Sketch) -> Result<()> {
         for extra in sketch.extra_entries.iter() {
-            let source_path =
-                Self::resolve_path(&self.source_root, &extra.source_path, "extra entry", true)?
-                    .into_pathbuf();
-            let target_path = Self::resolve_path(
+            let source_path = PathResolver::resolve_from_with_ctx(
+                &self.source_root,
+                &extra.source_path,
+                "extra entry",
+                true,
+            )?
+            .into_pathbuf();
+            let target_path = PathResolver::resolve_from_with_ctx(
                 &self.target_root,
                 &extra.target_path,
                 "extra entry target",

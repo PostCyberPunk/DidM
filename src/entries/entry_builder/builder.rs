@@ -1,5 +1,5 @@
 use crate::bakcup::BackupState;
-use crate::entries::{Entry, SouceType};
+use crate::entries::Entry;
 use anyhow::Result;
 use std::marker::PhantomData;
 use std::path::PathBuf;
@@ -12,37 +12,16 @@ pub struct EntryBuilder<'a, S: BuildStrategy> {
     pub target: PathBuf,
     pub relative_path: Option<PathBuf>,
     pub ctx: &'a EntryBuilderCtx<'a>,
-    pub overwrite: Option<bool>,
     pub _marker: PhantomData<S>,
 }
 
 impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
     pub async fn build(mut self) -> Result<Entry> {
         self.do_join_relative().do_rename();
-
-        let bakcup_state = self.do_backup().await;
-        let overwrite = self.get_overwrite();
-
-        let entry = Entry::new(self.source, self.target, overwrite, bakcup_state);
+        let entry = Entry::new(self.source, self.target);
         Ok(entry)
     }
 
-    // pub fn source_type(mut self, s: SouceType) -> Self {
-    //     self.source_type = s;
-    //     self
-    // }
-    pub fn relative_path(mut self, path: PathBuf) -> Self {
-        self.relative_path = Some(path);
-        self
-    }
-    pub fn overwrite(mut self, overwrite: bool) -> Self {
-        self.overwrite = Some(overwrite);
-        self
-    }
-
-    fn get_overwrite(&self) -> bool {
-        self.overwrite.unwrap_or(self.ctx.overwrite)
-    }
     fn do_join_relative(&mut self) -> &mut Self {
         if let Some(path) = &self.relative_path {
             self.target = self.ctx.target_root.as_path().join(path);
@@ -63,7 +42,7 @@ impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
                 .await
             {
                 Ok(s) => s,
-                Err(_) => BackupState::Skip,
+                Err(e) => BackupState::Skip,
             }
         } else {
             BackupState::Ok
