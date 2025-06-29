@@ -34,12 +34,12 @@ impl<S: ApplyStrategy> EntryList<S> {
             let target = &entry.target_path;
 
             //Skip existed target
-            if target.exists() && !entry.overwrite_existed {
-                info!("Skipped existed: {}", target.display());
-                //Retrun result::SkipExsit
-                continue;
-            }
-
+            // if target.exists() && !entry.overwrite_existed {
+            //     info!("Skipped existed: {}", target.display());
+            //     //Retrun result::SkipExsit
+            //     continue;
+            // }
+            //
             //Continue if this is Dry-run
             //NOTE: what about preview?
             if is_dryrun {
