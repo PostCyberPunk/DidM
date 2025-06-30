@@ -5,10 +5,10 @@ use crate::entries::{
 };
 
 pub struct EntriesManager {
-    copy_list: EntryList<ActionCopy>,
-    link_list: EntryList<ActionLink>,
-    skip_list: Vec<Entry>,
-    error_list: Vec<(Entry, String)>,
+    pub copy_list: EntryList<ActionCopy>,
+    pub link_list: EntryList<ActionLink>,
+    pub skip_list: Vec<Entry>,
+    pub error_list: Vec<(Entry, String)>,
     pub is_dryrun: bool,
 }
 
