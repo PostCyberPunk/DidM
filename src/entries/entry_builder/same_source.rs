@@ -12,7 +12,7 @@ pub struct SameSourceBuilder;
 
 impl BuildStrategy for SameSourceBuilder {}
 impl SameSourceBuilder {
-    fn create<'a>(
+    pub fn create<'a>(
         ctx: &'a EntryBuilderCtx<'a>,
         source: PathBuf,
         target_path: &str,

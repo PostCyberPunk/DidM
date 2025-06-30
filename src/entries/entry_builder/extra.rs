@@ -9,7 +9,7 @@ use super::{EntryBuilder, EntryBuilderCtx};
 pub struct ExtraBuilder;
 impl BuildStrategy for ExtraBuilder {}
 impl ExtraBuilder {
-    fn create<'a>(
+    pub fn create<'a>(
         ctx: &'a EntryBuilderCtx<'a>,
         source_path: &str,
         target_path: &str,

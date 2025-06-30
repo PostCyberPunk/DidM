@@ -10,7 +10,10 @@ use super::{EntryBuilder, EntryBuilderCtx};
 pub struct NormalBuilder;
 impl BuildStrategy for NormalBuilder {}
 impl NormalBuilder {
-    fn create<'a>(ctx: &'a EntryBuilderCtx<'a>, source: PathBuf) -> Result<EntryBuilder<'a, Self>> {
+    pub fn create<'a>(
+        ctx: &'a EntryBuilderCtx<'a>,
+        source: PathBuf,
+    ) -> Result<EntryBuilder<'a, Self>> {
         let relative_path = match source.strip_prefix(ctx.source_root.as_path()) {
             Ok(p) => p.to_path_buf(),
             Err(e) => {
