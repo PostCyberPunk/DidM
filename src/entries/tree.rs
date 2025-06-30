@@ -60,7 +60,10 @@ impl EntriesManager {
             //fold path
             let mut curr_name = name.to_string();
             let mut curr_node = node;
-            while curr_node.kinds.is_empty() && curr_node.children.len() == 1 {
+            while curr_name.starts_with("/")
+                && curr_node.children.len() == 1
+                && curr_node.kinds.is_empty()
+            {
                 let (child_name, child_node) = curr_node.children.iter().next().unwrap();
                 curr_name = if curr_name.is_empty() {
                     child_name.clone()
@@ -77,7 +80,7 @@ impl EntriesManager {
             if !curr_name.is_empty() {
                 let branch = if last { "└── " } else { "├── " };
                 let mut label = String::new();
-                for kind in &node.kinds {
+                for kind in &curr_node.kinds {
                     match kind {
                         EntryKind::Copy => label.push_str("[C]"),
                         EntryKind::Link => label.push_str("[L]"),
