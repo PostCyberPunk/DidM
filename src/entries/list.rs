@@ -8,7 +8,7 @@ use std::{io, marker::PhantomData};
 use tracing::{error, info, warn};
 
 pub struct EntryList<S: ApplyStrategy> {
-    entries: Vec<Entry>,
+    pub entries: Vec<Entry>,
     _marker: PhantomData<S>,
 }
 

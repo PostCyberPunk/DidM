@@ -1,6 +1,9 @@
 mod manager;
 pub use manager::EntriesManager;
 
+mod tree;
+pub use tree::TreeManager;
+
 mod entry;
 pub use entry::Entry;
 
