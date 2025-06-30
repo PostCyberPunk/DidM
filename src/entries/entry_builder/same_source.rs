@@ -2,9 +2,10 @@ use anyhow::Result;
 use std::marker::PhantomData;
 use std::path::PathBuf;
 
+use crate::entries::Entry;
 use crate::utils::PathResolver;
 
-use super::types::BuildStrategy;
+use super::types::{BuildStrategy, CollectResult};
 use super::{EntryBuilder, EntryBuilderCtx};
 
 pub struct SameSourceBuilder;
@@ -27,5 +28,8 @@ impl SameSourceBuilder {
             relative_path: None,
             _marker: PhantomData,
         })
+    }
+    fn deal_exist(builder: EntryBuilder<'_, Self>) -> Result<(Entry, CollectResult)> {
+        Ok((builder.into_entry(), CollectResult::Skip))
     }
 }

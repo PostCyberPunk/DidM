@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 use std::path::PathBuf;
 
 use super::EntryBuilderCtx;
-use super::types::BuildStrategy;
+use super::types::{BuildStrategy, CollectResult};
 
 pub struct EntryBuilder<'a, S: BuildStrategy> {
     pub source: PathBuf,
@@ -16,10 +16,16 @@ pub struct EntryBuilder<'a, S: BuildStrategy> {
 }
 
 impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
-    pub fn build(mut self) -> Result<Entry> {
+    pub fn build(mut self) -> Result<(Entry, CollectResult)> {
         self.do_join_relative().do_rename();
-        let entry = Entry::new(self.source, self.target);
-        Ok(entry)
+        match (self.ctx.overwrite, self.target.exists()) {
+            (true, true) => S::deal_exist(self),
+            (false, true) => Ok((self.into_entry(), CollectResult::Skip)),
+            (_, _) => Ok((self.into_entry(), CollectResult::Ok)),
+        }
+    }
+    pub fn into_entry(self) -> Entry {
+        Entry::new(self.source, self.target)
     }
 
     fn do_join_relative(&mut self) -> &mut Self {
@@ -35,11 +41,12 @@ impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
         };
         self
     }
-    fn do_backup(&self) -> BackupState {
+    pub fn do_backup(&self) -> BackupState {
         if let Some(bm) = self.ctx.backup_manager {
             match bm.bakcup(&self.target, self.relative_path.as_deref()) {
                 Ok(s) => s,
-                Err(e) => BackupState::Skip,
+                //TODO: error handling
+                Err(_) => BackupState::Skip,
             }
         } else {
             BackupState::Ok
