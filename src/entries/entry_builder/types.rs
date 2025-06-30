@@ -13,10 +13,10 @@ pub struct EntryBuilderCtx<'a> {
     pub overwrite: bool,
 }
 pub trait BuildStrategy: Sized {
-    fn deal_exist(builder: EntryBuilder<'_, Self>) -> Result<(Entry, CollectResult)> {
+    fn deal_exist(builder: EntryBuilder<'_, Self>) -> (Entry, CollectResult) {
         match builder.do_backup() {
-            BackupState::Skip(e) => Ok((builder.into_entry(), CollectResult::SkipWithError(e))),
-            _ => Ok((builder.into_entry(), CollectResult::Backuped)),
+            BackupState::Skip(e) => (builder.into_entry(), CollectResult::SkipWithError(e)),
+            _ => (builder.into_entry(), CollectResult::Backuped),
         }
     }
 }

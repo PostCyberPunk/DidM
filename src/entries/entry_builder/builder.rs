@@ -16,12 +16,12 @@ pub struct EntryBuilder<'a, S: BuildStrategy> {
 }
 
 impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
-    pub fn build(mut self) -> Result<(Entry, CollectResult)> {
+    pub fn build(mut self) -> (Entry, CollectResult) {
         self.do_join_relative().do_rename();
         match (self.ctx.overwrite, self.target.exists()) {
             (true, true) => S::deal_exist(self),
-            (false, true) => Ok((self.into_entry(), CollectResult::Skip)),
-            (_, _) => Ok((self.into_entry(), CollectResult::Ok)),
+            (false, true) => (self.into_entry(), CollectResult::Skip),
+            (_, _) => (self.into_entry(), CollectResult::Ok),
         }
     }
     pub fn into_entry(self) -> Entry {
