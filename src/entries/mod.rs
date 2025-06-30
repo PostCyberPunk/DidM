@@ -8,7 +8,7 @@ mod entry;
 pub use entry::Entry;
 
 mod entry_builder;
-pub use entry_builder::{EntryBuilder, EntryBuilderCtx};
+pub use entry_builder::EntryBuilderCtx;
 
 mod apply_strategy;
 

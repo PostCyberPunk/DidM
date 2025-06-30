@@ -4,7 +4,6 @@ use crate::utils::ResolvedPath;
 use crate::bakcup::{BackupManager, BackupState};
 
 use super::EntryBuilder;
-use anyhow::Result;
 
 pub struct EntryBuilderCtx<'a> {
     pub backup_manager: Option<&'a BackupManager>,

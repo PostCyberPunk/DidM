@@ -5,7 +5,7 @@ use std::{
 };
 use tracing::warn;
 
-use crate::{entries::SouceType, utils::PathExtension};
+use crate::utils::PathExtension;
 
 use super::{BackupRoot, BackupState, error::BackupError};
 

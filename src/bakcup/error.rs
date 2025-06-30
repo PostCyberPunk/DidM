@@ -8,6 +8,6 @@ pub enum BackupError {
     // #[error("Failed to backup :{0}")]
     // Failed(String),
     //TODO:! this could be avoid with right abstraction model
-    #[error("BUG:Calling normal entry on backup_other")]
-    BugWrongType,
+    // #[error("BUG:Calling normal entry on backup_other")]
+    // BugWrongType,
 }

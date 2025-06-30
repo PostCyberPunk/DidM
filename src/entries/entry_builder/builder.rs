@@ -1,6 +1,5 @@
 use crate::bakcup::BackupState;
 use crate::entries::Entry;
-use anyhow::Result;
 use std::marker::PhantomData;
 use std::path::PathBuf;
 
