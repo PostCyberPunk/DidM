@@ -8,6 +8,7 @@ pub struct EntriesManager {
     copy_list: EntryList<ActionCopy>,
     link_list: EntryList<ActionLink>,
     skip_list: Vec<Entry>,
+    error_list: Vec<(Entry, String)>,
     pub is_dryrun: bool,
 }
 
@@ -17,6 +18,7 @@ impl EntriesManager {
             copy_list: EntryList::new(),
             link_list: EntryList::new(),
             skip_list: Vec::new(),
+            error_list: Vec::new(),
             is_dryrun,
         }
     }
@@ -36,6 +38,9 @@ impl EntriesManager {
     }
     pub fn skip_entry(&mut self, entry: Entry) {
         self.skip_list.push(entry);
+    }
+    pub fn add_error(&mut self, error_entry: (Entry, String)) {
+        self.error_list.push(error_entry);
     }
 
     pub fn apply_all(&self) {
