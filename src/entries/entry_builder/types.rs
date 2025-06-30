@@ -16,7 +16,7 @@ pub trait BuildStrategy: Sized {
     fn deal_exist(builder: EntryBuilder<'_, Self>) -> Result<(Entry, CollectResult)> {
         match builder.do_backup() {
             BackupState::Skip => Ok((builder.into_entry(), CollectResult::Skip)),
-            _ => Ok((builder.into_entry(), CollectResult::Ok)),
+            _ => Ok((builder.into_entry(), CollectResult::Backuped)),
         }
     }
 }
@@ -24,5 +24,6 @@ pub trait BuildStrategy: Sized {
 pub enum CollectResult {
     Ok,
     Skip,
-    Backup,
+    Backuped,
+    SkipWithError(String),
 }
