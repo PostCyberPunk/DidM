@@ -7,6 +7,7 @@ use crate::entries::{
 pub struct EntriesManager {
     copy_list: EntryList<ActionCopy>,
     link_list: EntryList<ActionLink>,
+    skip_list: Vec<Entry>,
     pub is_dryrun: bool,
 }
 
@@ -15,6 +16,7 @@ impl EntriesManager {
         Self {
             copy_list: EntryList::new(),
             link_list: EntryList::new(),
+            skip_list: Vec::new(),
             is_dryrun,
         }
     }
@@ -31,6 +33,9 @@ impl EntriesManager {
     }
     pub fn add_link(&mut self, entry: Entry) {
         self.link_list.add_entry(entry);
+    }
+    pub fn skip_entry(&mut self, entry: Entry) {
+        self.skip_list.push(entry);
     }
 
     pub fn apply_all(&self) {
