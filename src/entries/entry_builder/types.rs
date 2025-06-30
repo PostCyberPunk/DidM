@@ -21,6 +21,7 @@ pub trait BuildStrategy: Sized {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CollectResult {
     Ok,
     Skip,
