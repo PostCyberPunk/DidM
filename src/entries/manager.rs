@@ -4,6 +4,8 @@ use crate::entries::{
     list::EntryList,
 };
 
+use super::tree::{EntryKind, TreeManager};
+
 pub struct EntriesManager {
     pub copy_list: EntryList<ActionCopy>,
     pub link_list: EntryList<ActionLink>,
@@ -46,5 +48,20 @@ impl EntriesManager {
     pub fn apply_all(&self) {
         let _ = self.link_list.apply_entries(self.is_dryrun);
         let _ = self.copy_list.apply_entries(self.is_dryrun);
+    }
+
+    pub fn fill_tree(&self, tree: &mut TreeManager) {
+        for entry in &self.copy_list.entries {
+            tree.insert_path(&entry.target_path, EntryKind::Copy);
+        }
+        for entry in &self.link_list.entries {
+            tree.insert_path(&entry.target_path, EntryKind::Link);
+        }
+        for entry in &self.skip_list {
+            tree.insert_path(&entry.target_path, EntryKind::Skip);
+        }
+        // for (entry, error) in &self.error_list {
+        //     tree.insert_path(&entry.target_path, EntryKind::Error(error.clone()));
+        // }
     }
 }
