@@ -23,16 +23,16 @@ impl EntriesManager {
         }
     }
 
-    pub fn add_copies(&mut self, entries: Vec<Entry>) {
-        self.copy_list.add_entries(entries);
-    }
+    // pub fn add_copies(&mut self, entries: Vec<Entry>) {
+    //     self.copy_list.add_entries(entries);
+    // }
     pub fn add_copy(&mut self, entry: Entry) {
         self.copy_list.add_entry(entry);
     }
 
-    pub fn add_links(&mut self, entries: Vec<Entry>) {
-        self.link_list.add_entries(entries);
-    }
+    // pub fn add_links(&mut self, entries: Vec<Entry>) {
+    //     self.link_list.add_entries(entries);
+    // }
     pub fn add_link(&mut self, entry: Entry) {
         self.link_list.add_entry(entry);
     }

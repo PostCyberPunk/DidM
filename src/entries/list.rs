@@ -24,9 +24,9 @@ impl<S: ApplyStrategy> EntryList<S> {
         self.entries.push(entry);
     }
 
-    pub fn add_entries(&mut self, entries: Vec<Entry>) {
-        self.entries.extend(entries);
-    }
+    // pub fn add_entries(&mut self, entries: Vec<Entry>) {
+    //     self.entries.extend(entries);
+    // }
 
     pub fn apply_entries(&self, is_dryrun: bool) -> Result<()> {
         for entry in &self.entries {
