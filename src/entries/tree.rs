@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, HashSet};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use super::EntriesManager;
 
@@ -8,7 +8,7 @@ enum EntryKind {
     Copy,
     Link,
     Skip,
-    Error(String),
+    // Error(String),
 }
 
 struct TreeNode {
@@ -48,13 +48,13 @@ impl EntriesManager {
         for entry in &self.skip_list {
             insert_path(&mut root, &entry.target_path, EntryKind::Skip);
         }
-        for (entry, error) in &self.error_list {
-            insert_path(
-                &mut root,
-                &entry.target_path,
-                EntryKind::Error(error.clone()),
-            );
-        }
+        // for (entry, error) in &self.error_list {
+        //     insert_path(
+        //         &mut root,
+        //         &entry.target_path,
+        //         EntryKind::Error(error.clone()),
+        //     );
+        // }
 
         fn print_tree(node: &TreeNode, prefix: &str, last: bool, name: &str) {
             //fold path
@@ -85,7 +85,7 @@ impl EntriesManager {
                         EntryKind::Copy => label.push_str("[C]"),
                         EntryKind::Link => label.push_str("[L]"),
                         EntryKind::Skip => label.push_str("[S]"),
-                        EntryKind::Error(e) => label.push_str("[E]"),
+                        // EntryKind::Error(e) => label.push_str("[E]"),
                     }
                 }
                 print!("{}{}{} {}", prefix, branch, label, curr_name);
