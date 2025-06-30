@@ -1,6 +1,3 @@
-mod types;
-pub use types::SouceType;
-
 mod manager;
 pub use manager::EntriesManager;
 
