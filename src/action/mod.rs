@@ -8,6 +8,7 @@ use tracing_subscriber::FmtSubscriber;
 use crate::{
     composition::{AppArgs, CompContext},
     config::{self, ConfigMap},
+    entries::TreeManager,
     model::Composition,
 };
 
@@ -24,18 +25,22 @@ pub fn deploy(
     let (base_path, config_sets) = config::load_configs(path.as_deref())?;
     let config_map = ConfigMap::new(base_path, &config_sets)?;
 
+    //Tree
+    let mut tree = TreeManager::new();
+
     match source {
         ActionSource::Render => {
             for comp_name in arg.iter() {
                 let comp = config_map.get_comp(comp_name)?;
-                deploy_comp(comp_name, comp, &config_map, app_args)?;
+                deploy_comp(comp_name, comp, &config_map, &mut tree, app_args)?;
             }
         }
         ActionSource::Draw => {
             let comp = Composition::new(arg.clone());
-            deploy_comp("draw_sketches", &comp, &config_map, app_args)?;
+            deploy_comp("draw_sketches", &comp, &config_map, &mut tree, app_args)?;
         }
     }
+    tree.print();
     Ok(())
 }
 
@@ -43,12 +48,13 @@ fn deploy_comp(
     comp_name: &str,
     comp: &Composition,
     config_map: &ConfigMap<'_>,
+    tree: &mut TreeManager,
     app_args: AppArgs,
 ) -> Result<()> {
     info!("Rendering Composition : {} ...", comp_name);
     let c = CompContext::new(comp_name, comp, config_map, &app_args)
         .context(format!("Composition init failed:{}", comp_name))?;
-
+    c.fill_tree(tree);
     c.deploy()
         .context(format!("Composition deploy failed:{}", comp_name))?;
     Ok(())
