@@ -1,6 +1,7 @@
 use super::{super::prompt::confirm, ResolvedPath};
 use crate::{config::CHCECK_CONFIG, utils::path::PathError};
 use anyhow::{Context, Result};
+use log::info;
 use once_cell::sync::Lazy;
 use path_absolutize::Absolutize;
 use std::{collections::HashMap, env, path::PathBuf};
@@ -68,6 +69,17 @@ impl PathResolver {
             (true, false) => Err(PathError::NotExists(resolve).into()),
             _ => Ok(ResolvedPath::new(resolve, path.to_string())),
         }
+    }
+    pub fn resolve_from_with_ctx(
+        base_path: &ResolvedPath,
+        path: &str,
+        ctx: &str,
+        should_check_exist: bool,
+    ) -> Result<ResolvedPath> {
+        let result = Self::resolve_from(base_path, path, should_check_exist)
+            .with_context(|| format!("Invalid {} path: {}", ctx, path))?;
+        info!("{} path: {:?}", ctx, result);
+        Ok(result)
     }
     pub fn resolve_from(
         base_path: &ResolvedPath,

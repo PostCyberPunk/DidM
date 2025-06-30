@@ -5,7 +5,7 @@ use std::{
 };
 use tracing::warn;
 
-use crate::{entries::SouceType, utils::PathExtension};
+use crate::utils::PathExtension;
 
 use super::{BackupRoot, BackupState, error::BackupError};
 
@@ -41,24 +41,16 @@ impl BackupManager {
             // null_path,
         })
     }
-    pub async fn bakcup_async(
-        &self,
-        src: &Path,
-        relative: Option<PathBuf>,
-        src_type: SouceType,
-    ) -> Result<BackupState> {
+    pub fn bakcup(&self, src: &Path, relative: Option<&Path>) -> Result<BackupState> {
         if !src.exists() {
             return Ok(BackupState::Ok);
         }
         if Self::check_symlink(src) {
             return Ok(BackupState::Symlink);
         }
-        let dest_path = match src_type {
-            SouceType::Normal => self.normal_path.join(relative.context("No relative path")?),
-            SouceType::Extra => self.get_extra_path(src)?,
-            _ => {
-                return Ok(BackupState::Skip);
-            }
+        let dest_path = match relative {
+            Some(rp) => self.normal_path.join(rp),
+            None => self.get_extra_path(src)?,
         };
 
         self.do_backup(src, &dest_path)?;

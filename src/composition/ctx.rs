@@ -9,7 +9,6 @@ use crate::{
     utils::PathResolver,
 };
 use anyhow::Result;
-use tokio::runtime::Runtime;
 
 //NOTE:
 //1.this name is not accurate .
@@ -27,7 +26,6 @@ impl<'a> CompContext<'a> {
         comp_name: &'a str,
         comp: &'a Composition,
         config_map: &'a ConfigMap<'_>,
-        runtime: &'a Runtime,
         args: &'a AppArgs,
     ) -> Result<Self> {
         //NOTE: order should be: error with less calculation ; then error with more calulation
@@ -64,23 +62,19 @@ impl<'a> CompContext<'a> {
         let sketchs = config_map.get_sketches(&comp.sketch)?;
 
         //TODO:we need some kind of summary of result here
-        runtime.block_on(async {
-            for tuple in sketchs {
-                let result = Self::collect_sketch(
-                    config_map,
-                    &mut commands_runner,
-                    &mut entries_manager,
-                    &backup_root,
-                    behaviour,
-                    tuple,
-                )
-                .await;
-                if let Err(e) = result {
-                    return Err(anyhow::anyhow!("Sketch {} failed: {}", tuple.2, e));
-                }
+        for tuple in sketchs {
+            let result = Self::collect_sketch(
+                config_map,
+                &mut commands_runner,
+                &mut entries_manager,
+                &backup_root,
+                behaviour,
+                tuple,
+            );
+            if let Err(e) = result {
+                return Err(anyhow::anyhow!("Sketch {} failed: {}", tuple.2, e));
             }
-            Ok(())
-        })?;
+        }
         //is backup created?
         backup_root.has_bakcup();
 
@@ -94,13 +88,12 @@ impl<'a> CompContext<'a> {
         // let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
         self.commands_runner.run_pre_commands()?;
 
-        //TODO:async this could be async
         self.entries_manager.apply_all();
 
         self.commands_runner.run_post_commands()?;
         Ok(())
     }
-    async fn collect_sketch(
+    fn collect_sketch(
         config_map: &'a ConfigMap<'_>,
         commands_runner: &mut CommandsRunner<'a>,
         entries_manager: &mut EntriesManager,
@@ -131,8 +124,7 @@ impl<'a> CompContext<'a> {
             &behaviour,
             bakcuper.as_ref(),
         )?
-        .collect()
-        .await?;
+        .collect()?;
 
         // entries_manager.add_sketch(sketch, base_path, &behaviour, sketch_name)?;
         Ok(())

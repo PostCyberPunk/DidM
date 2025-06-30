@@ -8,10 +8,10 @@ use crate::utils::{PathExtension, ResolvedPath};
 
 use super::error;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BackupState {
     Ok,
-    Skip,
+    Skip(String),
     Symlink,
     Backuped,
 }
@@ -23,14 +23,14 @@ impl BackupRoot {
     pub fn new(base_path: &ResolvedPath, comp_name: &str, is_dryrun: bool) -> Result<Self> {
         //Make sure we can write at the base path
         base_path
-            .get()
+            .as_path()
             .check_dir()
-            .and_then(|_| base_path.get().check_permission())
+            .and_then(|_| base_path.as_path().check_permission())
             .with_context(|| error::BackupError::InitializeFailed)?;
         //TODO: we can get data by meta data,we can have a better name
         let now = Local::now().format("%Y_%m_%d_%H_%M_%S").to_string();
         let base_dir = base_path
-            .get()
+            .as_path()
             .join("didm_backup")
             .join(format!("composition_{}-{}", comp_name, now));
         Ok(Self {

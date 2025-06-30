@@ -13,7 +13,7 @@ const DEFAULT_CONFIG_PATH: &str = "./didm.toml";
 
 //TODO: add detailed error handling for load config
 pub fn load_config(config_path: ResolvedPath) -> Result<ConfigSet> {
-    let path = config_path.get();
+    let path = config_path.as_path();
     let content = fs::read_to_string(path)?;
     let config: DidmConfig = toml::from_str(&content)?;
     info!("loading from config:{path:#?}");
@@ -46,7 +46,7 @@ pub fn load_configs(path: Option<&str>) -> Result<(ResolvedPath, Vec<ConfigSet>)
 pub fn save_config(set: &ConfigSet) -> Result<()> {
     let ConfigSet(config_path, config) = set;
     let content = toml::to_string_pretty(config)?;
-    fs::write(config_path.get(), content)?;
+    fs::write(config_path.as_path(), content)?;
     Ok(())
 }
 
@@ -56,7 +56,7 @@ pub fn init_config(path: Option<&str>) -> Result<()> {
     let resolved_path = PathResolver::resolve(path, false)?;
 
     let config_path = resolved_path.into_child(CONFIG_FILE_NAME, false)?;
-    if config_path.get().exists() {
+    if config_path.as_path().exists() {
         return Err(ConfigError::ConfigExists(config_path.into_pathbuf()).into());
     }
     let config = DidmConfig::new();

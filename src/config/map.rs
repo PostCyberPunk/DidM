@@ -27,7 +27,7 @@ impl<'a> ConfigMap<'a> {
             .set(*check_config)
             .map_err(|_| ConfigError::BugCheckConfig)?;
         Checker::working_dir_is_symlink(config_sets[0].0.get_raw())?;
-        Checker::is_git_workspace(base_path.get())?;
+        Checker::is_git_workspace(base_path.as_path())?;
 
         //---------Build Config Map---------
         let mut path_map = Vec::new();

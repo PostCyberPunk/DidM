@@ -1,5 +1,5 @@
 use crate::{
-    entries::{Entry, strategy::ApplyStrategy},
+    entries::{Entry, apply_strategy::ApplyStrategy},
     utils::PathExtension,
 };
 use anyhow::Result;
@@ -24,9 +24,9 @@ impl<S: ApplyStrategy> EntryList<S> {
         self.entries.push(entry);
     }
 
-    pub fn add_entries(&mut self, entries: Vec<Entry>) {
-        self.entries.extend(entries);
-    }
+    // pub fn add_entries(&mut self, entries: Vec<Entry>) {
+    //     self.entries.extend(entries);
+    // }
 
     pub fn apply_entries(&self, is_dryrun: bool) -> Result<()> {
         for entry in &self.entries {
@@ -34,12 +34,12 @@ impl<S: ApplyStrategy> EntryList<S> {
             let target = &entry.target_path;
 
             //Skip existed target
-            if target.exists() && !entry.overwrite_existed {
-                info!("Skipped existed: {}", target.display());
-                //Retrun result::SkipExsit
-                continue;
-            }
-
+            // if target.exists() && !entry.overwrite_existed {
+            //     info!("Skipped existed: {}", target.display());
+            //     //Retrun result::SkipExsit
+            //     continue;
+            // }
+            //
             //Continue if this is Dry-run
             //NOTE: what about preview?
             if is_dryrun {
