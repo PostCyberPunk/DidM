@@ -4,7 +4,7 @@ use crate::{
     bakcup::{BackupManager, BackupRoot},
     commands::{CommandsContext, CommandsRunner},
     config::ConfigMap,
-    entries::{EntriesManager, EntryCollector},
+    entries::{EntriesManager, EntryCollector, TreeManager},
     model::{Composition, Sketch},
     utils::PathResolver,
 };
@@ -83,6 +83,9 @@ impl<'a> CompContext<'a> {
             entries_manager,
             // runtime,
         })
+    }
+    pub fn fill_tree(&self, tree: &mut TreeManager) {
+        self.entries_manager.fill_tree(tree);
     }
     pub fn deploy(self) -> Result<()> {
         // let mut backuper = Backuper::init(self.base_path, self.name.to_string(), args.is_dry_run)?;
