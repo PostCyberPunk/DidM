@@ -15,7 +15,7 @@ pub struct EntryBuilderCtx<'a> {
 pub trait BuildStrategy: Sized {
     fn deal_exist(builder: EntryBuilder<'_, Self>) -> Result<(Entry, CollectResult)> {
         match builder.do_backup() {
-            BackupState::Skip => Ok((builder.into_entry(), CollectResult::Skip)),
+            BackupState::Skip(e) => Ok((builder.into_entry(), CollectResult::SkipWithError(e))),
             _ => Ok((builder.into_entry(), CollectResult::Backuped)),
         }
     }

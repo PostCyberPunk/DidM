@@ -45,8 +45,7 @@ impl<'a, S: BuildStrategy> EntryBuilder<'a, S> {
         if let Some(bm) = self.ctx.backup_manager {
             match bm.bakcup(&self.target, self.relative_path.as_deref()) {
                 Ok(s) => s,
-                //TODO: error handling
-                Err(_) => BackupState::Skip,
+                Err(e) => BackupState::Skip(e.to_string()),
             }
         } else {
             BackupState::Ok
