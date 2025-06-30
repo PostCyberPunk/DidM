@@ -29,7 +29,7 @@ impl SameSourceBuilder {
             _marker: PhantomData,
         })
     }
-    fn deal_exist(builder: EntryBuilder<'_, Self>) -> (Entry, CollectResult) {
-        (builder.into_entry(), CollectResult::Skip)
+    fn deal_exist(builder: EntryBuilder<'_, Self>) -> Result<(Entry, CollectResult)> {
+        Ok((builder.into_entry(), CollectResult::Skip))
     }
 }
