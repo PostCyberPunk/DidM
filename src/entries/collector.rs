@@ -15,7 +15,6 @@ use super::{
 
 pub struct EntryCollector<'a> {
     source_root: ResolvedPath,
-    target_root: ResolvedPath,
     sketch: &'a Sketch,
     builder_ctx: EntryBuilderCtx<'a>,
     entries_manager: &'a mut EntriesManager,
@@ -51,14 +50,13 @@ impl<'a> EntryCollector<'a> {
         //prepare entry builder context
         let builder_ctx = EntryBuilderCtx {
             source_root: source_root.clone(),
-            target_root: target_root.clone(),
+            target_root,
             backup_manager,
             overwrite: overwrite_existed,
         };
         Ok(Self {
             entries_manager,
             source_root,
-            target_root,
             builder_ctx,
             sketch,
             is_dryrun,
