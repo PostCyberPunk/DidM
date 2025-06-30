@@ -1,5 +1,5 @@
 mod types;
-pub use types::EntryBuilderCtx;
+pub use types::{CollectResult, EntryBuilderCtx};
 
 mod builder;
 pub use builder::EntryBuilder;
