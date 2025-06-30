@@ -10,7 +10,11 @@ use super::{EntryBuilder, EntryBuilderCtx};
 
 pub struct SameSourceBuilder;
 
-impl BuildStrategy for SameSourceBuilder {}
+impl BuildStrategy for SameSourceBuilder {
+    fn deal_exist(builder: EntryBuilder<'_, Self>) -> (Entry, CollectResult) {
+        (builder.into_entry(), CollectResult::Skip)
+    }
+}
 impl SameSourceBuilder {
     pub fn create<'a>(
         ctx: &'a EntryBuilderCtx<'a>,
@@ -28,8 +32,5 @@ impl SameSourceBuilder {
             relative_path: None,
             _marker: PhantomData,
         })
-    }
-    fn deal_exist(builder: EntryBuilder<'_, Self>) -> (Entry, CollectResult) {
-        (builder.into_entry(), CollectResult::Skip)
     }
 }
