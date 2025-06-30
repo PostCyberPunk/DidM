@@ -14,7 +14,6 @@ use super::{
 };
 
 pub struct EntryCollector<'a> {
-    source_root: ResolvedPath,
     sketch: &'a Sketch,
     builder_ctx: EntryBuilderCtx<'a>,
     entries_manager: &'a mut EntriesManager,
@@ -49,14 +48,13 @@ impl<'a> EntryCollector<'a> {
 
         //prepare entry builder context
         let builder_ctx = EntryBuilderCtx {
-            source_root: source_root.clone(),
+            source_root,
             target_root,
             backup_manager,
             overwrite: overwrite_existed,
         };
         Ok(Self {
             entries_manager,
-            source_root,
             builder_ctx,
             sketch,
             is_dryrun,
@@ -111,7 +109,7 @@ impl<'a> EntryCollector<'a> {
     }
 
     fn get_normal_entries(&mut self) -> Result<()> {
-        let source_paths = DirWalker::new(self.sketch, self.source_root.as_path())
+        let source_paths = DirWalker::new(self.sketch, self.builder_ctx.source_root.as_path())
             .get_walker()?
             .run()?;
         for source_path in source_paths {
