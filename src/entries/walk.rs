@@ -64,9 +64,12 @@ impl<'a> DirWalker<'a> {
         }
         // deal with only ignore
         if self.only_ignore && self.ignore.is_empty() {
-            overrides
-                .add("!")
-                .context("Failed to make `only_ignore` happen")?;
+            return Err(anyhow::anyhow!(
+                "`only_ignore` is enabled but no ignore is set"
+            ));
+            // overrides
+            //     .add("!")
+            //     .context("Failed to make `only_ignore` happen")?;
         }
 
         //add default internal ignores
