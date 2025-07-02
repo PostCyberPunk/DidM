@@ -19,9 +19,11 @@ pub fn process() -> Result<()> {
             dry_run,
             verbose,
             tree,
+            variants,
         }) => {
             //Porcess arg first,we may use in loader
             let app_args = AppArgs {
+                variants,
                 is_dryrun: dry_run,
                 is_verbose: verbose,
                 is_debug: args.debug,
@@ -35,8 +37,10 @@ pub fn process() -> Result<()> {
             dry_run,
             verbose,
             tree,
+            variants,
         }) => {
             let app_args = AppArgs {
+                variants,
                 is_dryrun: dry_run,
                 is_verbose: verbose,
                 is_debug: args.debug,

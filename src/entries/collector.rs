@@ -15,6 +15,7 @@ use super::{
 
 pub struct EntryCollector<'a> {
     sketch: &'a Sketch,
+    variants: &'a Vec<String>,
     builder_ctx: EntryBuilderCtx<'a>,
     entries_manager: &'a mut EntriesManager,
     is_dryrun: bool,
@@ -25,6 +26,7 @@ impl<'a> EntryCollector<'a> {
         entries_manager: &'a mut EntriesManager,
         sketch: &'a Sketch,
         base_path: &ResolvedPath,
+        variants: &'a Vec<String>,
         sketch_name: &str,
         behaviour: &Behaviour,
         backup_manager: Option<&'a BackupManager>,
@@ -55,6 +57,7 @@ impl<'a> EntryCollector<'a> {
         };
         Ok(Self {
             entries_manager,
+            variants,
             builder_ctx,
             sketch,
             is_dryrun,
@@ -109,9 +112,13 @@ impl<'a> EntryCollector<'a> {
     }
 
     fn get_normal_entries(&mut self) -> Result<()> {
-        let source_paths = DirWalker::new(self.sketch, self.builder_ctx.source_root.as_path())
-            .get_walker()?
-            .run()?;
+        let source_paths = DirWalker::new(
+            self.sketch,
+            self.variants,
+            self.builder_ctx.source_root.as_path(),
+        )
+        .get_walker()?
+        .run()?;
         for source_path in source_paths {
             let (entry, result) = NormalBuilder::create(&self.builder_ctx, source_path)?.build();
             self.add_entry(entry, result, self.sketch.mode);

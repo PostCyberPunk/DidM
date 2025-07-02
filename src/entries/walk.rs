@@ -14,6 +14,7 @@ use tracing::error;
 //we should turn this into a builder.
 pub struct DirWalker<'a> {
     walker: Option<WalkBuilder>,
+    variants: &'a Vec<String>,
     base_path: &'a Path,
     //TODO: we should have a wraper fo ignore_config
     ignore: &'a Vec<String>,
@@ -25,9 +26,10 @@ pub struct DirWalker<'a> {
 }
 
 impl<'a> DirWalker<'a> {
-    pub fn new(sketch: &'a Sketch, base_path: &'a Path) -> Self {
+    pub fn new(sketch: &'a Sketch, variants: &'a Vec<String>, base_path: &'a Path) -> Self {
         Self {
             walker: None,
+            variants,
             base_path,
             ignore: &sketch.ignore,
             respect_gitignore: sketch.respect_gitignore,
