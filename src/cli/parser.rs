@@ -28,7 +28,8 @@ pub enum Commands {
         dry_run: bool,
         #[arg(short = 'v', long)]
         verbose: bool,
-        //TODO: a preview tree will be nice
+        #[arg(long)]
+        tree: bool,
     },
     #[command(arg_required_else_help = true)]
     Draw {
@@ -40,7 +41,8 @@ pub enum Commands {
         dry_run: bool,
         #[arg(short = 'v', long)]
         verbose: bool,
-        //TODO: a preview tree will be nice
+        #[arg(long)]
+        tree: bool,
     },
     Schema,
 }
