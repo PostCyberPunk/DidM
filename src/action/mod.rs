@@ -1,4 +1,5 @@
 mod types;
+
 pub use types::ActionSource;
 
 use anyhow::{Context, Result};
@@ -10,6 +11,7 @@ use crate::{
     config::{self, ConfigMap},
     entries::TreeManager,
     model::Composition,
+    utils::prompt,
 };
 
 pub fn deploy(
@@ -25,38 +27,56 @@ pub fn deploy(
     let (base_path, config_sets) = config::load_configs(path.as_deref())?;
     let config_map = ConfigMap::new(base_path, &config_sets)?;
 
-    //Tree
-    let mut tree = TreeManager::new();
+    //TODO: 1.add sketch_temp_comp to configs?
+    //2. use a builder instead of comp_ctx to get entries_manager and commands_runner
+    #[allow(unused_assignments)]
+    let mut sketch_comp: Option<Composition> = None;
 
-    match source {
+    let comps: Vec<(&Composition, String)> = match source {
         ActionSource::Render => {
-            for comp_name in arg.iter() {
-                let comp = config_map.get_comp(comp_name)?;
-                deploy_comp(comp_name, comp, &config_map, &mut tree, app_args)?;
+            let mut comps = Vec::new();
+            for comp_name in arg {
+                let comp = config_map.get_comp(&comp_name)?;
+                comps.push((comp, comp_name));
             }
+            comps
         }
         ActionSource::Draw => {
-            let comp = Composition::new(arg.clone());
-            deploy_comp("draw_sketches", &comp, &config_map, &mut tree, app_args)?;
+            let comp = Composition::new(arg);
+            let comp_name = String::from("draw_sketches");
+            sketch_comp = Some(comp);
+            vec![(sketch_comp.as_ref().unwrap(), comp_name)]
+        }
+    };
+
+    //Preparing comp_ctxs
+    let mut comp_ctxs: Vec<(CompContext, &str)> = Vec::new();
+    for (comp, comp_name) in comps.iter() {
+        info!("Preparing Composition : {} ...", comp_name);
+        let ctx = CompContext::new(comp_name, comp, &config_map, &app_args)
+            .context(format!("Composition init failed:{}", comp_name))?;
+        comp_ctxs.push((ctx, comp_name));
+    }
+
+    //Tree
+    if app_args.show_tree {
+        let mut tree = TreeManager::new();
+        comp_ctxs.iter().for_each(|c| c.0.fill_tree(&mut tree));
+        tree.print();
+        if app_args.is_dryrun {
+            return Ok(());
+        } else if !prompt::confirm("Continue?") {
+            anyhow::bail!("User cancelled");
         }
     }
-    tree.print();
-    Ok(())
-}
 
-fn deploy_comp(
-    comp_name: &str,
-    comp: &Composition,
-    config_map: &ConfigMap<'_>,
-    tree: &mut TreeManager,
-    app_args: AppArgs,
-) -> Result<()> {
-    info!("Rendering Composition : {} ...", comp_name);
-    let c = CompContext::new(comp_name, comp, config_map, &app_args)
-        .context(format!("Composition init failed:{}", comp_name))?;
-    c.fill_tree(tree);
-    c.deploy()
-        .context(format!("Composition deploy failed:{}", comp_name))?;
+    //Depoly
+    comp_ctxs.into_iter().try_for_each(|(ctx, name)| {
+        info!("Deploying Composition `{}` ...", name);
+        ctx.deploy()
+            .context(format!("Composition `{}` deploy failed", name))
+    })?;
+
     Ok(())
 }
 

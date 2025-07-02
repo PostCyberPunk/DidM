@@ -1,8 +1,6 @@
 use std::collections::{BTreeMap, HashSet};
 use std::path::Path;
 
-use super::EntriesManager;
-
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum EntryKind {
     Copy,

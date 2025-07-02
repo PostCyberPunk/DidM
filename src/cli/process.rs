@@ -18,12 +18,14 @@ pub fn process() -> Result<()> {
             path,
             dry_run,
             verbose,
+            tree,
         }) => {
             //Porcess arg first,we may use in loader
             let app_args = AppArgs {
                 is_dryrun: dry_run,
                 is_verbose: verbose,
                 is_debug: args.debug,
+                show_tree: tree,
             };
             action::deploy(path, comp_name, app_args, action::ActionSource::Render)?;
         }
@@ -32,11 +34,13 @@ pub fn process() -> Result<()> {
             path,
             dry_run,
             verbose,
+            tree,
         }) => {
             let app_args = AppArgs {
                 is_dryrun: dry_run,
                 is_verbose: verbose,
                 is_debug: args.debug,
+                show_tree: tree,
             };
             action::deploy(path, sketch_names, app_args, action::ActionSource::Draw)?;
         }
