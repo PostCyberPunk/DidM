@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 use ignore::WalkBuilder;
 use ignore::overrides::OverrideBuilder;
 use std::path::{Path, PathBuf};
-use tracing::error;
+use tracing::{error, warn};
 
 //TODO: can't kill self,
 //this should be oneshot,so init and run then dead
@@ -50,13 +50,6 @@ impl<'a> DirWalker<'a> {
         //Init overrides
         let mut overrides = OverrideBuilder::new(base_path);
 
-        //add default internal ignores
-        //NOTE: bacause of this,the overrides will never be empty
-        overrides.add("!didm.toml")?;
-        overrides.add("!.gitignore")?;
-        overrides.add("!didmignore")?;
-        overrides.add("!didm_backup")?;
-
         //Unit dir
         if self.unit == Unit::Dir && self.mode == Mode::Symlink {
             walker.max_depth(Some(1));
@@ -75,6 +68,16 @@ impl<'a> DirWalker<'a> {
                 .add("!")
                 .context("Failed to make `only_ignore` happen")?;
         }
+
+        //add default internal ignores
+        //NOTE: bacause of this,the overrides will never be empty
+        overrides.add("!**/didm_va_*/*")?;
+        overrides.add("!didm.toml")?;
+        overrides.add("!.gitignore")?;
+        overrides.add("!didmignore")?;
+        overrides.add("!didm_backup")?;
+        overrides.add("!didm.schema.json")?;
+
         //Done overrides
         walker.overrides(overrides.build()?);
 
@@ -109,6 +112,20 @@ impl<'a> DirWalker<'a> {
             };
             if unit_condition {
                 entries.push(entry.path().to_path_buf());
+            }
+            error!("Entry:{}", entry.path().display());
+            //check variants
+            if !self.only_ignore && entry_type.is_dir() {
+                let filename = entry.file_name().to_str().unwrap();
+                if filename.starts_with("didm_va_") {
+                    for va in self.variants.iter() {
+                        let var_path = entry.path().join(va);
+                        if var_path.exists() {
+                            warn!("Variant `{}` hitted :{:?}", va, var_path);
+                            break;
+                        }
+                    }
+                }
             }
         }
         //FIX: the result always return the base_path as first entry?
