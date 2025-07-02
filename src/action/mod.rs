@@ -1,5 +1,4 @@
 mod types;
-use std::result;
 
 pub use types::ActionSource;
 
@@ -11,7 +10,7 @@ use crate::{
     composition::{AppArgs, CompContext},
     config::{self, ConfigMap},
     entries::TreeManager,
-    model::{Composition, sketch},
+    model::Composition,
     utils::prompt,
 };
 
@@ -70,6 +69,8 @@ pub fn deploy(
             anyhow::bail!("User cancelled");
         }
     }
+
+    //Depoly
     comp_ctxs.into_iter().try_for_each(|(ctx, name)| {
         info!("Deploying Composition `{}` ...", name);
         ctx.deploy()
