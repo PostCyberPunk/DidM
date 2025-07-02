@@ -22,10 +22,6 @@ impl ResolvedPath {
     pub fn get_raw(&self) -> &str {
         &self.raw
     }
-    //FIX: WTF is this name?...
-    pub fn di_string(&self) -> String {
-        self.path.display().to_string()
-    }
     //------------------------
     pub fn into_parent(mut self) -> Result<Self> {
         if self.path == Path::new("/") {
