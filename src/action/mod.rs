@@ -12,6 +12,7 @@ use crate::{
     config::{self, ConfigMap},
     entries::TreeManager,
     model::{Composition, sketch},
+    utils::prompt,
 };
 
 pub fn deploy(
@@ -57,6 +58,23 @@ pub fn deploy(
             .context(format!("Composition init failed:{}", comp_name))?;
         comp_ctxs.push((ctx, comp_name));
     }
+
+    //Tree
+    if app_args.show_tree {
+        let mut tree = TreeManager::new();
+        comp_ctxs.iter().for_each(|c| c.0.fill_tree(&mut tree));
+        tree.print();
+        if app_args.is_dryrun {
+            return Ok(());
+        } else if !prompt::confirm("Continue?") {
+            anyhow::bail!("User cancelled");
+        }
+    }
+    comp_ctxs.into_iter().try_for_each(|(ctx, name)| {
+        info!("Deploying Composition `{}` ...", name);
+        ctx.deploy()
+            .context(format!("Composition `{}` deploy failed", name))
+    })?;
 
     Ok(())
 }
