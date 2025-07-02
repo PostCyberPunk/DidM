@@ -112,7 +112,7 @@ impl<'a> EntryCollector<'a> {
     }
 
     fn get_normal_entries(&mut self) -> Result<()> {
-        let source_paths = DirWalker::new(
+        let (source_paths, variants_path) = DirWalker::new(
             self.sketch,
             self.variants,
             self.builder_ctx.source_root.as_path(),

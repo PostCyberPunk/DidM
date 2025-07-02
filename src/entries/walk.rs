@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 use ignore::WalkBuilder;
 use ignore::overrides::OverrideBuilder;
 use std::path::{Path, PathBuf};
-use tracing::{error, warn};
+use tracing::{debug, error, info, warn};
 
 //TODO: can't kill self,
 //this should be oneshot,so init and run then dead
@@ -94,7 +94,7 @@ impl<'a> DirWalker<'a> {
         self.walker = Some(walker);
         Ok(self)
     }
-    pub fn run(&self) -> Result<Vec<PathBuf>> {
+    pub fn run(&self) -> Result<(Vec<PathBuf>, Vec<PathBuf>)> {
         //FIX: use walker instead of Option<walker>
         let walker = self.walker.as_ref().ok_or_else(|| {
             error!("Worker not initialized");
@@ -103,6 +103,7 @@ impl<'a> DirWalker<'a> {
 
         //Maybe move this to field?
         let mut entries = Vec::new();
+        let mut variants_out = Vec::new();
 
         for result in walker.build() {
             let entry = result.context("Failed to get entry")?;
@@ -116,7 +117,7 @@ impl<'a> DirWalker<'a> {
             if unit_condition {
                 entries.push(entry.path().to_path_buf());
             }
-            error!("Entry:{}", entry.path().display());
+            debug!("Entry:{}", entry.path().display());
             //check variants
             if !self.only_ignore && entry_type.is_dir() {
                 let filename = entry.file_name().to_str().unwrap();
@@ -124,7 +125,8 @@ impl<'a> DirWalker<'a> {
                     for va in self.variants.iter() {
                         let var_path = entry.path().join(va);
                         if var_path.exists() {
-                            warn!("Variant `{}` hitted :{:?}", va, var_path);
+                            info!("Variant `{}` hitted :\n{:?}", va, var_path);
+                            variants_out.push(var_path);
                             break;
                         }
                     }
@@ -135,6 +137,6 @@ impl<'a> DirWalker<'a> {
         if self.unit == Unit::Dir && self.mode == Mode::Symlink {
             entries.remove(0);
         }
-        Ok(entries)
+        Ok((entries, variants_out))
     }
 }
