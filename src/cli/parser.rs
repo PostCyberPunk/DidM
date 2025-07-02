@@ -30,6 +30,8 @@ pub enum Commands {
         verbose: bool,
         #[arg(long)]
         tree: bool,
+        #[arg(long, value_delimiter = ',')]
+        variants: Vec<String>,
     },
     #[command(arg_required_else_help = true)]
     Draw {
@@ -43,6 +45,8 @@ pub enum Commands {
         verbose: bool,
         #[arg(long)]
         tree: bool,
+        #[arg(long, value_delimiter = ',')]
+        variants: Vec<String>,
     },
     Schema,
 }

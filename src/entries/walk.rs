@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 use ignore::WalkBuilder;
 use ignore::overrides::OverrideBuilder;
 use std::path::{Path, PathBuf};
-use tracing::error;
+use tracing::{debug, error, info};
 
 //TODO: can't kill self,
 //this should be oneshot,so init and run then dead
@@ -14,6 +14,7 @@ use tracing::error;
 //we should turn this into a builder.
 pub struct DirWalker<'a> {
     walker: Option<WalkBuilder>,
+    variants: &'a Vec<String>,
     base_path: &'a Path,
     //TODO: we should have a wraper fo ignore_config
     ignore: &'a Vec<String>,
@@ -25,9 +26,10 @@ pub struct DirWalker<'a> {
 }
 
 impl<'a> DirWalker<'a> {
-    pub fn new(sketch: &'a Sketch, base_path: &'a Path) -> Self {
+    pub fn new(sketch: &'a Sketch, variants: &'a Vec<String>, base_path: &'a Path) -> Self {
         Self {
             walker: None,
+            variants,
             base_path,
             ignore: &sketch.ignore,
             respect_gitignore: sketch.respect_gitignore,
@@ -48,13 +50,6 @@ impl<'a> DirWalker<'a> {
         //Init overrides
         let mut overrides = OverrideBuilder::new(base_path);
 
-        //add default internal ignores
-        //NOTE: bacause of this,the overrides will never be empty
-        overrides.add("!didm.toml")?;
-        overrides.add("!.gitignore")?;
-        overrides.add("!didmignore")?;
-        overrides.add("!didm_backup")?;
-
         //Unit dir
         if self.unit == Unit::Dir && self.mode == Mode::Symlink {
             walker.max_depth(Some(1));
@@ -69,10 +64,23 @@ impl<'a> DirWalker<'a> {
         }
         // deal with only ignore
         if self.only_ignore && self.ignore.is_empty() {
-            overrides
-                .add("!")
-                .context("Failed to make `only_ignore` happen")?;
+            return Err(anyhow::anyhow!(
+                "`only_ignore` is enabled but no ignore is set"
+            ));
+            // overrides
+            //     .add("!")
+            //     .context("Failed to make `only_ignore` happen")?;
         }
+
+        //add default internal ignores
+        //NOTE: bacause of this,the overrides will never be empty
+        overrides.add("!**/didm_va_*/*")?;
+        overrides.add("!didm.toml")?;
+        overrides.add("!.gitignore")?;
+        overrides.add("!didmignore")?;
+        overrides.add("!didm_backup")?;
+        overrides.add("!didm.schema.json")?;
+
         //Done overrides
         walker.overrides(overrides.build()?);
 
@@ -86,7 +94,7 @@ impl<'a> DirWalker<'a> {
         self.walker = Some(walker);
         Ok(self)
     }
-    pub fn run(&self) -> Result<Vec<PathBuf>> {
+    pub fn run(&self) -> Result<(Vec<PathBuf>, Vec<PathBuf>)> {
         //FIX: use walker instead of Option<walker>
         let walker = self.walker.as_ref().ok_or_else(|| {
             error!("Worker not initialized");
@@ -95,6 +103,7 @@ impl<'a> DirWalker<'a> {
 
         //Maybe move this to field?
         let mut entries = Vec::new();
+        let mut variants_out = Vec::new();
 
         for result in walker.build() {
             let entry = result.context("Failed to get entry")?;
@@ -108,11 +117,26 @@ impl<'a> DirWalker<'a> {
             if unit_condition {
                 entries.push(entry.path().to_path_buf());
             }
+            debug!("Entry:{}", entry.path().display());
+            //check variants
+            if !self.only_ignore && entry_type.is_dir() {
+                let filename = entry.file_name().to_str().unwrap();
+                if filename.starts_with("didm_va_") {
+                    for va in self.variants.iter() {
+                        let var_path = entry.path().join(va);
+                        if var_path.exists() {
+                            info!("Variant `{}` hitted :\n{:?}", va, var_path);
+                            variants_out.push(var_path);
+                            break;
+                        }
+                    }
+                }
+            }
         }
         //FIX: the result always return the base_path as first entry?
         if self.unit == Unit::Dir && self.mode == Mode::Symlink {
             entries.remove(0);
         }
-        Ok(entries)
+        Ok((entries, variants_out))
     }
 }

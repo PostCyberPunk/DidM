@@ -7,6 +7,9 @@ pub use builder::EntryBuilder;
 mod normal;
 pub use normal::NormalBuilder;
 
+mod variant;
+pub use variant::VariantBuilder;
+
 mod extra;
 pub use extra::ExtraBuilder;
 

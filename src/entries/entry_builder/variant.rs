@@ -7,21 +7,30 @@ use log::warn;
 use super::types::BuildStrategy;
 use super::{EntryBuilder, EntryBuilderCtx};
 
-pub struct NormalBuilder;
-impl BuildStrategy for NormalBuilder {}
-impl NormalBuilder {
+pub struct VariantBuilder;
+impl BuildStrategy for VariantBuilder {}
+impl VariantBuilder {
     pub fn create<'a>(
         ctx: &'a EntryBuilderCtx<'a>,
         source: PathBuf,
     ) -> Result<EntryBuilder<'a, Self>> {
-        let relative_path = match source.strip_prefix(ctx.source_root.as_path()) {
+        let filename = source
+            .parent()
+            .unwrap()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .strip_prefix("didm_va_")
+            .unwrap();
+        let target = source.parent().unwrap().parent().unwrap().join(filename);
+        let relative_path = match target.strip_prefix(ctx.source_root.as_path()) {
             Ok(p) => p.to_path_buf(),
             Err(e) => {
                 warn!("Invalid entry path: {}", e);
                 return Err(e.into());
             }
         };
-        let target = ctx.target_root.as_path().join(relative_path.clone());
         Ok(EntryBuilder {
             source,
             target,
