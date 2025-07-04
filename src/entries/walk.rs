@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 use ignore::WalkBuilder;
 use ignore::overrides::OverrideBuilder;
 use std::path::{Path, PathBuf};
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
 //TODO: can't kill self,
 //this should be oneshot,so init and run then dead
