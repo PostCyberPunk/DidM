@@ -21,9 +21,10 @@ impl NormalBuilder {
                 return Err(e.into());
             }
         };
+        let target = ctx.target_root.as_path().join(relative_path.clone());
         Ok(EntryBuilder {
             source,
-            target: ctx.target_root.as_path().join(relative_path.clone()),
+            target,
             ctx,
             relative_path: Some(relative_path),
             _marker: PhantomData,
